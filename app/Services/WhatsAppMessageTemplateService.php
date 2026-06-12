@@ -24,7 +24,11 @@ class WhatsAppMessageTemplateService
     {
         $template = $this->find($event);
 
-        return $template?->is_enabled ?? $event->defaultEnabled();
+        if (! $template) {
+            return false;
+        }
+
+        return $template->is_enabled;
     }
 
     public function render(WhatsAppMessageEvent $event, User $user, ?Purchase $purchase = null, ?NormalizedPurchaseContext $context = null): string
@@ -90,7 +94,7 @@ class WhatsAppMessageTemplateService
         $template = $this->find($event);
 
         if (! $template) {
-            return $this->upsert($event, $event->defaultBody(), ! $event->defaultEnabled());
+            throw new \RuntimeException("Regra não encontrada para {$event->value}.");
         }
 
         return $this->upsert($event, $template->body, ! $template->is_enabled);
@@ -108,6 +112,26 @@ class WhatsAppMessageTemplateService
     }
 
     /**
+     * @return array<string, array<string, string>>
+     */
+    public function availableConditionOptions(): array
+    {
+        $existing = WhatsAppMessageTemplate::query()
+            ->pluck('event')
+            ->map(fn (WhatsAppMessageEvent|string $event): string => $event instanceof WhatsAppMessageEvent ? $event->value : $event)
+            ->all();
+
+        return collect(WhatsAppMessageEvent::creatableCases())
+            ->reject(fn (WhatsAppMessageEvent $event): bool => in_array($event->value, $existing, true))
+            ->groupBy(fn (WhatsAppMessageEvent $event): string => $event->group())
+            ->sortKeys()
+            ->map(fn ($events): array => $events
+                ->mapWithKeys(fn (WhatsAppMessageEvent $event): array => [$event->value => $event->conditionLabel()])
+                ->all())
+            ->all();
+    }
+
+    /**
      * @return array<string, string>
      */
     public function availableEventOptions(): array
@@ -117,10 +141,22 @@ class WhatsAppMessageTemplateService
             ->map(fn (WhatsAppMessageEvent|string $event): string => $event instanceof WhatsAppMessageEvent ? $event->value : $event)
             ->all();
 
-        return collect(WhatsAppMessageEvent::cases())
+        return collect(WhatsAppMessageEvent::creatableCases())
             ->reject(fn (WhatsAppMessageEvent $event): bool => in_array($event->value, $existing, true))
-            ->mapWithKeys(fn (WhatsAppMessageEvent $event): array => [$event->value => $event->label()])
+            ->mapWithKeys(fn (WhatsAppMessageEvent $event): array => [$event->value => $event->conditionLabel()])
             ->all();
+    }
+
+    public function deleteRule(WhatsAppMessageEvent $event): void
+    {
+        WhatsAppMessageTemplate::query()
+            ->where('event', $event->value)
+            ->delete();
+    }
+
+    public function ensureDefaults(): void
+    {
+        //
     }
 
     /**
@@ -144,20 +180,6 @@ class WhatsAppMessageTemplateService
         }
 
         return $templates;
-    }
-
-    public function ensureDefaults(): void
-    {
-        foreach (WhatsAppMessageEvent::cases() as $event) {
-            WhatsAppMessageTemplate::query()->firstOrCreate(
-                ['event' => $event->value],
-                [
-                    'body' => $event->defaultBody(),
-                    'is_enabled' => $event->defaultEnabled(),
-                    'sort_order' => $this->sortOrder($event),
-                ]
-            );
-        }
     }
 
     private function find(WhatsAppMessageEvent $event): ?WhatsAppMessageTemplate

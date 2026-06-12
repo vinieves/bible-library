@@ -18,17 +18,22 @@ enum WhatsAppMessageEvent: string
 
     public function label(): string
     {
+        return $this->conditionLabel();
+    }
+
+    public function conditionLabel(): string
+    {
         return match ($this) {
-            self::PurchaseApproved => 'Compra aprovada (Plan Completo)',
+            self::PurchaseApproved => 'Venda aprovada (Plan Completo)',
             self::PurchaseComplete => 'Compra completa (garantia encerrada)',
-            self::PurchaseFunnel => 'Order bump / Upsell aprovado',
+            self::PurchaseFunnel => 'Order bump / upsell aprovado',
             self::PurchaseCanceled => 'Compra cancelada',
-            self::PurchaseBilletPrinted => 'Boleto impresso',
-            self::PurchaseProtest => 'Pedido de reembolso (protesto)',
+            self::PurchaseBilletPrinted => 'Boleto gerado / impresso',
+            self::PurchaseProtest => 'Pedido de reembolso',
             self::PurchaseRefunded => 'Compra reembolsada',
             self::PurchaseChargeback => 'Chargeback',
             self::PurchaseExpired => 'Compra expirada',
-            self::PurchaseDelayed => 'Compra atrasada',
+            self::PurchaseDelayed => 'Pagamento atrasado',
             self::ManualTest => 'Teste manual',
         };
     }
@@ -162,6 +167,17 @@ enum WhatsAppMessageEvent: string
             $event === 'PURCHASE_DELAYED' => self::PurchaseDelayed,
             default => null,
         };
+    }
+
+    /**
+     * @return list<self>
+     */
+    public static function creatableCases(): array
+    {
+        return array_values(array_filter(
+            self::cases(),
+            fn (self $event) => $event !== self::ManualTest,
+        ));
     }
 
     /**

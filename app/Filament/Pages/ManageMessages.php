@@ -58,7 +58,7 @@ class ManageMessages extends Page
 
         $this->form->fill([
             'test_phone' => '',
-            'test_event' => WhatsAppMessageEvent::ManualTest->value,
+            'test_event' => $this->defaultTestEvent($templates),
             'rule_event' => null,
             'rule_body' => '',
             'rule_enabled' => true,
@@ -76,7 +76,7 @@ class ManageMessages extends Page
 
         return $schema->components([
             Section::make('Status da integração')
-                ->description('A Evolution API e o disparo global ficam em Integrações API. Aqui você cria regras por evento Hotmart.')
+                ->description('A Evolution API e o disparo global ficam em Integrações API. Aqui você cria regras por status de venda Hotmart.')
                 ->schema([
                     Placeholder::make('integration_status')
                         ->label('Evolution API')
@@ -111,25 +111,26 @@ class ManageMessages extends Page
                         ->columnSpanFull(),
                 ])
                 ->collapsed(),
-            Section::make(fn (): string => $this->editingEvent ? 'Editar regra' : 'Nova regra')
-                ->description('Escolha o evento, defina a mensagem e salve. A regra aparecerá na lista abaixo.')
+            Section::make(fn (): string => $this->editingEvent ? 'Editar regra de mensagem' : 'Nova regra de mensagem')
+                ->description('Escolha a condição (status da venda), escreva a mensagem e salve.')
                 ->visible(fn (): bool => $this->showRuleForm)
                 ->schema([
                     Select::make('rule_event')
-                        ->label('Evento Hotmart')
+                        ->label('Condição (status da venda)')
                         ->options(function (WhatsAppMessageTemplateService $templates): array {
                             if ($this->editingEvent) {
                                 $event = WhatsAppMessageEvent::from($this->editingEvent);
 
-                                return [$event->value => $event->label()];
+                                return [$event->group() => [$event->value => $event->conditionLabel()]];
                             }
 
-                            return $templates->availableEventOptions();
+                            return $templates->availableConditionOptions();
                         })
                         ->disabled(fn (): bool => filled($this->editingEvent))
                         ->required()
                         ->native(false)
                         ->live()
+                        ->placeholder('Selecione um status da venda')
                         ->afterStateUpdated(function (?string $state, Set $set): void {
                             if (blank($state) || filled($this->editingEvent)) {
                                 return;
@@ -137,37 +138,39 @@ class ManageMessages extends Page
 
                             $event = WhatsAppMessageEvent::from($state);
                             $set('rule_body', $event->defaultBody());
-                            $set('rule_enabled', $event->defaultEnabled());
+                            $set('rule_enabled', true);
                         })
                         ->helperText(fn (Get $get): ?string => filled($get('rule_event'))
                             ? WhatsAppMessageEvent::from((string) $get('rule_event'))->description()
-                            : 'Selecione o evento que dispara esta mensagem.')
+                            : 'Escolha quando a mensagem deve ser enviada.')
                         ->columnSpanFull(),
                     Placeholder::make('rule_meta')
-                        ->label('Condição do sistema')
+                        ->label('O que o sistema faz')
                         ->visible(fn (Get $get): bool => filled($get('rule_event')))
                         ->content(function (Get $get): HtmlString {
                             $event = WhatsAppMessageEvent::from((string) $get('rule_event'));
 
                             return new HtmlString(
-                                '<div class="space-y-1 text-sm text-gray-600 dark:text-gray-300">'.
-                                '<p><strong>Evento:</strong> <code>'.$event->hotmartEvent().'</code></p>'.
-                                '<p><strong>Ação automática:</strong> '.$event->systemAction().'</p>'.
-                                '</div>'
+                                '<p class="text-sm text-gray-600 dark:text-gray-300">'.
+                                '<strong>Evento Hotmart:</strong> <code>'.$event->hotmartEvent().'</code> · '.
+                                '<strong>Ação:</strong> '.$event->systemAction().
+                                '</p>'
                             );
                         })
                         ->columnSpanFull(),
                     Textarea::make('rule_body')
-                        ->label('Texto da mensagem (espanhol)')
+                        ->label('Mensagem (espanhol)')
                         ->rows(6)
                         ->required()
+                        ->visible(fn (Get $get): bool => filled($get('rule_event')))
                         ->live(debounce: 500)
                         ->helperText(fn (Get $get): string => filled($get('rule_event'))
                             ? 'Placeholders: '.implode(', ', WhatsAppMessageEvent::from((string) $get('rule_event'))->placeholders())
-                            : 'Selecione um evento para ver os placeholders disponíveis.')
+                            : 'Selecione uma condição para editar a mensagem.')
                         ->columnSpanFull(),
                     Placeholder::make('rule_preview')
                         ->label('Pré-visualização')
+                        ->visible(fn (Get $get): bool => filled($get('rule_event')))
                         ->content(function (Get $get) use ($templateService): HtmlString {
                             $body = (string) ($get('rule_body') ?? '');
 
@@ -180,13 +183,17 @@ class ManageMessages extends Page
                         ->columnSpanFull(),
                     Toggle::make('rule_enabled')
                         ->label('Regra ativa')
+                        ->visible(fn (Get $get): bool => filled($get('rule_event')))
                         ->helperText('Requer WhatsApp automático ativo em Integrações API.')
                         ->inline(false)
                         ->columnSpanFull(),
-                    View::make('filament.pages.manage-messages-rule-form-actions'),
+                    View::make('filament.pages.manage-messages-rule-form-actions')
+                        ->visible(fn (Get $get): bool => filled($get('rule_event'))),
                 ]),
             Section::make('Regras de mensagem')
-                ->description('Cada regra corresponde a um evento Hotmart. Ative ou desative diretamente na lista.')
+                ->description($this->rules->isEmpty()
+                    ? 'Nenhuma regra criada ainda. Clique em Criar regra para começar.'
+                    : 'Suas regras salvas. Ative ou desative direto na lista.')
                 ->afterHeader([
                     Action::make('createRule')
                         ->label('Criar regra')
@@ -201,15 +208,14 @@ class ManageMessages extends Page
                         ]),
                 ]),
             Section::make('Enviar teste')
-                ->description('O teste usa o template selecionado e não depende do toggle de disparo automático global.')
+                ->description('Testa uma regra salva. Não depende do toggle de disparo automático global.')
                 ->schema([
                     Select::make('test_event')
                         ->label('Regra para testar')
-                        ->options(collect(WhatsAppMessageEvent::cases())->mapWithKeys(
-                            fn (WhatsAppMessageEvent $event): array => [$event->value => $event->label()]
-                        ))
+                        ->options(fn (WhatsAppMessageTemplateService $templates): array => $this->testEventOptions($templates))
                         ->required()
-                        ->native(false),
+                        ->native(false)
+                        ->disabled(fn (WhatsAppMessageTemplateService $templates): bool => $templates->configuredRules()->isEmpty()),
                     TextInput::make('test_phone')
                         ->label('Telefone de teste')
                         ->placeholder('573165247626')
@@ -223,12 +229,10 @@ class ManageMessages extends Page
 
     public function openCreateRuleForm(WhatsAppMessageTemplateService $templates): void
     {
-        $available = $templates->availableEventOptions();
-
-        if ($available === []) {
+        if ($templates->availableConditionOptions() === []) {
             Notification::make()
-                ->title('Todos os eventos já possuem regra')
-                ->body('Edite uma regra existente na lista.')
+                ->title('Todos os status já possuem regra')
+                ->body('Edite ou exclua uma regra existente para criar outra.')
                 ->warning()
                 ->send();
 
@@ -237,12 +241,9 @@ class ManageMessages extends Page
 
         $this->showRuleForm = true;
         $this->editingEvent = null;
-
-        $firstEvent = WhatsAppMessageEvent::from(array_key_first($available));
-
-        $this->data['rule_event'] = $firstEvent->value;
-        $this->data['rule_body'] = $firstEvent->defaultBody();
-        $this->data['rule_enabled'] = $firstEvent->defaultEnabled();
+        $this->data['rule_event'] = null;
+        $this->data['rule_body'] = '';
+        $this->data['rule_enabled'] = true;
     }
 
     public function openEditRuleForm(string $eventValue, WhatsAppMessageTemplateService $templates): void
@@ -277,7 +278,7 @@ class ManageMessages extends Page
 
         if (blank($eventValue)) {
             Notification::make()
-                ->title('Selecione um evento Hotmart')
+                ->title('Selecione uma condição')
                 ->warning()
                 ->send();
 
@@ -298,10 +299,11 @@ class ManageMessages extends Page
 
         $this->refreshRules($templates);
         $this->cancelRuleForm();
+        $this->data['test_event'] = $this->defaultTestEvent($templates);
 
         Notification::make()
             ->title('Regra salva')
-            ->body($event->label())
+            ->body($event->conditionLabel())
             ->success()
             ->send();
     }
@@ -318,17 +320,49 @@ class ManageMessages extends Page
         $this->refreshRules($templates);
     }
 
+    public function deleteRule(string $eventValue, WhatsAppMessageTemplateService $templates): void
+    {
+        $event = WhatsAppMessageEvent::tryFrom($eventValue);
+
+        if (! $event) {
+            return;
+        }
+
+        if ($this->editingEvent === $event->value) {
+            $this->cancelRuleForm();
+        }
+
+        $templates->deleteRule($event);
+        $this->refreshRules($templates);
+        $this->data['test_event'] = $this->defaultTestEvent($templates);
+
+        Notification::make()
+            ->title('Regra excluída')
+            ->body($event->conditionLabel())
+            ->success()
+            ->send();
+    }
+
     protected function getHeaderActions(): array
     {
         return [
             Action::make('sendTest')
                 ->label('Enviar teste')
                 ->icon('heroicon-o-paper-airplane')
-                ->action(function (): void {
+                ->action(function (WhatsAppMessageTemplateService $templates): void {
                     if (! IntegrationSettings::evolutionConfigured()) {
                         Notification::make()
                             ->title('Evolution API não configurada')
                             ->body('Configure em Integrações API antes de testar.')
+                            ->warning()
+                            ->send();
+
+                        return;
+                    }
+
+                    if ($templates->configuredRules()->isEmpty()) {
+                        Notification::make()
+                            ->title('Crie uma regra antes de testar')
                             ->warning()
                             ->send();
 
@@ -347,8 +381,18 @@ class ManageMessages extends Page
                         return;
                     }
 
-                    $eventValue = $this->data['test_event'] ?? WhatsAppMessageEvent::ManualTest->value;
-                    $event = WhatsAppMessageEvent::tryFrom($eventValue) ?? WhatsAppMessageEvent::ManualTest;
+                    $eventValue = $this->data['test_event'] ?? null;
+                    $event = WhatsAppMessageEvent::tryFrom((string) $eventValue);
+
+                    if (! $event || ! $templates->configuredRules()->contains(fn (WhatsAppMessageTemplate $rule): bool => $rule->event === $event)) {
+                        Notification::make()
+                            ->title('Selecione uma regra válida para testar')
+                            ->warning()
+                            ->send();
+
+                        return;
+                    }
+
                     $admin = auth()->user();
 
                     SendWelcomeWhatsAppJob::dispatch(
@@ -366,7 +410,7 @@ class ManageMessages extends Page
 
                     Notification::make()
                         ->title('Teste enfileirado')
-                        ->body("Regra: {$event->label()}. Verifique Disparos WhatsApp.")
+                        ->body("Regra: {$event->conditionLabel()}. Verifique Disparos WhatsApp.")
                         ->success()
                         ->send();
                 }),
@@ -385,5 +429,22 @@ class ManageMessages extends Page
     private function refreshRules(WhatsAppMessageTemplateService $templates): void
     {
         $this->rules = $templates->configuredRules();
+    }
+
+    private function defaultTestEvent(WhatsAppMessageTemplateService $templates): ?string
+    {
+        return $templates->configuredRules()->first()?->event->value;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function testEventOptions(WhatsAppMessageTemplateService $templates): array
+    {
+        return $templates->configuredRules()
+            ->mapWithKeys(fn (WhatsAppMessageTemplate $rule): array => [
+                $rule->event->value => $rule->event->conditionLabel(),
+            ])
+            ->all();
     }
 }
