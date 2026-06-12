@@ -57,11 +57,15 @@ class WhatsAppDispatchLogResource extends Resource
                     ->schema([
                         TextInput::make('trigger')
                             ->label('Origem')
-                            ->formatStateUsing(fn ($state) => $state instanceof WhatsAppDispatchTrigger ? $state->label() : $state)
+                            ->formatStateUsing(fn ($state) => $state instanceof WhatsAppDispatchTrigger
+                                ? $state->label()
+                                : WhatsAppDispatchTrigger::tryFrom((string) $state)?->label() ?? $state)
                             ->disabled(),
                         TextInput::make('status')
                             ->label('Resultado')
-                            ->formatStateUsing(fn ($state) => $state instanceof WhatsAppDispatchStatus ? $state->label() : $state)
+                            ->formatStateUsing(fn ($state) => $state instanceof WhatsAppDispatchStatus
+                                ? $state->label()
+                                : WhatsAppDispatchStatus::tryFrom((string) $state)?->label() ?? $state)
                             ->disabled(),
                         TextInput::make('phone')
                             ->label('Telefone informado')
@@ -69,9 +73,10 @@ class WhatsAppDispatchLogResource extends Resource
                         TextInput::make('phone_normalized')
                             ->label('Telefone normalizado')
                             ->disabled(),
-                        TextInput::make('user.email')
+                        TextInput::make('user_email')
                             ->label('Usuário')
-                            ->disabled(),
+                            ->disabled()
+                            ->dehydrated(false),
                         TextInput::make('purchase_id')
                             ->label('ID da compra')
                             ->disabled(),
@@ -83,7 +88,13 @@ class WhatsAppDispatchLogResource extends Resource
                             ->disabled(),
                         TextInput::make('created_at')
                             ->label('Enviado em')
-                            ->formatStateUsing(fn ($state) => $state?->format('d/m/Y H:i:s'))
+                            ->formatStateUsing(function ($state): ?string {
+                                if ($state instanceof \DateTimeInterface) {
+                                    return $state->format('d/m/Y H:i:s');
+                                }
+
+                                return filled($state) ? (string) $state : null;
+                            })
                             ->disabled(),
                         Textarea::make('error_message')
                             ->label('Erro')
@@ -104,7 +115,9 @@ class WhatsAppDispatchLogResource extends Resource
                     ->schema([
                         Textarea::make('evolution_response')
                             ->label('JSON')
-                            ->formatStateUsing(fn ($state) => json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES))
+                            ->formatStateUsing(fn ($state) => filled($state)
+                                ? json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+                                : '—')
                             ->rows(12)
                             ->disabled()
                             ->columnSpanFull(),
