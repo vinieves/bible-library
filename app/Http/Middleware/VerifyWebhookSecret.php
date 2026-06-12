@@ -2,7 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\WebhookLogStatus;
 use App\Enums\WebhookPlatform;
+use App\Services\WebhookLogService;
 use App\Support\IntegrationSettings;
 use Closure;
 use Illuminate\Http\Request;
@@ -10,6 +12,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 class VerifyWebhookSecret
 {
+    public function __construct(
+        private readonly WebhookLogService $webhookLogService,
+    ) {}
+
         public function handle(Request $request, Closure $next): Response
     {
         $resolvedPlatform = WebhookPlatform::tryFromRoute($request->route('platform'));
@@ -27,6 +33,15 @@ class VerifyWebhookSecret
         if ($this->isValidSecretHeader($request)) {
             return $next($request);
         }
+
+        $this->webhookLogService->log(
+            request: $request,
+            platform: $resolvedPlatform,
+            status: WebhookLogStatus::Unauthorized,
+            message: 'Não autorizado.',
+            httpStatus: Response::HTTP_UNAUTHORIZED,
+            response: ['message' => 'Não autorizado.'],
+        );
 
         return response()->json([
             'message' => 'Não autorizado.',

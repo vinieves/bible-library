@@ -147,4 +147,46 @@
     .member-header-logout {
         @apply inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 rounded-xl border border-bible-gold/10 bg-transparent px-2.5 text-xs font-medium text-bible-cream/45 transition hover:border-bible-gold/20 hover:bg-bible-gold/5 hover:text-bible-cream/70 active:scale-[0.98] sm:px-3;
     }
+
+    /* ── Páginas públicas (home + login) ── */
+
+    .public-shell {
+        @apply relative min-h-screen bg-bible-black bg-public-mesh;
+    }
+
+    .public-brand-icon {
+        @apply flex h-12 w-12 items-center justify-center rounded-2xl border border-bible-gold/20 bg-gradient-to-br from-bible-green/20 to-bible-gold/10 text-bible-gold shadow-lg shadow-bible-black/50;
+    }
+
+    .public-badge {
+        @apply inline-flex items-center gap-2 rounded-full border border-bible-gold/25 bg-bible-gold/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-bible-gold;
+    }
+
+    .public-feature-card {
+        @apply relative overflow-hidden rounded-2xl border border-bible-gold/15 bg-gradient-to-b from-bible-dark-elevated to-bible-dark p-6 text-center shadow-xl transition duration-300 hover:-translate-y-1 hover:border-bible-gold/35 hover:shadow-2xl hover:shadow-bible-gold/5;
+    }
+
+    .public-feature-icon {
+        @apply mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-bible-gold/20 bg-bible-green/10 text-bible-gold transition group-hover:scale-110 group-hover:border-bible-gold/40 group-hover:bg-bible-green/20;
+    }
+
+    .public-login-panel {
+        @apply relative overflow-hidden rounded-3xl border border-bible-gold/20 bg-bible-dark/80 p-8 shadow-2xl shadow-bible-black/60 backdrop-blur-sm sm:p-10;
+    }
+
+    .public-input-wrap {
+        @apply relative;
+    }
+
+    .public-input-icon {
+        @apply pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-bible-gold/50;
+    }
+
+    .public-input-field {
+        @apply w-full rounded-xl border-2 border-bible-gold/25 bg-bible-black/60 py-4 pl-12 pr-4 text-base text-bible-cream placeholder:text-bible-cream/40 transition focus:border-bible-gold focus:bg-bible-black/80 focus:outline-none focus:ring-2 focus:ring-bible-gold/20;
+    }
+
+    .public-footer-link {
+        @apply text-bible-cream/60 transition hover:text-bible-gold;
+    }
 }

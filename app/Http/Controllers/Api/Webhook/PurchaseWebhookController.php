@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Api\Webhook;
 
+use App\Enums\WebhookLogStatus;
 use App\Enums\WebhookPlatform;
 use App\Exceptions\WebhookProcessingException;
 use App\Http\Controllers\Controller;
 use App\Services\PurchaseWebhookService;
+use App\Services\WebhookLogService;
 use App\Services\Webhooks\WebhookAdapterResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,6 +22,7 @@ class PurchaseWebhookController extends Controller
         string $platform,
         WebhookAdapterResolver $adapterResolver,
         PurchaseWebhookService $purchaseWebhookService,
+        WebhookLogService $webhookLogService,
     ): JsonResponse {
         try {
             $resolvedPlatform = WebhookPlatform::tryFromRoute($platform);
@@ -33,13 +36,38 @@ class PurchaseWebhookController extends Controller
             $parsed = $adapterResolver->resolve($resolvedPlatform)->parse($request);
 
             if ($parsed->ignored) {
-                return response()->json([
+                $response = [
                     'status' => 'ignored',
                     'message' => $parsed->reason,
-                ]);
+                ];
+
+                $webhookLogService->log(
+                    request: $request,
+                    platform: $resolvedPlatform,
+                    status: WebhookLogStatus::Ignored,
+                    message: $parsed->reason,
+                    httpStatus: 200,
+                    response: $response,
+                );
+
+                return response()->json($response);
             }
 
             $result = $purchaseWebhookService->process($parsed->data, $resolvedPlatform);
+
+            $status = ($result['status'] ?? '') === 'duplicate'
+                ? WebhookLogStatus::Duplicate
+                : WebhookLogStatus::Processed;
+
+            $webhookLogService->log(
+                request: $request,
+                platform: $resolvedPlatform,
+                status: $status,
+                message: $result['message'] ?? null,
+                httpStatus: 200,
+                response: $result,
+                purchaseId: $result['purchase_id'] ?? null,
+            );
 
             return response()->json($result);
         } catch (WebhookProcessingException $exception) {
@@ -48,10 +76,23 @@ class PurchaseWebhookController extends Controller
                 'message' => $exception->getMessage(),
             ]);
 
-            return response()->json([
+            $response = [
                 'status' => 'error',
                 'message' => $exception->getMessage(),
-            ], 422);
+            ];
+
+            if ($resolvedPlatform = WebhookPlatform::tryFromRoute($platform)) {
+                $webhookLogService->log(
+                    request: $request,
+                    platform: $resolvedPlatform,
+                    status: WebhookLogStatus::Error,
+                    message: $exception->getMessage(),
+                    httpStatus: 422,
+                    response: $response,
+                );
+            }
+
+            return response()->json($response, 422);
         } catch (InvalidArgumentException $exception) {
             return response()->json([
                 'message' => $exception->getMessage(),
@@ -62,10 +103,23 @@ class PurchaseWebhookController extends Controller
                 'message' => $exception->getMessage(),
             ]);
 
-            return response()->json([
+            $response = [
                 'status' => 'error',
                 'message' => 'Erro interno ao processar webhook.',
-            ], 500);
+            ];
+
+            if ($resolvedPlatform = WebhookPlatform::tryFromRoute($platform)) {
+                $webhookLogService->log(
+                    request: $request,
+                    platform: $resolvedPlatform,
+                    status: WebhookLogStatus::Error,
+                    message: $exception->getMessage(),
+                    httpStatus: 500,
+                    response: $response,
+                );
+            }
+
+            return response()->json($response, 500);
         }
     }
 }

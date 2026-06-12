@@ -11,7 +11,7 @@ class SettingSeeder extends Seeder
     {
         $settings = [
             ['key' => 'site_name', 'value' => 'Biblioteca Bíblica Digital', 'type' => 'text', 'group' => 'general'],
-            ['key' => 'site_tagline', 'value' => 'Todos los LIBROS DE LA BIBLIA explicados versículo por versículo', 'type' => 'text', 'group' => 'general'],
+            ['key' => 'site_tagline', 'value' => 'Toda la Biblia, explicada versículo por versículo', 'type' => 'text', 'group' => 'general'],
             ['key' => 'support_email', 'value' => 'soporte@biblioteca.test', 'type' => 'email', 'group' => 'general'],
             ['key' => 'checkout_basico_url', 'value' => 'https://checkout.ejemplo.com/plan-basico', 'type' => 'url', 'group' => 'checkout'],
             ['key' => 'checkout_completo_url', 'value' => 'https://checkout.ejemplo.com/plan-completo', 'type' => 'url', 'group' => 'checkout'],
