@@ -106,9 +106,13 @@ class WhatsAppMessageTemplateService
     public function configuredRules(): \Illuminate\Support\Collection
     {
         return WhatsAppMessageTemplate::query()
-            ->orderBy('sort_order')
-            ->orderBy('id')
-            ->get();
+            ->get()
+            ->sortBy(fn (WhatsAppMessageTemplate $template): array => [
+                $template->event->groupSortOrder(),
+                $template->sort_order,
+                $template->id,
+            ])
+            ->values();
     }
 
     /**
@@ -124,7 +128,12 @@ class WhatsAppMessageTemplateService
         return collect(WhatsAppMessageEvent::creatableCases())
             ->reject(fn (WhatsAppMessageEvent $event): bool => in_array($event->value, $existing, true))
             ->groupBy(fn (WhatsAppMessageEvent $event): string => $event->group())
-            ->sortKeys()
+            ->sortBy(fn ($events, string $group): int => match ($group) {
+                'Vendas aprovadas' => 1,
+                'Pós-venda e pagamentos' => 2,
+                'Sistema' => 3,
+                default => 99,
+            })
             ->map(fn ($events): array => $events
                 ->mapWithKeys(fn (WhatsAppMessageEvent $event): array => [$event->value => $event->conditionLabel()])
                 ->all())

@@ -178,6 +178,20 @@
         gap: 0.35rem;
     }
 
+    .mm-rule-card__controls .fi-toggle.fi-toggle-on {
+        background-color: rgb(56 189 248) !important;
+        border-color: rgb(56 189 248) !important;
+    }
+
+    .mm-rule-card__controls .fi-toggle.fi-toggle-on > :first-child {
+        background-color: rgb(255 255 255);
+    }
+
+    .mm-rule-card__controls .fi-toggle.fi-toggle-off {
+        background-color: rgb(63 63 70);
+        border-color: rgb(63 63 70);
+    }
+
     .mm-rules-empty__inner {
         display: flex;
         flex-direction: column;

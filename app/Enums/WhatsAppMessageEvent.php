@@ -83,6 +83,16 @@ enum WhatsAppMessageEvent: string
         };
     }
 
+    public function groupSortOrder(): int
+    {
+        return match ($this->group()) {
+            'Vendas aprovadas' => 1,
+            'Pós-venda e pagamentos' => 2,
+            'Sistema' => 3,
+            default => 99,
+        };
+    }
+
     public function systemAction(): string
     {
         return match ($this) {
