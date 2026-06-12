@@ -23,7 +23,7 @@ class MaterialController extends Controller
         if (! $user->hasAccessToMaterial($material)) {
             return view('members.materials.locked', [
                 'material' => $material,
-                'checkoutUrl' => $this->checkoutUrlForPlan($material->plan?->slug),
+                'checkoutUrl' => Setting::get('checkout_completo_url'),
             ]);
         }
 
@@ -65,13 +65,4 @@ class MaterialController extends Controller
         }
     }
 
-    private function checkoutUrlForPlan(?string $slug): ?string
-    {
-        return match ($slug) {
-            'basico' => Setting::get('checkout_basico_url'),
-            'completo' => Setting::get('checkout_completo_url'),
-            'premium', 'vitalicio' => Setting::get('checkout_premium_url'),
-            default => Setting::get('checkout_premium_url'),
-        };
-    }
 }

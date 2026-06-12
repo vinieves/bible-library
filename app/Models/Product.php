@@ -18,6 +18,7 @@ class Product extends Model
         'product_code',
         'checkout_url',
         'plan_id',
+        'grants_access',
         'is_active',
         'sort_order',
     ];
@@ -26,9 +27,15 @@ class Product extends Model
     {
         return [
             'price' => 'decimal:2',
+            'grants_access' => 'boolean',
             'is_active' => 'boolean',
             'sort_order' => 'integer',
         ];
+    }
+
+    public function grantsAccess(): bool
+    {
+        return (bool) $this->grants_access;
     }
 
     public function plan(): BelongsTo

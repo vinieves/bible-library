@@ -14,6 +14,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
@@ -79,11 +80,20 @@ class ProductResource extends Resource
                     ->url()
                     ->maxLength(500)
                     ->columnSpanFull(),
+                Toggle::make('grants_access')
+                    ->label('Libera acesso ao Plan Completo')
+                    ->default(true)
+                    ->live()
+                    ->helperText('Desative para order bumps e upsells que só devem ser registrados.'),
                 Select::make('plan_id')
                     ->label('Plano que libera')
-                    ->relationship('plan', 'name')
+                    ->relationship('plan', 'name', fn ($query) => $query->where('slug', 'completo'))
+                    ->default(fn () => \App\Models\Plan::query()->where('slug', 'completo')->value('id'))
                     ->searchable()
-                    ->preload(),
+                    ->preload()
+                    ->visible(fn (Get $get): bool => (bool) $get('grants_access'))
+                    ->required(fn (Get $get): bool => (bool) $get('grants_access'))
+                    ->helperText('Usado apenas quando o produto libera acesso.'),
                 Toggle::make('is_active')
                     ->label('Ativo')
                     ->default(true),
@@ -113,7 +123,11 @@ class ProductResource extends Resource
                     ->money('USD')
                     ->sortable(),
                 TextColumn::make('plan.name')
-                    ->label('Plano'),
+                    ->label('Plano')
+                    ->placeholder('—'),
+                IconColumn::make('grants_access')
+                    ->label('Libera acesso')
+                    ->boolean(),
                 IconColumn::make('is_active')
                     ->label('Ativo')
                     ->boolean(),

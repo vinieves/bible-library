@@ -42,6 +42,7 @@ class ReprocessWebhookAction
                 $notification = Notification::make()
                     ->title(match ($newLog->processing_status) {
                         WebhookLogStatus::Processed => 'Webhook reprocessado com sucesso',
+                        WebhookLogStatus::Acknowledged => 'Funil registrado sem liberação de acesso',
                         WebhookLogStatus::Duplicate => 'Compra já havia sido processada',
                         WebhookLogStatus::Ignored => 'Webhook reprocessado (ignorado)',
                         WebhookLogStatus::Error => 'Webhook reprocessado com erro',
@@ -50,7 +51,7 @@ class ReprocessWebhookAction
                     ->body($newLog->message ?? 'Consulte o novo log para detalhes.');
 
                 match ($newLog->processing_status) {
-                    WebhookLogStatus::Processed => $notification->success(),
+                    WebhookLogStatus::Processed, WebhookLogStatus::Acknowledged => $notification->success(),
                     WebhookLogStatus::Duplicate, WebhookLogStatus::Ignored => $notification->warning(),
                     default => $notification->danger(),
                 };

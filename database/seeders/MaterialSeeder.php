@@ -14,11 +14,10 @@ class MaterialSeeder extends Seeder
 {
     public function run(): void
     {
-        $planBasico = Plan::query()->where('slug', 'basico')->firstOrFail();
-        $planPremium = Plan::query()->where('slug', 'premium')->firstOrFail();
+        $planCompleto = Plan::query()->where('slug', 'completo')->firstOrFail();
 
         $materials = [
-            ['title' => 'Estudio Premium: Profecías', 'category' => 'estudios-premium', 'plan' => $planPremium, 'type' => MaterialType::EstudioPremium, 'order' => 1],
+            ['title' => 'Estudio Premium: Profecías', 'category' => 'estudios-premium', 'type' => MaterialType::EstudioPremium, 'order' => 1],
         ];
 
         foreach ($materials as $item) {
@@ -29,7 +28,7 @@ class MaterialSeeder extends Seeder
                 ['slug' => $slug],
                 [
                     'category_id' => $category->id,
-                    'plan_id' => $item['plan']->id,
+                    'plan_id' => $planCompleto->id,
                     'title' => $item['title'],
                     'description' => 'Material bíblico explicado versículo por versículo. Ideal para estudio diario y profundo.',
                     'cover_image' => null,

@@ -40,9 +40,7 @@ class ManageSettings extends Page
             'site_name' => Setting::get('site_name'),
             'site_tagline' => Setting::get('site_tagline'),
             'support_email' => Setting::get('support_email'),
-            'checkout_basico_url' => Setting::get('checkout_basico_url'),
             'checkout_completo_url' => Setting::get('checkout_completo_url'),
-            'checkout_premium_url' => Setting::get('checkout_premium_url'),
             'footer_text' => Setting::get('footer_text'),
             'logo_path' => filled(Setting::get('logo_path')) ? [Setting::get('logo_path')] : [],
             'primary_color' => Setting::get('primary_color', '#1a5c38'),
@@ -86,18 +84,13 @@ class ManageSettings extends Page
                         ColorPicker::make('primary_color')
                             ->label('Cor principal'),
                     ]),
-                Section::make('Links de checkout')
-                    ->description('URLs externas para desbloquear planos (visíveis ao cliente).')
+                Section::make('Link de checkout')
+                    ->description('URL externa do Plan Completo (visível ao cliente quando o acesso está bloqueado).')
                     ->schema([
-                        TextInput::make('checkout_basico_url')
-                            ->label('Checkout Plano Básico')
-                            ->url(),
                         TextInput::make('checkout_completo_url')
-                            ->label('Checkout Plano Completo')
-                            ->url(),
-                        TextInput::make('checkout_premium_url')
-                            ->label('Checkout Biblioteca Premium')
-                            ->url(),
+                            ->label('Checkout Plan Completo')
+                            ->url()
+                            ->columnSpanFull(),
                     ]),
                 Section::make('Assinatura de áudio')
                     ->description('Textos exibidos na área do cliente para a Biblioteca Bíblica en Audio Premium.')

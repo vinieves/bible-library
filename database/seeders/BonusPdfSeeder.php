@@ -14,7 +14,7 @@ class BonusPdfSeeder extends Seeder
 {
     public function run(): void
     {
-        $planBasico = Plan::query()->where('slug', 'basico')->firstOrFail();
+        $planCompleto = Plan::query()->where('slug', 'completo')->firstOrFail();
         $category = Category::query()->where('slug', 'bonos')->firstOrFail();
 
         $bonuses = [
@@ -75,7 +75,7 @@ class BonusPdfSeeder extends Seeder
                 ['slug' => Str::slug($bonus['title'])],
                 [
                     'category_id' => $category->id,
-                    'plan_id' => $planBasico->id,
+                    'plan_id' => $planCompleto->id,
                     'title' => $bonus['title'],
                     'description' => $bonus['description'],
                     'cover_image' => $bonus['cover'],

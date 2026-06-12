@@ -52,9 +52,11 @@ class IncomingWebhookProcessor
 
             $result = $this->purchaseWebhookService->process($parsed->data, $platform);
 
-            $status = ($result['status'] ?? '') === 'duplicate'
-                ? WebhookLogStatus::Duplicate
-                : WebhookLogStatus::Processed;
+            $status = match ($result['status'] ?? '') {
+                'duplicate' => WebhookLogStatus::Duplicate,
+                'acknowledged' => WebhookLogStatus::Acknowledged,
+                default => WebhookLogStatus::Processed,
+            };
 
             $log = $this->webhookLogService->log(
                 request: $request,

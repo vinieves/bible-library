@@ -14,14 +14,12 @@ class LibroSeeder extends Seeder
 {
     public function run(): void
     {
-        $planBasico = Plan::query()->where('slug', 'basico')->firstOrFail();
         $planCompleto = Plan::query()->where('slug', 'completo')->firstOrFail();
 
         $libros = [
             [
                 'title' => 'El Pentateuco Explicado',
                 'category' => 'pentateuco',
-                'plan' => $planBasico,
                 'cover' => 'covers/libros/el-pentateuco',
                 'description' => 'Génesis, Éxodo, Levítico, Números y Deuteronomio explicados versículo por versículo.',
                 'order' => 1,
@@ -29,7 +27,6 @@ class LibroSeeder extends Seeder
             [
                 'title' => 'Los 4 Evangelios Explicados',
                 'category' => 'evangelios',
-                'plan' => $planBasico,
                 'cover' => 'covers/libros/los-4-evangelicos',
                 'description' => 'Mateo, Marcos, Lucas y Juan con explicación clara de cada versículo.',
                 'order' => 2,
@@ -37,7 +34,6 @@ class LibroSeeder extends Seeder
             [
                 'title' => 'Hechos de los Apóstoles Explicados',
                 'category' => 'hechos-de-los-apostoles',
-                'plan' => $planCompleto,
                 'cover' => 'covers/libros/los-apostoles',
                 'description' => 'La historia de la iglesia primitiva explicada paso a paso.',
                 'order' => 3,
@@ -45,7 +41,6 @@ class LibroSeeder extends Seeder
             [
                 'title' => '13 Cartas de Pablo Explicadas',
                 'category' => 'cartas-de-pablo',
-                'plan' => $planCompleto,
                 'cover' => 'covers/libros/13-cartas',
                 'description' => 'Todas las epístolas de Pablo con contexto y aplicación práctica.',
                 'order' => 4,
@@ -53,7 +48,6 @@ class LibroSeeder extends Seeder
             [
                 'title' => '150 Salmos Explicados',
                 'category' => 'salmos-y-proverbios',
-                'plan' => $planBasico,
                 'cover' => 'covers/libros/150-salmos',
                 'description' => 'Cada salmo explicado para enriquecer su vida de oración y estudio.',
                 'order' => 5,
@@ -61,7 +55,6 @@ class LibroSeeder extends Seeder
             [
                 'title' => '31 Proverbios Explicados',
                 'category' => 'salmos-y-proverbios',
-                'plan' => $planBasico,
                 'cover' => 'covers/libros/31-proverbios',
                 'description' => 'Sabiduría bíblica para el día a día, versículo por versículo.',
                 'order' => 6,
@@ -69,7 +62,6 @@ class LibroSeeder extends Seeder
             [
                 'title' => 'El Apocalipsis Explicado',
                 'category' => 'apocalipsis',
-                'plan' => $planCompleto,
                 'cover' => 'covers/libros/el-apocalipsis',
                 'description' => 'El libro del Apocalipsis con explicación accesible y profunda.',
                 'order' => 7,
@@ -90,7 +82,7 @@ class LibroSeeder extends Seeder
                 ['slug' => Str::slug($libro['title'])],
                 [
                     'category_id' => $category->id,
-                    'plan_id' => $libro['plan']->id,
+                    'plan_id' => $planCompleto->id,
                     'title' => $libro['title'],
                     'description' => $libro['description'],
                     'cover_image' => $libro['cover'],

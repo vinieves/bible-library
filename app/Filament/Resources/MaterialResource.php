@@ -76,10 +76,12 @@ class MaterialResource extends Resource
                             ->required(),
                         Select::make('plan_id')
                             ->label('Plano necessário')
-                            ->relationship('plan', 'name')
+                            ->relationship('plan', 'name', fn ($query) => $query->where('slug', 'completo'))
+                            ->default(fn () => \App\Models\Plan::query()->where('slug', 'completo')->value('id'))
                             ->searchable()
                             ->preload()
-                            ->required(),
+                            ->required()
+                            ->helperText('Todo conteúdo de cliente usa o Plan Completo.'),
                         Select::make('status')
                             ->label('Status')
                             ->options(collect(MaterialStatus::cases())->mapWithKeys(fn ($status) => [$status->value => $status->label()]))

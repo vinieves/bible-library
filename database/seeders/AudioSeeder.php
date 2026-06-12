@@ -13,8 +13,7 @@ class AudioSeeder extends Seeder
 {
     public function run(): void
     {
-        $planPremium = Plan::query()->where('slug', 'premium')->first()
-            ?? Plan::query()->where('slug', 'completo')->firstOrFail();
+        $planCompleto = Plan::query()->where('slug', 'completo')->firstOrFail();
 
         $categories = [
             ['name' => 'Introducción', 'order' => 1],
@@ -149,7 +148,7 @@ class AudioSeeder extends Seeder
                     'duration' => $track['duration'],
                     'is_free' => $track['is_free'],
                     'is_premium' => $track['is_premium'],
-                    'required_plan_id' => $track['is_premium'] ? $planPremium->id : null,
+                    'required_plan_id' => $track['is_premium'] ? $planCompleto->id : null,
                     'external_checkout_url' => null,
                     'order' => $track['order'],
                     'status' => AudioTrackStatus::Published,

@@ -13,7 +13,8 @@ class EditPlan extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make()
+                ->visible(fn () => PlanResource::canDelete($this->getRecord())),
         ];
     }
 }

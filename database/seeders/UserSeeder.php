@@ -5,12 +5,12 @@ namespace Database\Seeders;
 use App\Models\Plan;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+
 class UserSeeder extends Seeder
 {
     public function run(): void
     {
         $adminPlan = Plan::query()->where('slug', 'admin')->firstOrFail();
-        $planBasico = Plan::query()->where('slug', 'basico')->firstOrFail();
         $planCompleto = Plan::query()->where('slug', 'completo')->firstOrFail();
 
         $admin = User::query()->updateOrCreate(
@@ -41,10 +41,6 @@ class UserSeeder extends Seeder
         );
 
         $cliente->plans()->syncWithoutDetaching([
-            $planBasico->id => [
-                'granted_at' => now(),
-                'granted_by' => 'seeder',
-            ],
             $planCompleto->id => [
                 'granted_at' => now(),
                 'granted_by' => 'seeder',

@@ -5,15 +5,15 @@
 @section('content')
     <div class="py-8 text-center">
         <div class="mb-6 text-6xl">🔒</div>
-        <h2 class="page-title mb-4 text-center">Este material forma parte de la Biblioteca Premium</h2>
+        <h2 class="page-title mb-4 text-center">Este contenido requiere el Plan Completo</h2>
         <p class="mx-auto mb-8 max-w-md text-lg text-bible-cream/80">
-            <strong class="text-bible-gold">{{ $material->title }}</strong> requiere el plan
-            <strong>{{ $material->plan?->name }}</strong> o superior.
+            <strong class="text-bible-gold">{{ $material->title }}</strong> está disponible para clientes con
+            <strong>Plan Completo</strong>.
         </p>
 
         @if($checkoutUrl)
             <a href="{{ $checkoutUrl }}" target="_blank" rel="noopener" class="btn-gold inline-flex">
-                Desbloquear acceso
+                Obtener Plan Completo
             </a>
         @else
             <a href="mailto:{{ $siteSettings['support_email'] }}" class="btn-gold inline-flex">

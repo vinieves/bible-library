@@ -7,6 +7,7 @@ enum WebhookLogStatus: string
     case Unauthorized = 'unauthorized';
     case Ignored = 'ignored';
     case Processed = 'processed';
+    case Acknowledged = 'acknowledged';
     case Duplicate = 'duplicate';
     case Error = 'error';
 
@@ -16,6 +17,7 @@ enum WebhookLogStatus: string
             self::Unauthorized => 'Não autorizado',
             self::Ignored => 'Ignorado',
             self::Processed => 'Processado',
+            self::Acknowledged => 'Registrado',
             self::Duplicate => 'Duplicado',
             self::Error => 'Erro',
         };
@@ -27,6 +29,7 @@ enum WebhookLogStatus: string
             self::Unauthorized => 'danger',
             self::Ignored => 'gray',
             self::Processed => 'success',
+            self::Acknowledged => 'info',
             self::Duplicate => 'warning',
             self::Error => 'danger',
         };

@@ -89,9 +89,11 @@ class AudioTrackResource extends Resource
                         ->default(false),
                     Select::make('required_plan_id')
                         ->label('Plano necessário')
-                        ->relationship('requiredPlan', 'name')
+                        ->relationship('requiredPlan', 'name', fn ($query) => $query->where('slug', 'completo'))
+                        ->default(fn () => \App\Models\Plan::query()->where('slug', 'completo')->value('id'))
                         ->searchable()
-                        ->preload(),
+                        ->preload()
+                        ->helperText('Áudios pagos exigem o Plan Completo.'),
                     TextInput::make('external_checkout_url')
                         ->label('URL de checkout externo (opcional)')
                         ->url()

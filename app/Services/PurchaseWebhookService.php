@@ -20,20 +20,6 @@ class PurchaseWebhookService
 {
     public function process(NormalizedPurchaseData $data, WebhookPlatform $platform): array
     {
-        $existing = Purchase::query()
-            ->where('platform', $platform->value)
-            ->where('external_reference', $data->externalReference)
-            ->first();
-
-        if ($existing?->isApproved()) {
-            return [
-                'status' => 'duplicate',
-                'message' => 'Compra já processada.',
-                'purchase_id' => $existing->id,
-                'user_id' => $existing->user_id,
-            ];
-        }
-
         $product = Product::query()
             ->where('is_active', true)
             ->whereIn('product_code', $data->productCodesForLookup())
@@ -45,6 +31,25 @@ class PurchaseWebhookService
             throw new WebhookProcessingException(
                 "Produto não mapeado para product_code: {$codes}"
             );
+        }
+
+        $existing = Purchase::query()
+            ->where('platform', $platform->value)
+            ->where('external_reference', $data->externalReference)
+            ->where('product_code', $product->product_code)
+            ->first();
+
+        if ($existing?->isApproved()) {
+            return [
+                'status' => 'duplicate',
+                'message' => 'Compra já processada.',
+                'purchase_id' => $existing->id,
+                'user_id' => $existing->user_id,
+            ];
+        }
+
+        if (! $product->grantsAccess()) {
+            return $this->acknowledgeFunnelPurchase($data, $platform, $product, $existing);
         }
 
         if (! $product->plan_id) {
@@ -78,6 +83,7 @@ class PurchaseWebhookService
                 [
                     'platform' => $platform->value,
                     'external_reference' => $data->externalReference,
+                    'product_code' => $product->product_code,
                 ],
                 [
                     'user_id' => $user->id,
@@ -86,7 +92,6 @@ class PurchaseWebhookService
                     'email' => $data->email,
                     'name' => $data->name,
                     'phone' => $data->phone,
-                    'product_code' => $product->product_code,
                     'amount' => $data->amount ?? $product->price,
                     'status' => PurchaseStatus::Approved,
                     'metadata' => [
@@ -94,6 +99,7 @@ class PurchaseWebhookService
                         'platform' => $platform->value,
                         'raw_payload' => $data->rawPayload,
                         'previous_status' => $existing?->status?->value,
+                        'grants_access' => true,
                     ],
                 ]
             );
@@ -124,5 +130,56 @@ class PurchaseWebhookService
         }
 
         return $result;
+    }
+
+    private function acknowledgeFunnelPurchase(
+        NormalizedPurchaseData $data,
+        WebhookPlatform $platform,
+        Product $product,
+        ?Purchase $existing,
+    ): array {
+        $user = User::query()->where('email', $data->email)->first();
+
+        $purchase = Purchase::query()->updateOrCreate(
+            [
+                'platform' => $platform->value,
+                'external_reference' => $data->externalReference,
+                'product_code' => $product->product_code,
+            ],
+            [
+                'user_id' => $user?->id,
+                'product_id' => $product->id,
+                'plan_id' => null,
+                'email' => $data->email,
+                'name' => $data->name,
+                'phone' => $data->phone,
+                'amount' => $data->amount ?? $product->price,
+                'status' => PurchaseStatus::Approved,
+                'metadata' => [
+                    'event_id' => $data->eventId,
+                    'platform' => $platform->value,
+                    'raw_payload' => $data->rawPayload,
+                    'previous_status' => $existing?->status?->value,
+                    'grants_access' => false,
+                    'funnel_acknowledgement' => true,
+                ],
+            ]
+        );
+
+        Log::info('Webhook de funil registrado sem liberação de acesso.', [
+            'platform' => $platform->value,
+            'external_reference' => $data->externalReference,
+            'email' => $data->email,
+            'product_code' => $product->product_code,
+            'purchase_id' => $purchase->id,
+        ]);
+
+        return [
+            'status' => 'acknowledged',
+            'message' => 'Compra de funil registrada com sucesso (sem liberação de acesso).',
+            'purchase_id' => $purchase->id,
+            'user_id' => $user?->id,
+            'product_id' => $product->id,
+        ];
     }
 }

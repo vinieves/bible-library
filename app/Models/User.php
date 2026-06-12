@@ -68,26 +68,18 @@ class User extends Authenticatable implements FilamentUser
             ->exists();
     }
 
-    public function hasAccessToMaterial(Material $material): bool
+    public function hasCustomerAccess(): bool
     {
         if ($this->is_admin) {
             return true;
         }
 
-        $requiredPlan = $material->plan;
+        return $this->hasPlan('completo');
+    }
 
-        if (! $requiredPlan) {
-            return false;
-        }
-
-        $userMaxLevel = $this->plans()
-            ->where(function ($query) {
-                $query->whereNull('user_plans.expires_at')
-                    ->orWhere('user_plans.expires_at', '>', now());
-            })
-            ->max('level');
-
-        return $userMaxLevel !== null && $userMaxLevel >= $requiredPlan->level;
+    public function hasAccessToMaterial(Material $material): bool
+    {
+        return $this->hasCustomerAccess();
     }
 
     public function hasAccessToAudioTrack(AudioTrack $track): bool
@@ -100,24 +92,7 @@ class User extends Authenticatable implements FilamentUser
             return true;
         }
 
-        if (! $track->is_premium) {
-            return true;
-        }
-
-        $requiredPlan = $track->requiredPlan;
-
-        if (! $requiredPlan) {
-            return false;
-        }
-
-        $userMaxLevel = $this->plans()
-            ->where(function ($query) {
-                $query->whereNull('user_plans.expires_at')
-                    ->orWhere('user_plans.expires_at', '>', now());
-            })
-            ->max('level');
-
-        return $userMaxLevel !== null && $userMaxLevel >= $requiredPlan->level;
+        return $this->hasPlan('completo');
     }
 
     public function canAccessPanel(Panel $panel): bool

@@ -36,6 +36,16 @@ class PlanResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
+    public static function canCreate(): bool
+    {
+        return false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return ! in_array($record->slug, ['completo', 'admin'], true);
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema
@@ -60,7 +70,7 @@ class PlanResource extends Resource
                     ->numeric()
                     ->required()
                     ->minValue(1)
-                    ->helperText('Nível maior = mais acesso.'),
+                    ->helperText('Referência interna. Clientes usam apenas o Plan Completo.'),
                 Toggle::make('is_admin')
                     ->label('Plano administrativo'),
                 TextInput::make('sort_order')
@@ -100,7 +110,14 @@ class PlanResource extends Resource
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->before(function ($records): void {
+                            $records->each(function (Plan $record): void {
+                                if (! static::canDelete($record)) {
+                                    throw new \RuntimeException('Os planos Plan Completo e Admin não podem ser excluídos.');
+                                }
+                            });
+                        }),
                 ]),
             ]);
     }
