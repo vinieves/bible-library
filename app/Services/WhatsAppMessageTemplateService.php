@@ -85,6 +85,44 @@ class WhatsAppMessageTemplateService
         );
     }
 
+    public function toggleEnabled(WhatsAppMessageEvent $event): WhatsAppMessageTemplate
+    {
+        $template = $this->find($event);
+
+        if (! $template) {
+            return $this->upsert($event, $event->defaultBody(), ! $event->defaultEnabled());
+        }
+
+        return $this->upsert($event, $template->body, ! $template->is_enabled);
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int, WhatsAppMessageTemplate>
+     */
+    public function configuredRules(): \Illuminate\Support\Collection
+    {
+        return WhatsAppMessageTemplate::query()
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function availableEventOptions(): array
+    {
+        $existing = WhatsAppMessageTemplate::query()
+            ->pluck('event')
+            ->map(fn (WhatsAppMessageEvent|string $event): string => $event instanceof WhatsAppMessageEvent ? $event->value : $event)
+            ->all();
+
+        return collect(WhatsAppMessageEvent::cases())
+            ->reject(fn (WhatsAppMessageEvent $event): bool => in_array($event->value, $existing, true))
+            ->mapWithKeys(fn (WhatsAppMessageEvent $event): array => [$event->value => $event->label()])
+            ->all();
+    }
+
     /**
      * @return list<WhatsAppMessageTemplate>
      */
