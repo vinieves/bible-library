@@ -68,8 +68,12 @@
         min-height: 280px;
     }
 
-    .pdf-reader-container [data-pdf-fallback] {
-        min-height: 100%;
+    .pdf-reader-container [data-pdf-canvas-wrap] {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .pdf-reader-container [data-pdf-canvas] {
+        touch-action: pan-y;
     }
 
     .btn-material-primary {

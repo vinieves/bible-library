@@ -20,26 +20,23 @@
          data-total-pages="{{ $material->pdf_page_count ?? 0 }}">
 
         <div class="pdf-reader-container relative min-h-0 flex-1 bg-bible-black">
-            <div data-pdf-canvas-wrap class="absolute inset-0 overflow-auto p-2">
-                <canvas data-pdf-canvas class="mx-auto block max-w-full"></canvas>
+            <div data-pdf-canvas-wrap class="absolute inset-0 overflow-x-hidden overflow-y-auto overscroll-contain">
+                <canvas data-pdf-canvas class="mx-auto block w-full max-w-full"></canvas>
             </div>
-            <iframe data-pdf-fallback
-                    class="hidden absolute inset-0 h-full w-full border-0 bg-bible-black"
-                    title="{{ $material->title }}"></iframe>
-            <p data-pdf-loading class="absolute inset-0 flex items-center justify-center text-sm text-bible-cream/50">
+            <p data-pdf-loading class="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-bible-cream/50">
                 Cargando PDF…
             </p>
-            <p data-pdf-error class="hidden absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-bible-cream/60">
+            <p data-pdf-error class="pointer-events-none hidden absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-bible-cream/60">
                 No se pudo cargar el PDF. Intente descargarlo o vuelva más tarde.
             </p>
         </div>
 
-        <div class="reader-toolbar shrink-0 border-t border-bible-gold/20 bg-bible-dark/95 px-3 py-2.5 backdrop-blur sm:px-4">
+        <div class="reader-toolbar shrink-0 border-t border-bible-gold/20 bg-bible-dark/95 px-3 py-3 backdrop-blur sm:px-4">
             <div class="mx-auto flex max-w-3xl items-center justify-between gap-3">
-                <div data-pdf-page-controls class="flex items-center gap-1.5">
+                <div data-pdf-page-controls class="flex flex-1 items-center justify-center gap-2 sm:justify-start sm:gap-1.5">
                     <button type="button"
                             data-page-prev
-                            class="btn-reader-action px-2.5"
+                            class="btn-reader-action min-h-11 min-w-11 px-3 sm:min-h-0 sm:min-w-0 sm:px-2.5"
                             aria-label="Página anterior">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
@@ -52,7 +49,7 @@
                     </span>
                     <button type="button"
                             data-page-next
-                            class="btn-reader-action px-2.5"
+                            class="btn-reader-action min-h-11 min-w-11 px-3 sm:min-h-0 sm:min-w-0 sm:px-2.5"
                             aria-label="Página siguiente">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
