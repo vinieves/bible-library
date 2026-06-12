@@ -5,12 +5,15 @@ namespace App\Services;
 use App\DataTransferObjects\NormalizedPurchaseData;
 use App\Enums\PurchaseStatus;
 use App\Enums\WebhookPlatform;
+use App\Enums\WhatsAppDispatchTrigger;
+use App\Enums\WhatsAppMessageEvent;
 use App\Exceptions\WebhookProcessingException;
 use App\Jobs\SendWelcomeWhatsAppJob;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\User;
 use App\Support\IntegrationSettings;
+use App\Services\WhatsAppMessageTemplateService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -126,6 +129,8 @@ class PurchaseWebhookService
                 userId: $result['user_id'],
                 phone: $data->phone,
                 purchaseId: $result['purchase_id'],
+                messageEvent: WhatsAppMessageEvent::PurchaseApproved,
+                trigger: WhatsAppDispatchTrigger::PurchaseWebhook,
             );
         }
 
@@ -173,6 +178,23 @@ class PurchaseWebhookService
             'product_code' => $product->product_code,
             'purchase_id' => $purchase->id,
         ]);
+
+        $templateService = app(WhatsAppMessageTemplateService::class);
+
+        if (
+            IntegrationSettings::whatsappEnabled()
+            && filled($data->phone)
+            && $user
+            && $templateService->isEnabled(WhatsAppMessageEvent::PurchaseFunnel)
+        ) {
+            SendWelcomeWhatsAppJob::dispatch(
+                userId: $user->id,
+                phone: $data->phone,
+                purchaseId: $purchase->id,
+                messageEvent: WhatsAppMessageEvent::PurchaseFunnel,
+                trigger: WhatsAppDispatchTrigger::PurchaseWebhook,
+            );
+        }
 
         return [
             'status' => 'acknowledged',

@@ -3,6 +3,8 @@
 namespace App\Support;
 
 use App\Enums\WebhookPlatform;
+use App\Enums\WhatsAppMessageEvent;
+use App\Services\WhatsAppMessageTemplateService;
 use App\Models\Setting;
 use Illuminate\Support\Str;
 
@@ -56,10 +58,15 @@ class IntegrationSettings
 
     public static function whatsappTemplate(): string
     {
-        return (string) Setting::get(
-            'whatsapp_welcome_template',
-            "¡Hola {nome}! Su acceso a la Biblioteca Bíblica Digital ya está listo.\n\nEntre con su correo {email} en:\n{link_acceso}"
-        );
+        return app(WhatsAppMessageTemplateService::class)
+            ->body(WhatsAppMessageEvent::PurchaseApproved);
+    }
+
+    public static function evolutionConfigured(): bool
+    {
+        return filled(static::evolutionBaseUrl())
+            && filled(static::evolutionInstance())
+            && filled(static::evolutionApiKey());
     }
 
     public static function regenerateWebhookSecret(): string

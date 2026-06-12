@@ -28,6 +28,12 @@ class WebhookReprocessService
             throw new InvalidArgumentException('Este log não possui payload salvo para reprocessar.');
         }
 
+        if ($platform === WebhookPlatform::Hotmart && blank($payload['event'] ?? null)) {
+            throw new InvalidArgumentException(
+                'O payload salvo está inválido ou corrompido. Reprocesse um log que contenha o JSON original da Hotmart.'
+            );
+        }
+
         $request = Request::create(
             '/api/webhooks/'.$platform->value,
             'POST',
@@ -35,6 +41,7 @@ class WebhookReprocessService
         );
 
         $request->headers->set('Content-Type', 'application/json');
+        $request->server->set('REMOTE_ADDR', 'reprocess');
 
         return $this->processor->handle($request, $platform)['log'];
     }

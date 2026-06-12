@@ -3,15 +3,11 @@
 namespace App\Filament\Pages;
 
 use App\Enums\WebhookPlatform;
-use App\Enums\WhatsAppDispatchTrigger;
-use App\Jobs\SendWelcomeWhatsAppJob;
 use App\Models\Setting;
-use App\Services\Webhooks\PhoneNumber;
 use App\Support\IntegrationSettings;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Placeholder;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
@@ -51,8 +47,6 @@ class ManageIntegrations extends Page
             'whatsapp_enabled' => IntegrationSettings::whatsappEnabled(),
             'evolution_base_url' => Setting::get('evolution_base_url'),
             'evolution_instance' => Setting::get('evolution_instance'),
-            'whatsapp_welcome_template' => IntegrationSettings::whatsappTemplate(),
-            'whatsapp_test_phone' => '',
         ]);
     }
 
@@ -110,15 +104,15 @@ class ManageIntegrations extends Page
                             ->columnSpanFull(),
                     ]),
                 Section::make('Evolution API (WhatsApp)')
-                    ->description('Mensagem automática ao aprovar uma compra. Placeholders: {nome}, {email}, {telefone}, {producto}, {link_acceso}. O texto da mensagem vai em espanhol para o cliente.')
+                    ->description('Conexão com a Evolution API. Os textos de cada evento são configurados em Mensagens.')
                     ->schema([
                         Toggle::make('whatsapp_enabled')
                             ->label('Enviar WhatsApp automático')
-                            ->helperText('Só afeta compras reais (webhook). O botão de teste funciona com o toggle desligado.')
+                            ->helperText('Ativa o envio nas compras reais (webhook). Os templates ficam em Mensagens.')
                             ->inline(false),
                         TextInput::make('evolution_base_url')
                             ->label('URL base Evolution API')
-                            ->placeholder('https://api.seudominio.com')
+                            ->placeholder('https://wpp.seudominio.com')
                             ->url(),
                         TextInput::make('evolution_instance')
                             ->label('Nome da instância')
@@ -126,16 +120,8 @@ class ManageIntegrations extends Page
                         TextInput::make('evolution_api_key')
                             ->label('API Key')
                             ->password()
-                            ->revealable(),
-                        Textarea::make('whatsapp_welcome_template')
-                            ->label('Mensagem de boas-vindas (espanhol — enviada ao cliente)')
-                            ->rows(6)
-                            ->columnSpanFull(),
-                        TextInput::make('whatsapp_test_phone')
-                            ->label('Telefone de teste')
-                            ->placeholder('5511999999999')
-                            ->helperText('Somente dígitos, com código do país. Não é salvo.')
-                            ->dehydrated(false),
+                            ->revealable()
+                            ->helperText('Se deixar em branco ao salvar, o valor anterior é mantido.'),
                     ]),
             ]);
     }
@@ -159,8 +145,6 @@ class ManageIntegrations extends Page
         if (filled($data['evolution_api_key'] ?? null)) {
             Setting::setEncrypted('evolution_api_key', $data['evolution_api_key']);
         }
-
-        Setting::set('whatsapp_welcome_template', $data['whatsapp_welcome_template'] ?? '');
 
         Notification::make()
             ->title('Integrações salvas')
@@ -188,56 +172,6 @@ class ManageIntegrations extends Page
                         ->send();
 
                     $this->mount();
-                }),
-            Action::make('sendTestWhatsApp')
-                ->label('Enviar teste WhatsApp')
-                ->action(function (): void {
-                    // Campo com dehydrated(false) não entra em getState() — ler de $this->data
-                    $phone = PhoneNumber::normalize($this->data['whatsapp_test_phone'] ?? null);
-
-                    if (blank($phone)) {
-                        Notification::make()
-                            ->title('Informe um telefone de teste')
-                            ->warning()
-                            ->send();
-
-                        return;
-                    }
-
-                    $formState = $this->form->getState();
-
-                    if (
-                        blank($formState['evolution_base_url'] ?? null)
-                        || blank($formState['evolution_instance'] ?? null)
-                        || blank($formState['evolution_api_key'] ?? null)
-                    ) {
-                        Notification::make()
-                            ->title('Preencha URL, instância e API Key da Evolution')
-                            ->body('Clique em Salvar integrações antes de testar.')
-                            ->warning()
-                            ->send();
-
-                        return;
-                    }
-
-                    Setting::set('evolution_base_url', $formState['evolution_base_url'] ?? '');
-                    Setting::set('evolution_instance', $formState['evolution_instance'] ?? '');
-                    Setting::setEncrypted('evolution_api_key', $formState['evolution_api_key'] ?? '');
-
-                    $admin = auth()->user();
-
-                    SendWelcomeWhatsAppJob::dispatch(
-                        userId: $admin->id,
-                        phone: $phone,
-                        purchaseId: 0,
-                        trigger: WhatsAppDispatchTrigger::ManualTest,
-                    );
-
-                    Notification::make()
-                        ->title('Teste enfileirado')
-                        ->body('Verifique a fila e os logs se a mensagem não chegar.')
-                        ->success()
-                        ->send();
                 }),
             Action::make('save')
                 ->label('Salvar integrações')

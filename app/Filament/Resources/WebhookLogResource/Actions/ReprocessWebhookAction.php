@@ -28,7 +28,9 @@ class ReprocessWebhookAction
             ->modalSubmitActionLabel('Reprocessar')
             ->action(function (WebhookLog $record, WebhookReprocessService $reprocessor) {
                 try {
-                    $newLog = $reprocessor->reprocess($record);
+                    $source = WebhookLog::query()->findOrFail($record->getKey());
+
+                    $newLog = $reprocessor->reprocess($source);
                 } catch (InvalidArgumentException $exception) {
                     Notification::make()
                         ->title('Não foi possível reprocessar')

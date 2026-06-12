@@ -33,7 +33,7 @@ class WebhookLogResource extends Resource
 
     protected static ?string $pluralModelLabel = 'logs de webhook';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 4;
 
     public static function canCreate(): bool
     {
@@ -59,22 +59,27 @@ class WebhookLogResource extends Resource
                         TextInput::make('platform')
                             ->label('Plataforma')
                             ->formatStateUsing(fn (?string $state) => WebhookPlatform::tryFrom((string) $state)?->label() ?? $state)
-                            ->disabled(),
+                            ->disabled()
+                            ->dehydrated(false),
                         TextInput::make('event')
                             ->label('Evento')
-                            ->disabled(),
+                            ->disabled()
+                            ->dehydrated(false),
                         TextInput::make('processing_status')
                             ->label('Resultado')
                             ->formatStateUsing(fn ($state) => $state instanceof WebhookLogStatus
                                 ? $state->label()
                                 : WebhookLogStatus::tryFrom((string) $state)?->label() ?? $state)
-                            ->disabled(),
+                            ->disabled()
+                            ->dehydrated(false),
                         TextInput::make('http_status')
                             ->label('HTTP')
-                            ->disabled(),
+                            ->disabled()
+                            ->dehydrated(false),
                         TextInput::make('message')
                             ->label('Mensagem')
                             ->disabled()
+                            ->dehydrated(false)
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
@@ -82,19 +87,24 @@ class WebhookLogResource extends Resource
                     ->schema([
                         TextInput::make('email')
                             ->label('E-mail')
-                            ->disabled(),
+                            ->disabled()
+                            ->dehydrated(false),
                         TextInput::make('product_code')
                             ->label('Código do produto')
-                            ->disabled(),
+                            ->disabled()
+                            ->dehydrated(false),
                         TextInput::make('external_reference')
                             ->label('Transação / referência')
-                            ->disabled(),
+                            ->disabled()
+                            ->dehydrated(false),
                         TextInput::make('purchase_id')
                             ->label('ID da compra')
-                            ->disabled(),
+                            ->disabled()
+                            ->dehydrated(false),
                         TextInput::make('ip_address')
                             ->label('IP de origem')
-                            ->disabled(),
+                            ->disabled()
+                            ->dehydrated(false),
                         TextInput::make('created_at')
                             ->label('Recebido em')
                             ->formatStateUsing(function ($state): ?string {
@@ -104,7 +114,8 @@ class WebhookLogResource extends Resource
 
                                 return filled($state) ? (string) $state : null;
                             })
-                            ->disabled(),
+                            ->disabled()
+                            ->dehydrated(false),
                     ])
                     ->columns(2),
                 Section::make('Payload recebido')
@@ -114,6 +125,7 @@ class WebhookLogResource extends Resource
                             ->formatStateUsing(fn ($state) => static::formatJsonField($state))
                             ->rows(18)
                             ->disabled()
+                            ->dehydrated(false)
                             ->columnSpanFull(),
                     ]),
                 Section::make('Resposta do sistema')
@@ -123,6 +135,7 @@ class WebhookLogResource extends Resource
                             ->formatStateUsing(fn ($state) => static::formatJsonField($state))
                             ->rows(8)
                             ->disabled()
+                            ->dehydrated(false)
                             ->columnSpanFull(),
                     ]),
             ]);

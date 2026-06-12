@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Enums\WhatsAppMessageEvent;
 use App\Enums\WhatsAppDispatchTrigger;
 use App\Models\Purchase;
 use App\Models\User;
@@ -26,6 +27,7 @@ class SendWelcomeWhatsAppJob implements ShouldQueue
         public int $userId,
         public string $phone,
         public int $purchaseId,
+        public WhatsAppMessageEvent $messageEvent = WhatsAppMessageEvent::PurchaseApproved,
         public WhatsAppDispatchTrigger $trigger = WhatsAppDispatchTrigger::PurchaseWebhook,
     ) {}
 
@@ -40,7 +42,7 @@ class SendWelcomeWhatsAppJob implements ShouldQueue
             : null;
 
         $phoneNormalized = PhoneNumber::normalize($this->phone);
-        $message = $messageTemplate->renderWelcomeMessage($user, $purchase);
+        $message = $messageTemplate->render($this->messageEvent, $user, $purchase);
         $purchaseId = $this->purchaseId > 0 ? $this->purchaseId : null;
         $attempt = $this->attempts();
 
@@ -59,6 +61,7 @@ class SendWelcomeWhatsAppJob implements ShouldQueue
             Log::warning('WhatsApp não enviado: telefone inválido.', [
                 'user_id' => $this->userId,
                 'phone' => $this->phone,
+                'message_event' => $this->messageEvent->value,
             ]);
 
             return;
@@ -79,11 +82,12 @@ class SendWelcomeWhatsAppJob implements ShouldQueue
                 httpStatus: $result['http_status'] ?? null,
             );
 
-            Log::info('WhatsApp de boas-vindas enviado.', [
+            Log::info('WhatsApp enviado.', [
                 'user_id' => $this->userId,
                 'purchase_id' => $this->purchaseId,
                 'phone' => $phoneNormalized,
                 'trigger' => $this->trigger->value,
+                'message_event' => $this->messageEvent->value,
             ]);
         } catch (Throwable $exception) {
             $dispatchLog->recordThrowable(
@@ -103,11 +107,12 @@ class SendWelcomeWhatsAppJob implements ShouldQueue
 
     public function failed(?Throwable $exception): void
     {
-        Log::error('Falha definitiva ao enviar WhatsApp de boas-vindas.', [
+        Log::error('Falha definitiva ao enviar WhatsApp.', [
             'user_id' => $this->userId,
             'purchase_id' => $this->purchaseId,
             'phone' => $this->phone,
             'trigger' => $this->trigger->value,
+            'message_event' => $this->messageEvent->value,
             'error' => $exception?->getMessage(),
         ]);
     }
