@@ -19,15 +19,23 @@
          data-max-page-read="{{ $progress->last_page_read }}"
          data-total-pages="{{ $material->pdf_page_count ?? 0 }}">
 
-        <div class="pdf-reader-container relative min-h-0 flex-1 bg-bible-black">
+        <div class="pdf-reader-container relative min-h-0 flex-1 bg-bible-black" data-pdf-touch-area>
             <div data-pdf-canvas-wrap class="absolute inset-0 overflow-x-hidden overflow-y-auto overscroll-contain">
                 <canvas data-pdf-canvas class="mx-auto block w-full max-w-full"></canvas>
             </div>
-            <p data-pdf-loading class="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-bible-cream/50">
+            <embed data-pdf-embed
+                   type="application/pdf"
+                   class="pdf-reader-embed hidden"
+                   title="{{ $material->title }}">
+            <p data-pdf-loading class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center text-sm text-bible-cream/50">
                 Cargando PDF…
             </p>
-            <p data-pdf-error class="pointer-events-none hidden absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-bible-cream/60">
-                No se pudo cargar el PDF. Intente descargarlo o vuelva más tarde.
+            <p data-pdf-error class="pointer-events-none absolute inset-0 z-10 flex hidden items-center justify-center p-6 text-center text-sm text-bible-cream/60">
+                No se pudo cargar el PDF.
+                <a href="{{ route('members.materials.pdf.stream', $material) }}"
+                   class="mt-3 block text-bible-gold underline">
+                    Abrir en el navegador
+                </a>
             </p>
         </div>
 
