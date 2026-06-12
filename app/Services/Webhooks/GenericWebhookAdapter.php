@@ -5,6 +5,7 @@ namespace App\Services\Webhooks;
 use App\Contracts\WebhookAdapterInterface;
 use App\DataTransferObjects\NormalizedPurchaseData;
 use App\DataTransferObjects\ParsedWebhookResult;
+use App\Enums\PurchaseWebhookAction;
 use Illuminate\Http\Request;
 
 class GenericWebhookAdapter implements WebhookAdapterInterface
@@ -40,14 +41,18 @@ class GenericWebhookAdapter implements WebhookAdapterInterface
         $amount = isset($payload['amount']) ? round((float) $payload['amount'], 2) : null;
 
         return ParsedWebhookResult::approved(new NormalizedPurchaseData(
+            hotmartEvent: 'PURCHASE_APPROVED',
+            action: PurchaseWebhookAction::GrantAccess,
             email: $email,
             name: filled($payload['name'] ?? null) ? trim((string) $payload['name']) : null,
             phone: PhoneNumber::normalize($payload['phone'] ?? null),
             productCode: $productCode,
             amount: $amount,
+            currency: filled($payload['currency'] ?? null) ? strtoupper((string) $payload['currency']) : null,
             externalReference: $externalReference,
             eventId: trim((string) ($payload['event_id'] ?? $externalReference)),
             rawPayload: $payload,
+            productCodeCandidates: [$productCode],
         ));
     }
 }

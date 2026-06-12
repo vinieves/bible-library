@@ -43,6 +43,8 @@ class ManageMessages extends Page
 
     public function mount(WhatsAppMessageTemplateService $templates): void
     {
+        $templates->ensureDefaults();
+
         $state = [
             'test_phone' => '',
             'test_event' => WhatsAppMessageEvent::ManualTest->value,
@@ -65,61 +67,76 @@ class ManageMessages extends Page
     {
         $templateService = app(WhatsAppMessageTemplateService::class);
 
-        return $schema
-            ->components([
-                Section::make('Status da integração')
-                    ->description('A conexão com a Evolution API é configurada em Integrações API.')
-                    ->schema([
-                        Placeholder::make('integration_status')
-                            ->label('Evolution API')
-                            ->content(fn (): HtmlString => IntegrationSettings::evolutionConfigured()
-                                ? new HtmlString('<span class="text-success-600 dark:text-success-400">Configurada.</span>')
-                                : new HtmlString('<span class="text-danger-600 dark:text-danger-400">Não configurada — vá em <strong>Integrações API</strong> e preencha URL, instância e API Key.</span>')),
-                        Placeholder::make('whatsapp_global_status')
-                            ->label('Disparo automático')
-                            ->content(fn (): HtmlString => IntegrationSettings::whatsappEnabled()
-                                ? new HtmlString('<span class="text-success-600 dark:text-success-400">Ativo para compras reais (webhook).</span>')
-                                : new HtmlString('<span class="text-warning-600 dark:text-warning-400">Desligado — ative em <strong>Integrações API</strong> para enviar nas compras.</span>')),
-                    ])
-                    ->columns(2),
-                Section::make('Placeholders disponíveis')
-                    ->description('Use estes códigos no texto. A mensagem final é enviada em espanhol para o cliente.')
-                    ->schema([
-                        Placeholder::make('placeholder_docs')
-                            ->hiddenLabel()
-                            ->content(new HtmlString(
-                                '<div class="grid gap-2 text-sm text-gray-600 dark:text-gray-300 sm:grid-cols-2">'.
-                                '<p><code>{nome}</code> — Nome do comprador</p>'.
-                                '<p><code>{email}</code> — E-mail de acesso</p>'.
-                                '<p><code>{telefone}</code> — Telefone do checkout</p>'.
-                                '<p><code>{producto}</code> — Nome do produto interno</p>'.
-                                '<p><code>{link_acceso}</code> — URL de login da biblioteca</p>'.
-                                '<p><code>{transacao}</code> — Código da transação Hotmart</p>'.
-                                '</div>'
-                            ))
-                            ->columnSpanFull(),
-                    ]),
-                ...collect(WhatsAppMessageEvent::cases())
-                    ->map(fn (WhatsAppMessageEvent $event): Section => $this->eventSection($event, $templateService))
-                    ->all(),
-                Section::make('Enviar teste')
-                    ->description('O teste usa o template selecionado e não depende do toggle de disparo automático.')
-                    ->schema([
-                        Select::make('test_event')
-                            ->label('Evento para testar')
-                            ->options(collect(WhatsAppMessageEvent::cases())->mapWithKeys(
-                                fn (WhatsAppMessageEvent $event) => [$event->value => $event->label()]
-                            ))
-                            ->required()
-                            ->native(false),
-                        TextInput::make('test_phone')
-                            ->label('Telefone de teste')
-                            ->placeholder('5215512345678')
-                            ->helperText('Somente dígitos, com código do país. Não é salvo.')
-                            ->dehydrated(false),
-                    ])
-                    ->columns(2),
-            ]);
+        $groups = collect(WhatsAppMessageEvent::cases())
+            ->groupBy(fn (WhatsAppMessageEvent $event) => $event->group());
+
+        $sections = [
+            Section::make('Status da integração')
+                ->description('A Evolution API e o disparo global ficam em Integrações API. Aqui você define as regras por evento Hotmart.')
+                ->schema([
+                    Placeholder::make('integration_status')
+                        ->label('Evolution API')
+                        ->content(fn (): HtmlString => IntegrationSettings::evolutionConfigured()
+                            ? new HtmlString('<span class="text-success-600 dark:text-success-400">Configurada.</span>')
+                            : new HtmlString('<span class="text-danger-600 dark:text-danger-400">Não configurada — vá em <strong>Integrações API</strong>.</span>')),
+                    Placeholder::make('whatsapp_global_status')
+                        ->label('Disparo automático global')
+                        ->content(fn (): HtmlString => IntegrationSettings::whatsappEnabled()
+                            ? new HtmlString('<span class="text-success-600 dark:text-success-400">Ativo — regras habilitadas abaixo serão disparadas.</span>')
+                            : new HtmlString('<span class="text-warning-600 dark:text-warning-400">Desligado — nenhuma regra automática será enviada.</span>')),
+                ])
+                ->columns(2),
+            Section::make('Placeholders disponíveis')
+                ->description('Use estes códigos no texto. As mensagens são enviadas em espanhol para o cliente.')
+                ->schema([
+                    Placeholder::make('placeholder_docs')
+                        ->hiddenLabel()
+                        ->content(new HtmlString(
+                            '<div class="grid gap-2 text-sm text-gray-600 dark:text-gray-300 sm:grid-cols-2 lg:grid-cols-3">'.
+                            '<p><code>{nome}</code> — Nome do comprador</p>'.
+                            '<p><code>{email}</code> — E-mail de acesso</p>'.
+                            '<p><code>{telefone}</code> — Telefone do checkout</p>'.
+                            '<p><code>{producto}</code> — Nome do produto Hotmart</p>'.
+                            '<p><code>{link_acceso}</code> — URL de login</p>'.
+                            '<p><code>{transacao}</code> — Código HP da Hotmart</p>'.
+                            '<p><code>{evento}</code> — Evento Hotmart (ex: PURCHASE_APPROVED)</p>'.
+                            '<p><code>{moeda}</code> — Moeda da compra</p>'.
+                            '<p><code>{valor}</code> — Valor da compra</p>'.
+                            '</div>'
+                        ))
+                        ->columnSpanFull(),
+                ]),
+        ];
+
+        foreach ($groups as $groupName => $events) {
+            $sections[] = Section::make($groupName)
+                ->schema(
+                    $events
+                        ->map(fn (WhatsAppMessageEvent $event) => $this->eventSection($event, $templateService))
+                        ->all()
+                )
+                ->collapsed($groupName !== 'Vendas aprovadas');
+        }
+
+        $sections[] = Section::make('Enviar teste')
+            ->description('O teste usa o template selecionado e não depende do toggle de disparo automático global.')
+            ->schema([
+                Select::make('test_event')
+                    ->label('Regra para testar')
+                    ->options(collect(WhatsAppMessageEvent::cases())->mapWithKeys(
+                        fn (WhatsAppMessageEvent $event) => [$event->value => $event->label()]
+                    ))
+                    ->required()
+                    ->native(false),
+                TextInput::make('test_phone')
+                    ->label('Telefone de teste')
+                    ->placeholder('573165247626')
+                    ->helperText('Somente dígitos, com código do país. Não é salvo.')
+                    ->dehydrated(false),
+            ])
+            ->columns(2);
+
+        return $schema->components($sections);
     }
 
     private function eventSection(WhatsAppMessageEvent $event, WhatsAppMessageTemplateService $templateService): Section
@@ -130,22 +147,27 @@ class ManageMessages extends Page
         return Section::make($event->label())
             ->description($event->description())
             ->schema([
-                Placeholder::make("hotmart_events_{$event->value}")
-                    ->label('Eventos Hotmart relacionados')
-                    ->content($event->hotmartEvents())
+                Placeholder::make("meta_{$event->value}")
+                    ->label('Regra do sistema')
+                    ->content(new HtmlString(
+                        '<div class="space-y-1 text-sm text-gray-600 dark:text-gray-300">'.
+                        '<p><strong>Evento Hotmart:</strong> <code>'.$event->hotmartEvent().'</code></p>'.
+                        '<p><strong>Ação automática:</strong> '.$event->systemAction().'</p>'.
+                        '</div>'
+                    ))
                     ->columnSpanFull(),
                 Toggle::make($enabledKey)
-                    ->label('Enviar automaticamente')
+                    ->label('Regra ativa')
                     ->helperText($event === WhatsAppMessageEvent::ManualTest
-                        ? 'Não afeta o botão de teste abaixo.'
-                        : 'Só dispara em compras reais quando o WhatsApp automático está ativo em Integrações API.')
+                        ? 'Não afeta o botão de teste.'
+                        : 'Requer WhatsApp automático ativo em Integrações API.')
                     ->inline(false)
                     ->columnSpanFull(),
                 Textarea::make($bodyKey)
                     ->label('Texto da mensagem (espanhol)')
                     ->rows(6)
                     ->required()
-                    ->live(onBlur: true)
+                    ->live(debounce: 500)
                     ->helperText('Placeholders: '.implode(', ', $event->placeholders()))
                     ->columnSpanFull(),
                 Placeholder::make("preview_{$event->value}")
@@ -176,7 +198,7 @@ class ManageMessages extends Page
         }
 
         Notification::make()
-            ->title('Mensagens salvas')
+            ->title('Regras de mensagem salvas')
             ->success()
             ->send();
 
@@ -213,7 +235,6 @@ class ManageMessages extends Page
 
                     $eventValue = $this->data['test_event'] ?? WhatsAppMessageEvent::ManualTest->value;
                     $event = WhatsAppMessageEvent::tryFrom($eventValue) ?? WhatsAppMessageEvent::ManualTest;
-
                     $admin = auth()->user();
 
                     SendWelcomeWhatsAppJob::dispatch(
@@ -222,11 +243,16 @@ class ManageMessages extends Page
                         purchaseId: 0,
                         messageEvent: $event,
                         trigger: $event->dispatchTrigger(),
+                        contextHotmartEvent: $event->hotmartEvent(),
+                        contextProductTitle: 'Plan Completo — Hotmart',
+                        contextCurrency: 'USD',
+                        contextAmount: 4.9,
+                        contextTransaction: 'HP0000000000',
                     );
 
                     Notification::make()
                         ->title('Teste enfileirado')
-                        ->body("Template: {$event->label()}. Verifique Disparos WhatsApp.")
+                        ->body("Regra: {$event->label()}. Verifique Disparos WhatsApp.")
                         ->success()
                         ->send();
                 }),

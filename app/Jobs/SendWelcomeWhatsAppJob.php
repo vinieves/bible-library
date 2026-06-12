@@ -2,12 +2,13 @@
 
 namespace App\Jobs;
 
-use App\Enums\WhatsAppMessageEvent;
 use App\Enums\WhatsAppDispatchTrigger;
+use App\Enums\WhatsAppMessageEvent;
 use App\Models\Purchase;
 use App\Models\User;
 use App\Services\EvolutionApiService;
 use App\Services\MessageTemplateService;
+use App\Services\NormalizedPurchaseContext;
 use App\Services\Webhooks\PhoneNumber;
 use App\Services\WhatsAppDispatchLogService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -29,6 +30,11 @@ class SendWelcomeWhatsAppJob implements ShouldQueue
         public int $purchaseId,
         public WhatsAppMessageEvent $messageEvent = WhatsAppMessageEvent::PurchaseApproved,
         public WhatsAppDispatchTrigger $trigger = WhatsAppDispatchTrigger::PurchaseWebhook,
+        public ?string $contextHotmartEvent = null,
+        public ?string $contextProductTitle = null,
+        public ?string $contextCurrency = null,
+        public ?float $contextAmount = null,
+        public ?string $contextTransaction = null,
     ) {}
 
     public function handle(
@@ -41,8 +47,17 @@ class SendWelcomeWhatsAppJob implements ShouldQueue
             ? Purchase::query()->with('product')->find($this->purchaseId)
             : null;
 
+        $context = new NormalizedPurchaseContext(
+            hotmartEvent: $this->contextHotmartEvent,
+            productTitle: $this->contextProductTitle,
+            phone: $this->phone,
+            transaction: $this->contextTransaction,
+            currency: $this->contextCurrency,
+            amount: $this->contextAmount,
+        );
+
         $phoneNormalized = PhoneNumber::normalize($this->phone);
-        $message = $messageTemplate->render($this->messageEvent, $user, $purchase);
+        $message = $messageTemplate->render($this->messageEvent, $user, $purchase, $context);
         $purchaseId = $this->purchaseId > 0 ? $this->purchaseId : null;
         $attempt = $this->attempts();
 

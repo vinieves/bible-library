@@ -5,15 +5,27 @@ namespace App\Services\Webhooks;
 use App\Contracts\WebhookAdapterInterface;
 use App\DataTransferObjects\NormalizedPurchaseData;
 use App\DataTransferObjects\ParsedWebhookResult;
-use App\Enums\WebhookPlatform;
+use App\Enums\PurchaseWebhookAction;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 
 class HotmartWebhookAdapter implements WebhookAdapterInterface
 {
-    private const APPROVED_EVENTS = [
+    private const SUPPORTED_EVENTS = [
         'PURCHASE_APPROVED',
         'PURCHASE_COMPLETE',
+        'PURCHASE_CANCELED',
+        'PURCHASE_BILLET_PRINTED',
+        'PURCHASE_PROTEST',
+        'PURCHASE_REFUNDED',
+        'PURCHASE_CHARGEBACK',
+        'PURCHASE_EXPIRED',
+        'PURCHASE_DELAYED',
+    ];
+
+    private const ACCESS_EVENTS = [
+        'PURCHASE_APPROVED',
     ];
 
     public function parse(Request $request): ParsedWebhookResult
@@ -26,7 +38,7 @@ class HotmartWebhookAdapter implements WebhookAdapterInterface
 
         $event = strtoupper((string) $payload['event']);
 
-        if (! in_array($event, self::APPROVED_EVENTS, true)) {
+        if (! in_array($event, self::SUPPORTED_EVENTS, true)) {
             return ParsedWebhookResult::ignored("Evento {$event} ignorado.");
         }
 
@@ -34,12 +46,6 @@ class HotmartWebhookAdapter implements WebhookAdapterInterface
 
         if (! is_array($data)) {
             return ParsedWebhookResult::ignored('Campo data ausente no payload Hotmart.');
-        }
-
-        $purchaseStatus = strtoupper((string) Arr::get($data, 'purchase.status', 'APPROVED'));
-
-        if ($purchaseStatus !== 'APPROVED') {
-            return ParsedWebhookResult::ignored("Compra com status {$purchaseStatus} ignorada.");
         }
 
         $email = strtolower(trim((string) Arr::get($data, 'buyer.email', '')));
@@ -60,19 +66,65 @@ class HotmartWebhookAdapter implements WebhookAdapterInterface
             return ParsedWebhookResult::ignored('Transação Hotmart ausente.');
         }
 
+        $action = $this->resolveAction($event, $data, $productCodes);
+
+        if ($action === null) {
+            $status = strtoupper((string) Arr::get($data, 'purchase.status', ''));
+
+            return ParsedWebhookResult::ignored("Evento {$event} com status {$status} ignorado.");
+        }
+
         $eventId = trim((string) ($payload['id'] ?? $transaction));
 
         return ParsedWebhookResult::approved(new NormalizedPurchaseData(
+            hotmartEvent: $event,
+            action: $action,
             email: $email,
             name: $this->resolveName($data),
             phone: $this->resolvePhone($data),
             productCode: $productCodes[0],
             amount: $this->resolveAmount($data),
+            currency: $this->resolveCurrency($data),
             externalReference: $transaction,
             eventId: $eventId,
             rawPayload: $payload,
             productCodeCandidates: $productCodes,
         ));
+    }
+
+  /**
+     * @param  list<string>  $productCodes
+     */
+    private function resolveAction(string $event, array $data, array $productCodes): ?PurchaseWebhookAction
+    {
+        if ($event === 'PURCHASE_COMPLETE') {
+            return PurchaseWebhookAction::NotifyOnly;
+        }
+
+        if (! in_array($event, self::ACCESS_EVENTS, true)) {
+            return PurchaseWebhookAction::NotifyOnly;
+        }
+
+        $purchaseStatus = strtoupper((string) Arr::get($data, 'purchase.status', 'APPROVED'));
+
+        if ($purchaseStatus !== 'APPROVED') {
+            return null;
+        }
+
+        $product = Product::query()
+            ->where('is_active', true)
+            ->whereIn('product_code', $productCodes)
+            ->first();
+
+        if (! $product) {
+            return PurchaseWebhookAction::UnmappedProduct;
+        }
+
+        if ($product->grantsAccess()) {
+            return PurchaseWebhookAction::GrantAccess;
+        }
+
+        return PurchaseWebhookAction::AcknowledgeFunnel;
     }
 
     /**
@@ -131,11 +183,24 @@ class HotmartWebhookAdapter implements WebhookAdapterInterface
         }
 
         $amount = (float) $value;
+        $currency = strtoupper((string) Arr::get($data, 'purchase.full_price.currency_value', Arr::get($data, 'purchase.price.currency_value', '')));
+
+        if (in_array($currency, ['COP', 'CLP'], true) && $amount > 999) {
+            return round($amount, 2);
+        }
 
         if ($amount > 999 && fmod($amount, 1.0) === 0.0) {
             return round($amount / 100, 2);
         }
 
         return round($amount, 2);
+    }
+
+    private function resolveCurrency(array $data): ?string
+    {
+        $currency = Arr::get($data, 'purchase.full_price.currency_value')
+            ?? Arr::get($data, 'purchase.price.currency_value');
+
+        return filled($currency) ? strtoupper((string) $currency) : null;
     }
 }

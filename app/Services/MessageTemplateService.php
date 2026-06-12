@@ -17,8 +17,12 @@ class MessageTemplateService
         return $this->templates->render(WhatsAppMessageEvent::PurchaseApproved, $user, $purchase);
     }
 
-    public function render(WhatsAppMessageEvent $event, User $user, ?Purchase $purchase = null): string
-    {
-        return $this->templates->render($event, $user, $purchase);
+    public function render(
+        WhatsAppMessageEvent $event,
+        User $user,
+        ?Purchase $purchase = null,
+        ?NormalizedPurchaseContext $context = null,
+    ): string {
+        return $this->templates->render($event, $user, $purchase, $context);
     }
 }

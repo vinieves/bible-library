@@ -27,15 +27,22 @@ class WhatsAppMessageTemplateService
         return $template?->is_enabled ?? $event->defaultEnabled();
     }
 
-    public function render(WhatsAppMessageEvent $event, User $user, ?Purchase $purchase = null): string
+    public function render(WhatsAppMessageEvent $event, User $user, ?Purchase $purchase = null, ?NormalizedPurchaseContext $context = null): string
     {
+        $productTitle = $purchase?->product?->title
+            ?? $context?->productTitle
+            ?? '';
+
         $replacements = [
             '{nome}' => $user->name,
             '{email}' => $user->email,
-            '{telefone}' => $purchase?->phone ?? '',
-            '{producto}' => $purchase?->product?->title ?? '',
+            '{telefone}' => $purchase?->phone ?? $context?->phone ?? '',
+            '{producto}' => $productTitle,
             '{link_acceso}' => route('login'),
-            '{transacao}' => $purchase?->external_reference ?? '',
+            '{transacao}' => $purchase?->external_reference ?? $context?->transaction ?? '',
+            '{evento}' => $context?->hotmartEvent ?? $event->hotmartEvent(),
+            '{moeda}' => $context?->currency ?? '',
+            '{valor}' => $this->formatAmount($purchase?->amount ?? $context?->amount),
         ];
 
         return str_replace(
@@ -54,6 +61,9 @@ class WhatsAppMessageTemplateService
             '{producto}' => 'Plan Completo — Hotmart',
             '{link_acceso}' => route('login'),
             '{transacao}' => 'HP1234567890',
+            '{evento}' => 'PURCHASE_APPROVED',
+            '{moeda}' => 'USD',
+            '{valor}' => '4.90',
         ];
 
         return str_replace(
@@ -70,9 +80,46 @@ class WhatsAppMessageTemplateService
             [
                 'body' => $body,
                 'is_enabled' => $isEnabled,
-                'sort_order' => array_search($event, WhatsAppMessageEvent::cases(), true) + 1,
+                'sort_order' => $this->sortOrder($event),
             ]
         );
+    }
+
+    /**
+     * @return list<WhatsAppMessageTemplate>
+     */
+    public function allTemplates(): array
+    {
+        $indexed = WhatsAppMessageTemplate::query()
+            ->get()
+            ->keyBy(fn (WhatsAppMessageTemplate $template) => $template->event->value);
+
+        $templates = [];
+
+        foreach (WhatsAppMessageEvent::cases() as $event) {
+            $templates[] = $indexed->get($event->value) ?? new WhatsAppMessageTemplate([
+                'event' => $event,
+                'body' => $event->defaultBody(),
+                'is_enabled' => $event->defaultEnabled(),
+                'sort_order' => $this->sortOrder($event),
+            ]);
+        }
+
+        return $templates;
+    }
+
+    public function ensureDefaults(): void
+    {
+        foreach (WhatsAppMessageEvent::cases() as $event) {
+            WhatsAppMessageTemplate::query()->firstOrCreate(
+                ['event' => $event->value],
+                [
+                    'body' => $event->defaultBody(),
+                    'is_enabled' => $event->defaultEnabled(),
+                    'sort_order' => $this->sortOrder($event),
+                ]
+            );
+        }
     }
 
     private function find(WhatsAppMessageEvent $event): ?WhatsAppMessageTemplate
@@ -80,5 +127,19 @@ class WhatsAppMessageTemplateService
         return WhatsAppMessageTemplate::query()
             ->where('event', $event->value)
             ->first();
+    }
+
+    private function sortOrder(WhatsAppMessageEvent $event): int
+    {
+        return array_search($event, WhatsAppMessageEvent::cases(), true) + 1;
+    }
+
+    private function formatAmount(mixed $amount): string
+    {
+        if ($amount === null || $amount === '') {
+            return '';
+        }
+
+        return number_format((float) $amount, 2, '.', '');
     }
 }

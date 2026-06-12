@@ -1,0 +1,306 @@
+Parâmetro	Descrição
+hottokstring	Cada conta possui um token único. Ele é a principal garantia de que a requisição está sendo feita pela Hotmart, o que é uma questão de segurança para evitar fraudes e ataques. Este campo será enviado com o nome X-HOTMART-HOTTOK no cabeçalho HTTP de todas as requisições e recomendamos validá-lo antes de tratar os dados recebidos. Se precisar trocar esta chave, entre em contato com nosso suporte.
+idstring	Código único de identificação do evento recebido.
+creation_datelong	Data de criação do evento. Essa data está em milissegundos, contando a partir de 1970-01-01 00:00:00 UTC.
+eventstring	Nome do evento recebido, que neste caso pode ser: PURCHASE_CANCELED, PURCHASE_COMPLETE, PURCHASE_BILLET_PRINTED, PURCHASE_APPROVED, PURCHASE_PROTEST, PURCHASE_REFUNDED, PURCHASE_CHARGEBACK, PURCHASE_EXPIRED, PURCHASE_DELAYED.
+versionstring	Versão do evento recebido. Essa versão é escolhida no momento de criação de uma configuração no Webhook. Neste caso o valor será sempre 2.0.0.
+dataobject	Dados relacionados ao evento de venda.
+productobject	Dados do produto.
+product.idinteger	Identificador único do produto adquirido.
+product.ucodestring	Identificador único do produto adquirido. É o código que deve ser usado em seu sistema para identificar o produto.
+product.namestring	Nome do produto vendido. No caso de produtos hospedados no Hotmart Club, o nome do produto poderá equivaler ao nome da área de membros e divergir do nome cadastrado na conta Hotmart.
+product.has_co_productionboolean	Indica se produto adquirido possui coprodutor. True se sim e False se não.
+product.warranty_datestring	Data e hora de vencimento da garantia do produto adquirido, no formato YYYY-MM-DDThh:mm:ssTZD.
+product.support_emailstring	E-mail de suporte do produto. Caso não tenha sido informado um e-mail personalizado, será obtido o e-mail padrão da conta.
+product.is_physical_productboolean	Indica se um produto vendido é físico. True se for produto físico e False se não.
+product.contentobject	Dados referentes ao conteúdo do combo.
+product.content.has_physical_productsboolean	Indica se possui produto físico nos produtos do combo. True se possui produto físico e False se não.
+product.content.productsarray<object>	Lista dos produtos contidos no combo.
+product.content.products.idlong	Identificador interno do produto contido no combo.
+product.content.products.ucodestring	Identificador único do produto contido no combo. É o código que deve ser usado em seu sistema para identificar o produto.
+product.content.products.namestring	Nome do produto contido no combo.
+product.content.products.is_physical_productboolean	Indica se um produto contido no combo é físico. True se for produto físico e False se não.
+affiliatesarray<object>	Lista com os dados dos afiliados da venda.
+affiliates.affiliate_codestring	Identificador único do afiliado que indicou a venda.
+affiliates.namestring	Nome do afiliado que indicou a venda do produto.
+buyerobject	Mostra os dados do comprador. As informações somente serão retornadas caso o comprador tenha disponibilizado os dados no ato da compra do produto. Os dados solicitados são definidos pelo Produtor nas configurações da Página de Pagamentos (Checkout).
+buyer.emailstring	E-mail do comprador.
+buyer.namestring	Nome completo do comprador.
+buyer.first_namestring	Primeiro nome do comprador.
+buyer.last_namestring	Último nome do comprador.
+buyer.checkout_phonestring	Número de telefone do comprador - Preenchido na página de pagamento. Caso seja uma venda internacional, onde o comprador é de um país fora do Brasil, o DDI do participante será enviado junto ao telefone.
+buyer.checkout_phone_codestring	Enviado apenas no caso de compradores brasileiros, informa o código de área (DDD).
+buyer.addressobject	Informações de endereço do comprador são extraídas da “página de pagamento“ quando solicitadas. Se não forem solicitadas, serão obtidas do cadastro do comprador. Se o endereço ainda não estiver cadastrado, os campos correspondentes não serão enviados.
+buyer.address.country_isostring	Código do país do comprador, em formato ISO 3166 Alpha-2.
+buyer.address.countrystring	País do endereço do comprador.
+buyer.address.zipcodestring	CEP (codigo de endereçamento) do endereço do comprador.
+buyer.address.statestring	Estado do endereço do comprador.
+buyer.address.citystring	Cidade do endereço do comprador.
+buyer.address.neighborhoodstring	Bairro do endereço do comprador.
+buyer.address.streetstring	Rua do endereço do comprador.
+buyer.address.complementstring	Complemento do endereço do comprador.
+buyer.address.numberstring	Número do endereço do comprador.
+buyer.documentstring	Identificador do documento do comprador
+buyer.document_typestring	Tipo de documento do comprador, que varia de acordo com a sua nacionalidade e natureza jurídica, sendo CPF ou CNPJ para compradores brasileiros, DNI ou CIF para espanhóis e DOCUMENT para os demais países.
+producerobject	Dados do produtor.
+producer.namestring	Nome do produtor.
+producer.documentstring	Número do documento do produtor.
+producer.legal_naturestring	Natureza jurídica do produtor, informado apenas no caso de produtores brasileiros. A informação será Pessoa Física ou Pessoa Jurídica.
+commissionsarray<object>	Informações sobre a comissão do produtor e do Marketplace da Hotmart.
+commissions.valuedouble	Valor da comissão.
+commissions.currency_valuestring	Moeda das comissões associadas à transação, representada no padrão internacional de três letras conforme o ISO 4217. Por exemplo: BRL para Real brasileiro, USD para Dólar americano.
+commissions.sourcestring	Indica qual a fonte da comissão, podendo ser um dos seguintes valores: PRODUCER, COPRODUCER, AFFILIATE ou ADDON.
+commissions.currency_conversionobject	Objeto referente à conversão de moeda da sua comissão.
+commissions.currency_conversion.converted_valuedouble	Valor da comissão convertida na moeda correspondente.
+commissions.currency_conversion.converted_to_currencystring	Moeda para qual a comissão foi convertida, no padrão internacional de três letras conforme o ISO 4217.
+commissions.currency_conversion.conversion_ratedouble	Taxa aplicada na conversão da comissão.
+purchaseobject	Dados da compra.
+purchase.approved_datelong	Data de liberação da compra em milissegundos a partir de 1970-01-01 00:00:00 UTC.
+purchase.full_priceobject	Dados referentes ao valor total da compra pago pelo comprador.
+purchase.full_price.valuedouble	Valor total pago pelo comprador, incluindo taxas e juros.
+purchase.full_price.currency_valuestring	Moeda do valor total pago pelo comprador, incluindo taxas e juros, representada no padrão internacional de três letras conforme o ISO 4217. Por exemplo: BRL para Real brasileiro, USD para Dólar americano.
+purchase.original_offer_priceobject	Dados referentes ao valor da oferta principal do produto.
+purchase.recurrence_numberinteger	Indica em qual número de recorrência a assinatura está
+purchase.subscription_anticipation_purchaseboolean	Indica se uma compra é de renovação antecipada. True se sim e False se não.
+purchase.original_offer_price.currency_valuestring	Moeda referente aos valores das tarifas, no padrão internacional de três letras. Por exemplo: BRL, USD, EUR, MXN e mais.
+purchase.original_offer_price.valuedouble	Valor da oferta principal do produto.
+purchase.priceobject	Dados referentes ao valor da oferta no momento da compra.
+purchase.price.valuedouble	Valor da oferta no momento da compra.
+purchase.price.currency_valuestring	Moeda da oferta no momento da compra, representada no padrão internacional de três letras conforme o ISO 4217. Por exemplo: BRL para Real brasileiro, USD para Dólar americano.
+purchase.offerobject	Este campo virá preenchido com o texto cadastrado na descrição da oferta (para transações na modalidade de pagamento único) ou o texto cadastrado na descrição do plano (para transações na modalidade de pagamento recorrente). Se a oferta, ou plano não possuir uma descrição cadastrada, este campo não será retornado.
+purchase.offer.codestring	Identificador único da oferta que foi adquirida.
+purchase.offer.coupon_codestring	Código do cupom de desconto, caso tenha sido utilizado na compra.
+purchase.offer.namestring	Este campo virá preenchido com o texto cadastrado no nome da oferta (para transações na modalidade de pagamento único). Em casos de transações na modalidade de pagamento recorrente, o texto cadastrado no nome do plano virá preenchido no campo 'subscription.plan.name'. Se a oferta não possuir um nome cadastrado, este campo não será retornado.
+purchase.offer.descriptionstring	Este campo virá preenchido com o texto cadastrado na descrição da oferta (para transações na modalidade de pagamento único) ou o texto cadastrado na descrição do plano (para transações na modalidade de pagamento recorrente). Se a oferta, ou plano não possuir uma descrição cadastrada, este campo não será retornado.
+purchase.originobject	Informações referentes à origem das suas vendas.
+purchase.origin.srcstring	Código de UTM origem da página de vendas.
+purchase.origin.sckstring	Código UTM de origem da página de pagamento (checkout).
+purchase.origin.xcodstring	Código de UTM que pode ser personalizado para receber informações de origem da venda.
+purchase.checkout_countryobject	Dados referentes ao país selecionado pelo comprador na página de pagamento.
+purchase.checkout_country.namestring	País selecionado pelo comprador na página de pagamento.
+purchase.checkout_country.isostring	País selecionado pelo comprador na página de pagamento, no formato ISO 3166 Alpha-2.
+purchase.order_bumpobject	Dados utilizados para identificar se uma compra faz parte de um Order Bump.
+purchase.order_bump.is_order_bumpboolean	Indica se a transação é um Order Bump. True se sim e False se não.
+purchase.order_bump.parent_purchase_transactionstring	Identificador da transação pai, caso seja uma transação de Order Bump. Esse é o identificador da transação principal que gerou todas as outras compras na página de pagamento. Quando este identificador for retornado vazio em uma compra com Order Bump (purchase.order_bump.is_order_bump = true), a própria compra em questão é a pai. Para saber mais sobre Order Bump, veja nosso artigo na central de ajuda: O que é e como configurar o Order Bump? 
+purchase.order_datestring	Data do pedido. Para compras recorrentes, este valor é referente a cada renovação.
+purchase.date_next_chargelong	Data da proxima cobrança em milissegundos a partir de 1970-01-01 00:00:00 UTC.
+purchase.statusstring	Mostra o status de compra. Os valores possíveis para este campo são:
+APPROVED, BLOCKED, CANCELLED, CHARGEBACK, COMPLETE, EXPIRED, NO_FUNDS, OVERDUE, PARTIALLY_REFUNDED, PRE_ORDER, PRINTED_BILLET, PROCESSING_TRANSACTION, DISPUTE, REFUNDED, STARTED, UNDER_ANALISYS ou WAITING_PAYMENT.
+A descrição de cada status pode ser encontrado em nossa página de suporte .
+purchase.transactionstring	Código único de referência para um transação, por exemplo HP17715690036014. Uma transação acontece quando um pedido é efetuado. Um pedido pode ser um boleto gerado, uma compra aprovada, uma recorrência de compra e mais.
+purchase.paymentobject	Dados do pagamento.
+purchase.payment.billet_barcodestring	Código de barra do boleto para o pagamento da compra (Só é enviado caso a compra seja do tipo boleto bancário).
+purchase.payment.billet_urlstring	Link para reimprimir o boleto da compra (Só é enviado caso a compra seja do tipo boleto bancário).
+purchase.payment.installments_numberinteger	Número total de parcelas, no caso de uma compra parcelada em BRL, MXN ou COP.
+purchase.payment.pix_codestring	Código do Pix para o pagamento da compra, também conhecido como Pix copia e cola. Enviado apenas quando a compra é por Pix.
+purchase.payment.pix_expiration_datelong	Data limite para o pagamento do Pix. O link e o QR code só irão funcionar para o pagamento até esta data de expiração.
+purchase.payment.pix_qrcodestring	Link para a visualização do QR code para o pagamento via Pix. Enviado apenas quando a compra é por Pix.
+purchase.payment.refusal_reasonstring	Texto de recusa do pagamento pela operadora.
+purchase.payment.typestring	Tipo de pagamento utilizado pela pessoa compradora para realizar a compra. Os valores possíveis para este campo são: BILLET, CASH_PAYMENT, CREDIT_CARD, DIRECT_BANK_TRANSFER, DIRECT_DEBIT, FINANCED_BILLET, FINANCED_INSTALLMENT, GOOGLE_PAY, HOTCARD, HYBRID, MANUAL_TRANSFER, PAYPAL, PAYPAL_INTERNACIONAL, PICPAY, PIX, SAMSUNG_PAY e WALLET.
+purchase.invoice_bystring	Responsável pela emissão da Nota Fiscal. HOTMART se é a Hotmart ou SELLER se é o Produtor.
+purchase.is_funnelboolean	Informa se a compra fez parte de alguma etapa de um Funil de Vendas Hotmart. True se sim e False se não. Para saber mais, acesse a nossa Central de Ajuda .
+purchase.event_ticketsobject	Informações referentes à venda de ingressos para eventos .
+purchase.event_tickets.amountinteger	Detalha a quantidade de ingressos adquiridos na venda.
+purchase.business_modelstring	Modelo fiscal pelo qual a Hotmart processou a transação e que determina quem é responsável por emitir a nota fiscal ao comprador. Possíveis valores: "R", "A" e "I", sendo R: A Hotmart emite a nota fiscal para o comprador; A: O produtor emite a nota fiscal ao comprador pela entidade legal da Hotmart no exterior; e I: O produtor emite a nota fiscal para o comprador pela entidade legal da Hotmart no Brasil. Para saber mais sobre os modelos fiscais, acesse a nossa Central de Ajuda .
+purchase.variantsobject	Dados da variação do produto selecionada pelo comprador. Enviado apenas quando o produto possui variação configurada.
+purchase.variants.skustring	Código SKU da variação do produto. Este campo é opcional e pode não ser enviado.
+purchase.variants.attributesarray<object>	Lista de atributos da variação selecionada pelo comprador (ex: tamanho, cor, sabor). Cada objeto contém name e value.
+purchase.variants.attributes.namestring	Nome do atributo da variação (ex: Tamanho, Cor, Sabor).
+purchase.variants.attributes.valuestring	Valor do atributo da variação selecionado pelo comprador (ex: Médio, Azul, Chocolate).
+shippingobject	Dados de frete da compra. Contém informações sobre custo, prazo estimado de entrega, transportadora e serviço de fulfillment. Este campo é omitido do payload quando não há informações de frete disponíveis (ex. produto digital).
+shipping.costobject	Objeto com o valor e a moeda do frete.
+shipping.cost.valuenumber	Valor total cobrado do cliente pelo envio. Quando o frete é grátis, o valor é 0.
+shipping.cost.currency_valuestring	Moeda do frete, representada no padrão internacional de três letras conforme o ISO 4217. Por exemplo: BRL para Real brasileiro, USD para Dólar americano.
+shipping.estimated_delivery_daysinteger	Prazo estimado de entrega em dias. Representa a soma do tempo da transportadora e do tempo de manuseio exibido ao comprador.
+shipping.carrierobject	Objeto com dados da transportadora responsável pelo envio.
+shipping.carrier.namestring	Nome da transportadora (ex: CORREIOS).
+shipping.carrier.servicestring	Serviço ou método de envio da transportadora (ex: SEDEX, PAC).
+shipping.fulfillmentobject	Objeto com dados do serviço de fulfillment responsável pelo estoque e envio do produto.
+shipping.fulfillment.servicestring	Nome do serviço de fulfillment que gerencia o estoque e envio do produto. O valor é MANUAL quando o produto NÃO é um produto sob demanda (print-on-demand). Para produtos sob demanda, o valor será o nome do serviço (ex: UICLAP, MONTINK).
+subscriptionobject	Dados da assinatura adquirida, caso a venda tenha sido de um produto de assinatura.
+subscription.statusstring	Mostra os status do momento em que aquela assinatura se encontra. Estes status podem ser: ACTIVE, INACTIVE, DELAYED, CANCELLED_BY_CUSTOMER, CANCELLED_BY_SELLER, CANCELLED_BY_ADMIN, STARTED ou OVERDUE.
+subscription.planobject	Dados do plano adquirido.
+subscription.plan.idlong	Identificador único do plano de assinatura.
+subscription.plan.namestring	Nome do plano adquirido. Enviado apenas em caso de venda de assinaturas.
+subscription.subscriberobject	Dados do assinante.
+subscription.subscriber.codestring	Código exclusivo de um assinante. Este campo é usado pelo sistema externo para identificar um assinante de uma assinatura. Um mesmo comprador terá 2 subscribersCode diferentes se ele assinar dois produtos diferentes.
+
+
+
+
+
+
+{
+  "id": "1234567890123456789",
+  "creation_date": 12345678,
+  "event": "PURCHASE_APPROVED",
+  "version": "2.0.0",
+  "data": {
+    "product": {
+      "id": 213344,
+      "ucode": "2e9c43a9-0aeb-48ed-9464-630f845c23af",
+      "name": "Product Name",
+      "has_co_production": false,
+      "warranty_date": "2017-12-27T00:00:00Z",
+      "support_email": "support@email.com",
+      "is_physical_product": false,
+      "content": {
+        "has_physical_products": true,
+        "products": [
+          {
+            "id": 4774438,
+            "ucode": "559fef42-3406-4d82-b775-d09bd33936b1",
+            "name": "Product Name 1",
+            "is_physical_product": false
+          },
+          {
+            "id": 4999597,
+            "ucode": "099e7644-b7d1-43d6-82a9-ec6be0118a4b",
+            "name": "Physical product",
+            "is_physical_product": true
+          }
+        ]
+      }
+    },
+    "affiliates": [
+      {
+        "affiliate_code": "Q58388177J",
+        "name": "Affiliate name"
+      }
+    ],
+    "buyer": {
+      "email": "buyer@email.com",
+      "name": "Buyer Name",
+      "first_name": "Buyer",
+      "last_name": "Name",
+      "checkout_phone": "999999999",
+      "checkout_phone_code": "31",
+      "document": "123456789",
+      "document_type": "CPF",
+      "address": {
+        "zipcode": "30150101",
+        "country": "Brasil",
+        "number": "499",
+        "address": "Avenida Assis Chateaubriand",
+        "city": "Belo Horizonte",
+        "state": "MG",
+        "neighborhood": "Floresta",
+        "complement": "a complement",
+        "country_iso": "BR"
+      },
+    },
+    "producer": {
+      "name": "Producer Name",
+      "legal_nature": "Pessoa Física",
+      "document": "12345678965",
+    },
+    "commissions": [
+      {
+        "value": 0.65,
+        "currency_value": "BRL",
+        "source": "MARKETPLACE"
+      },
+      {
+        "value": 3.10,
+        "currency_value": "USD",
+        "source": "PRODUCER",
+        "currency_conversion": {
+          "converted_value": 16.34,
+          "converted_to_currency": "BRL",
+          "conversion_rate": 5.271103
+        }
+      }
+    ],
+    "purchase": {
+      "approved_date": 1231241434453,
+      "full_price": {
+        "value": 134.0,
+        "currency_value": "BRL"
+      },
+      "original_offer_price": {
+        "currency_value": "EUR",
+        "value": 150.6
+      },
+      "price": {
+        "value": 150.6,
+        "currency_value": "BRL"
+      },
+      "offer": {
+        "code": "n82b9jqz",
+        "coupon_code": "ABCDE",
+        "name": "Offer name",
+        "description": "Offer description"
+      },
+      "recurrence_number": 1,
+      "subscription_anticipation_purchase": false,
+      "checkout_country": {
+        "name": "Brasil",
+        "iso": "BR"
+      },
+      "origin": {
+        "xcod": "xcod_example"
+      },
+      "order_bump": {
+        "is_order_bump": true,
+        "parent_purchase_transaction": "HP02316330308193"
+      },
+      "order_date": "123243546",
+      "date_next_charge": 1736337600000,
+      "status": "STARTED",
+      "transaction": "HP02316330308193",      
+      "payment": {
+        "billet_barcode": "03399.33335 33823.303087 19802.801027 2 87630000015000",
+        "billet_url": "https://billet-link.com/bHP02316330308193",
+        "installments_number": 2,
+        "pix_code": "00020101021226780014br.gov.bcb.pix2556pix-h.juno.com.br/qr/v2/A0ACBEDA916F322FAB94E7DA5B29D0185204000053039865802BR5910EBANX Ltda6008CURITIBA62070503***6304E794",
+        "pix_expiration_date": 1645271012000,
+        "pix_qrcode": "https://sandbox-local-latam.ebanx.com/pix/checkout?hash=620e34e301fcbdead10d9187a699c4de9e50db35b92da0cd",
+        "refusal_reason": "fail",
+        "type": "PICPAY"
+      },
+      "is_funnel": false,
+      "event_tickets": { 
+        "amount": 2 
+      },
+      "business_model": "I",
+      "variants": {
+        "sku": "HTM_OTAROM-14",
+        "attributes": [
+          { "name": "Tamanho", "value": "Médio" },
+          { "name": "Sabor", "value": "Chocolate" }
+        ]
+      }
+    },
+    "shipping": {
+      "cost": {
+        "value": 25.90,
+        "currency_value": "BRL"
+      },
+      "estimated_delivery_days": 10,
+      "carrier": {
+        "name": "CORREIOS",
+        "service": "SEDEX"
+      },
+      "fulfillment": {
+        "service": "MANUAL"
+      }
+    },
+    "subscription": {
+      "status": "ACTIVE",
+      "plan": {
+        "id": 711459,
+        "name": "plan name"
+      },
+      "subscriber": {
+        "code": "12133421"
+      }
+    }
+  }
+}
+
+
+
+
+
+
+

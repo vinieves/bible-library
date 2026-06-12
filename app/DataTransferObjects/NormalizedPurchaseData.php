@@ -2,17 +2,22 @@
 
 namespace App\DataTransferObjects;
 
+use App\Enums\PurchaseWebhookAction;
+
 readonly class NormalizedPurchaseData
 {
     /**
      * @param  list<string>  $productCodeCandidates
      */
     public function __construct(
+        public string $hotmartEvent,
+        public PurchaseWebhookAction $action,
         public string $email,
         public ?string $name,
         public ?string $phone,
         public string $productCode,
         public ?float $amount,
+        public ?string $currency,
         public string $externalReference,
         public string $eventId,
         public array $rawPayload = [],

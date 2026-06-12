@@ -50,7 +50,7 @@ class IncomingWebhookProcessor
                 ];
             }
 
-            $result = $this->purchaseWebhookService->process($parsed->data, $platform);
+            $result = $this->purchaseWebhookService->handle($parsed->data, $platform);
 
             $status = match ($result['status'] ?? '') {
                 'duplicate' => WebhookLogStatus::Duplicate,
