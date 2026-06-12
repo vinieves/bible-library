@@ -7,6 +7,12 @@
 > Instale a Evolution **depois** que o Bible Library já estiver funcionando.  
 > Execute os comandos **na VPS**, salvo quando indicado o contrário.
 
+### Configuração validada em produção
+
+- Imagem: **`evoapicloud/evolution-api:v2.3.7`** (não use `atendai/evolution-api:v2.1.1`)
+- `.env` com `WEBSOCKET_ENABLED=true` e **sem** `CONFIG_SESSION_PHONE_VERSION`
+- Instância `biblioteca` + manager em `https://wpp.mediamrkt.online/manager`
+
 ---
 
 ## Índice
@@ -121,7 +127,7 @@ Cole **todo** o conteúdo:
 services:
   evolution-api:
     container_name: evolution_api
-    image: atendai/evolution-api:v2.1.1
+    image: evoapicloud/evolution-api:v2.3.7
     restart: always
     depends_on:
       evolution-postgres:
@@ -215,7 +221,7 @@ SERVER_URL=https://wpp.mediamrkt.online
 # ===========================================
 # AUTENTICAÇÃO (cole a API Key gerada acima)
 # ===========================================
-AUTHENTICATION_API_KEY=7f3a9c2e8d5b1f6a4c0e2d9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9
+AUTHENTICATION_API_KEY=COLE_SUA_API_KEY_AQUI
 AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES=true
 
 # ===========================================
@@ -251,6 +257,13 @@ CACHE_LOCAL_ENABLED=false
 DEL_INSTANCE=false
 CONFIG_SESSION_PHONE_CLIENT=Evolution API
 CONFIG_SESSION_PHONE_NAME=Chrome
+# NÃO defina CONFIG_SESSION_PHONE_VERSION — versão fixa trava o QR
+
+# ===========================================
+# WEBSOCKET (manager / QR em tempo real)
+# ===========================================
+WEBSOCKET_ENABLED=true
+NODE_OPTIONS=--dns-result-order=ipv4first
 
 # ===========================================
 # LOGS
@@ -304,6 +317,21 @@ Deve retornar `200` ou `404` (API respondendo — não `000` ou `502`).
 
 ## 8. Nginx + SSL para wpp.mediamrkt.online
 
+### WebSocket global (manager + QR em tempo real)
+
+```bash
+nano /etc/nginx/nginx.conf
+```
+
+Dentro do bloco `http {`, **no topo**, adicione:
+
+```nginx
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+```
+
 ### Criar configuração Nginx
 
 ```bash
@@ -318,18 +346,32 @@ server {
     listen [::]:80;
     server_name wpp.mediamrkt.online;
 
+    client_max_body_size 50M;
+
+    location /socket.io/ {
+        proxy_pass http://127.0.0.1:8080/socket.io/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 86400s;
+        proxy_buffering off;
+    }
+
     location / {
         proxy_pass http://127.0.0.1:8080;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
+        proxy_set_header Connection $connection_upgrade;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_read_timeout 300s;
         proxy_connect_timeout 300s;
-        client_max_body_size 50M;
     }
 }
 ```
@@ -367,7 +409,7 @@ Substitua `COLE_SUA_API_KEY_AQUI` pela mesma chave do `.env`.
 ```bash
 curl -X POST "https://wpp.mediamrkt.online/instance/create" \
   -H "Content-Type: application/json" \
-  -H "apikey: 7f3a9c2e8d5b1f6a4c0e2d9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9" \
+  -H "apikey: COLE_SUA_API_KEY_AQUI" \
   -d '{
     "instanceName": "biblioteca",
     "integration": "WHATSAPP-BAILEYS",
@@ -375,39 +417,125 @@ curl -X POST "https://wpp.mediamrkt.online/instance/create" \
   }'
 ```
 
-### 9.2 Obter QR Code para conectar o WhatsApp
+### 9.2 Conectar o WhatsApp (escolha um método)
+
+> Se a instância **já foi criada** pelo `curl` acima, **não crie de novo** no manager — só conecte a `biblioteca` existente.
+
+#### Método C — Manager web (recomendado após v2.3.7)
+
+1. Abra: **https://wpp.mediamrkt.online/manager**
+2. Selecione a instância **`biblioteca`**
+3. Clique para conectar e escaneie o QR no celular (expira em ~60s)
+
+Funciona com `evoapicloud/evolution-api:v2.3.7` + `WEBSOCKET_ENABLED=true` + Nginx com WebSocket (seção 8).
+
+#### Método A — Código de pareamento (alternativa sem QR)
+
+Substitua `5511999999999` pelo seu WhatsApp com DDI (só dígitos):
 
 ```bash
-curl -X GET "https://wpp.mediamrkt.online/instance/connect/biblioteca" \
-  -H "apikey: 7f3a9c2e8d5b1f6a4c0e2d9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9"
+curl -s -X GET "https://wpp.mediamrkt.online/instance/connect/biblioteca?number=5511999999999" \
+  -H "apikey: COLE_SUA_API_KEY_AQUI" | python3 -m json.tool
 ```
 
-A resposta trará o QR Code (base64 ou pairing code). Alternativa pelo navegador:
+Na resposta, copie o **`pairingCode`** (ex.: `ABCD-EFGH`).
 
-Abra no Chrome:
+No celular:
+1. WhatsApp → **Aparelhos conectados**
+2. **Conectar com número de telefone**
+3. Digite o código `pairingCode`
 
-```
-https://wpp.mediamrkt.online/manager
-```
+#### Método B — QR Code no navegador (recomendado se o manager estiver em branco)
 
-> Se o manager não estiver disponível nesta imagem, use a resposta do `curl` acima ou a API:
+Na VPS:
 
 ```bash
-curl -X GET "https://wpp.mediamrkt.online/instance/fetchInstances" \
-  -H "apikey: 7f3a9c2e8d5b1f6a4c0e2d9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9"
+API_KEY="COLE_SUA_API_KEY_AQUI"
+
+curl -s -X GET "https://wpp.mediamrkt.online/instance/connect/biblioteca" \
+  -H "apikey: $API_KEY" \
+  -o /tmp/qr-response.json
+
+python3 << 'EOF'
+import json, base64, re
+
+def find_base64(obj):
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            if k == "base64" and isinstance(v, str) and "base64" in v:
+                return v
+            found = find_base64(v)
+            if found:
+                return found
+    elif isinstance(obj, list):
+        for item in obj:
+            found = find_base64(item)
+            if found:
+                return found
+    return None
+
+with open("/tmp/qr-response.json") as f:
+    data = json.load(f)
+
+b64 = find_base64(data)
+if not b64:
+    print("ERRO: campo base64 não encontrado. Veja: cat /tmp/qr-response.json")
+    raise SystemExit(1)
+
+if not b64.startswith("data:image"):
+    b64 = "data:image/png;base64," + b64
+
+raw = re.sub(r"^data:image/[^;]+;base64,", "", b64)
+png = base64.b64decode(raw)
+
+if not png.startswith(b"\x89PNG\r\n\x1a\n"):
+    print("ERRO: arquivo não é PNG válido — JSON pode estar incompleto ou expirado")
+    raise SystemExit(1)
+
+open("/tmp/qrcode.png", "wb").write(png)
+
+html = f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>QR WhatsApp</title></head>
+<body style="display:flex;justify-content:center;align-items:center;min-height:100vh;background:#111;">
+<img src="{b64}" alt="QR Code" style="max-width:400px;background:#fff;padding:16px;border-radius:12px;">
+</body></html>"""
+open("/tmp/qrcode.html", "w").write(html)
+print("OK: /tmp/qrcode.png e /tmp/qrcode.html")
+EOF
 ```
 
-### 9.3 Conectar no celular
+Baixe no **PowerShell do Windows** (não na VPS):
+
+```powershell
+ssh-keygen -R 72.61.222.108
+scp root@72.61.222.108:/tmp/qrcode.html C:\Users\T-GAMER\Desktop\qrcode-whatsapp.html
+```
+
+Abra `qrcode-whatsapp.html` no Chrome e escaneie. O QR expira em ~60s — se expirar, repita o `curl` + script na VPS.
+
+> Use o Método B só se o manager (Método C) não exibir o QR — veja seção 14.
+
+### 9.3 Ver logs se algo falhar
+
+```bash
+docker logs evolution_api --tail 100
+cat /tmp/qr-response.json | python3 -m json.tool | head -40
+file /tmp/qrcode.png
+```
+
+`file /tmp/qrcode.png` deve mostrar: **PNG image data**
+
+### 9.4 Conectar no celular (QR)
 
 1. Abra o **WhatsApp** no celular
 2. Vá em **Aparelhos conectados → Conectar aparelho**
-3. Escaneie o QR Code
+3. Escaneie o QR Code (HTML ou PNG)
 
-### 9.4 Confirmar conexão
+### 9.5 Confirmar conexão
 
 ```bash
 curl -X GET "https://wpp.mediamrkt.online/instance/connectionState/biblioteca" \
-  -H "apikey: 7f3a9c2e8d5b1f6a4c0e2d9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9"
+  -H "apikey: COLE_SUA_API_KEY_AQUI"
 ```
 
 Estado esperado: `"state": "open"` (conectado).
@@ -458,7 +586,7 @@ O **hottok** da Hotmart vai no mesmo painel de Integrações.
 ```bash
 curl -X POST "https://wpp.mediamrkt.online/message/sendText/biblioteca" \
   -H "Content-Type: application/json" \
-  -H "apikey: 7f3a9c2e8d5b1f6a4c0e2d9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9" \
+  -H "apikey: COLE_SUA_API_KEY_AQUI" \
   -d '{
     "number": "5511999999999",
     "text": "Teste Evolution + Bible Library OK"
@@ -498,14 +626,14 @@ Verificar se ainda está conectada:
 
 ```bash
 curl -X GET "https://wpp.mediamrkt.online/instance/connectionState/biblioteca" \
-  -H "apikey: 7f3a9c2e8d5b1f6a4c0e2d9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9"
+  -H "apikey: COLE_SUA_API_KEY_AQUI"
 ```
 
 Se `"state"` não for `"open"`, reconecte:
 
 ```bash
 curl -X GET "https://wpp.mediamrkt.online/instance/connect/biblioteca" \
-  -H "apikey: 7f3a9c2e8d5b1f6a4c0e2d9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9"
+  -H "apikey: COLE_SUA_API_KEY_AQUI"
 ```
 
 E escaneie o QR Code novamente.
@@ -582,10 +710,10 @@ docker compose up -d --force-recreate evolution-api
 
 ```bash
 curl -X GET "https://wpp.mediamrkt.online/instance/connectionState/biblioteca" \
-  -H "apikey: 7f3a9c2e8d5b1f6a4c0e2d9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9"
+  -H "apikey: COLE_SUA_API_KEY_AQUI"
 
 curl -X GET "https://wpp.mediamrkt.online/instance/connect/biblioteca" \
-  -H "apikey: 7f3a9c2e8d5b1f6a4c0e2d9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9"
+  -H "apikey: COLE_SUA_API_KEY_AQUI"
 ```
 
 Escaneie o QR Code novamente no celular.
@@ -609,6 +737,54 @@ Reprocessar jobs falhos:
 cd /var/www/bible-library
 php artisan queue:retry all
 ```
+
+### QR não gera (`count: 0`, `state: connecting`, manager preto)
+
+Sintomas dos seus logs:
+- `GET /instance/connect` → `{"count": 0}`
+- `connectionState` → `"state": "connecting"` para sempre
+- Imagem `atendai/evolution-api:v2.1.1` (desatualizada)
+
+**Correção completa** — rode na VPS:
+
+```bash
+cd /opt/evolution-api
+API_KEY="COLE_SUA_API_KEY_AQUI"
+
+# 1) Apagar instância travada
+curl -s -X DELETE "https://wpp.mediamrkt.online/instance/delete/biblioteca" \
+  -H "apikey: $API_KEY"
+
+# 2) Atualizar imagem no docker-compose.yml para:
+#    image: evoapicloud/evolution-api:v2.3.7
+nano docker-compose.yml
+
+# 3) No .env — confirme SERVER_URL e remova CONFIG_SESSION_PHONE_VERSION se existir
+nano .env
+# Adicione se não tiver:
+# WEBSOCKET_ENABLED=true
+# NODE_OPTIONS=--dns-result-order=ipv4first
+
+# 4) Subir versão nova
+docker compose down
+docker compose pull
+docker compose up -d
+sleep 15
+docker logs evolution_api --tail 30
+
+# 5) Criar instância do zero
+curl -s -X POST "https://wpp.mediamrkt.online/instance/create" \
+  -H "Content-Type: application/json" \
+  -H "apikey: $API_KEY" \
+  -d '{"instanceName":"biblioteca","integration":"WHATSAPP-BAILEYS","qrcode":true}' \
+  | python3 -m json.tool | head -30
+
+# 6) Se não vier base64 no passo 5, force connect em até 10s:
+curl -s -X GET "https://wpp.mediamrkt.online/instance/connect/biblioteca" \
+  -H "apikey: $API_KEY" | python3 -m json.tool | head -30
+```
+
+A resposta **deve** conter `base64` ou `qrcode.base64`. Se vier só `count: 0`, veja `docker logs evolution_api --tail 100`.
 
 ### Reiniciar tudo da Evolution
 

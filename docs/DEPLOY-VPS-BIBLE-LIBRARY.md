@@ -6,12 +6,17 @@
 
 > Execute os comandos **na VPS**, conectado via SSH como root ou usuário com `sudo`.
 
-### Status atual (já concluído)
+### Status atual (já concluído em produção)
 
 - [x] Projeto no GitHub
 - [x] Pasta do projeto na VPS em `/var/www/bible-library`
+- [x] Site em `https://mediamrkt.online`
+- [x] PDFs/capas via Git + `storage:link`
+- [x] Nginx `.mjs` para leitor de PDF
+- [x] Evolution API em `https://wpp.mediamrkt.online` (v2.3.7)
+- [x] WhatsApp conectado (instância `biblioteca`)
 
-**Comece pela [seção 2](#2-confirmar-projeto-na-vps)** e siga em ordem até o fim.
+Para **atualizações futuras**, use a [seção 13](#13-atualizar-o-projeto-depois) (`deploy.sh` + `git pull`).
 
 ---
 
@@ -92,12 +97,21 @@ Antes de instalar dependências, puxe o código mais recente:
 
 ```bash
 cd /var/www/bible-library
+git config --global --add safe.directory /var/www/bible-library
 git status
 git remote -v
+git fetch origin
 git pull origin main
 ```
 
 Se `git pull` pedir credenciais do GitHub, use um **Personal Access Token** como senha.
+
+Se der erro *"would be overwritten by merge"*, sincronize forçado (descarta edições locais na VPS):
+
+```bash
+git fetch origin
+git reset --hard origin/main
+```
 
 > Se a pasta **não** for um clone Git (foi copiada manualmente), inicialize o remoto:
 >
@@ -471,6 +485,12 @@ server {
 
     client_max_body_size 64M;
 
+    # PDF.js worker — Nginx precisa servir .mjs como JavaScript
+    location ~ \.mjs$ {
+        default_type application/javascript;
+        add_header Cache-Control "public, immutable";
+    }
+
     location / {
         try_files $uri $uri/ /index.php?$query_string;
     }
@@ -747,6 +767,48 @@ php artisan tinker --execute="echo 'Livros: '.App\Models\Material::where('type',
 O cliente também precisa de **pelo menos um plano** atribuído no admin (ex.: **Acceso Vitalicio**).  
 Permissão de admin **não** substitui plano para a área de membros — marque os planos em **Usuários → Planos atribuídos**.
 
+### PDF não abre na VPS ("No se pudo cargar el PDF" / erro MIME no console)
+
+O leitor usa `pdf.worker.min.mjs`. O Nginx envia `.mjs` como `application/octet-stream` e o navegador bloqueia.
+
+Edite o site:
+
+```bash
+nano /etc/nginx/sites-available/bible-library
+```
+
+Adicione **antes** do `location / {`:
+
+```nginx
+    location ~ \.mjs$ {
+        default_type application/javascript;
+        add_header Cache-Control "public, immutable";
+    }
+```
+
+Recarregue e teste:
+
+```bash
+nginx -t
+systemctl reload nginx
+curl -I https://mediamrkt.online/build/assets/pdf.worker.min-CrMmvqMo.mjs
+```
+
+O header `content-type` deve ser `application/javascript` (o hash do arquivo pode variar — veja em `public/build/manifest.json`).
+
+### `git pull` bloqueado na VPS
+
+```bash
+cd /var/www/bible-library
+git config --global --add safe.directory /var/www/bible-library
+git fetch origin
+git reset --hard origin/main
+git pull origin main
+chown -R www-data:www-data storage bootstrap/cache
+chmod -R 775 storage
+php artisan storage:link
+```
+
 ### Fila não processa (WhatsApp não envia)
 
 ```bash
@@ -770,6 +832,6 @@ supervisorctl restart bible-library-worker:*
 
 ## Próximo passo
 
-Depois que o site estiver no ar e testado, instale a Evolution API seguindo:
+Evolution API e WhatsApp: **`docs/DEPLOY-VPS-EVOLUTION-API.md`**
 
-**`docs/DEPLOY-VPS-EVOLUTION-API.md`**
+Teste final no admin: **Integrações → Enviar teste WhatsApp** (com queue worker ativo).
