@@ -8,6 +8,7 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/js/app.js',
                 'resources/js/pdf-reader.js',
+                'resources/js/pdf-reader-legacy.js',
                 'resources/js/audio-player.js',
             ],
             refresh: true,

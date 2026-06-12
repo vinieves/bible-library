@@ -1,5 +1,6 @@
 import * as pdfjsLib from 'pdfjs-dist';
 import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import { loadLegacyPdfDocument } from './pdf-reader-legacy.js';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
@@ -111,8 +112,12 @@ function createSharedReaderState(root) {
     };
 
     const bindNavigation = (goToPage) => {
-        prevBtn?.addEventListener('click', () => goToPage(currentPage - 1));
-        nextBtn?.addEventListener('click', () => goToPage(currentPage + 1));
+        prevBtn?.addEventListener('click', () => {
+            goToPage(currentPage - 1);
+        });
+        nextBtn?.addEventListener('click', () => {
+            goToPage(currentPage + 1);
+        });
 
         let touchStartX = 0;
         let touchStartY = 0;
@@ -129,7 +134,7 @@ function createSharedReaderState(root) {
             const deltaX = touch.screenX - touchStartX;
             const deltaY = touch.screenY - touchStartY;
 
-            if (Math.abs(deltaX) < 48 || Math.abs(deltaX) < Math.abs(deltaY)) {
+            if (Math.abs(deltaX) < 40 || Math.abs(deltaX) < Math.abs(deltaY)) {
                 return;
             }
 
@@ -167,59 +172,6 @@ function createSharedReaderState(root) {
     };
 }
 
-function buildSafariPdfUrl(baseUrl, page) {
-    const separator = baseUrl.includes('#') ? '&' : '#';
-
-    return `${baseUrl}${separator}page=${page}&view=FitH&zoom=page-width`;
-}
-
-function initSafariPdfReader(root) {
-    const pdfUrl = root.dataset.pdfUrl;
-    const canvasWrap = root.querySelector('[data-pdf-canvas-wrap]');
-    const embed = root.querySelector('[data-pdf-embed]');
-    const state = createSharedReaderState(root);
-
-    canvasWrap?.classList.add('hidden');
-    embed.classList.remove('hidden');
-
-    if (!embed || !pdfUrl) {
-        showReaderError(root);
-        return;
-    }
-
-    const goToPage = (pageNumber) => {
-        if (pageNumber < 1) {
-            return;
-        }
-
-        if (state.totalPages > 0 && pageNumber > state.totalPages) {
-            return;
-        }
-
-        state.currentPage = pageNumber;
-        embed.src = buildSafariPdfUrl(pdfUrl, pageNumber);
-        state.updateUi();
-        state.saveProgress();
-        state.hideLoading();
-    };
-
-    state.bindNavigation(goToPage);
-
-    embed.addEventListener('load', () => {
-        state.hideLoading();
-    });
-
-    embed.addEventListener('error', () => {
-        showReaderError(root);
-    });
-
-    goToPage(state.currentPage);
-
-    setTimeout(() => {
-        state.hideLoading();
-    }, 1500);
-}
-
 async function loadPdfDocument(pdfUrl) {
     const baseOptions = {
         url: pdfUrl,
@@ -240,7 +192,7 @@ async function loadPdfDocument(pdfUrl) {
     }
 }
 
-function initPdfJsReader(root) {
+function initCanvasPdfReader(root, loadDocument) {
     const pdfUrl = root.dataset.pdfUrl;
     const canvasWrap = root.querySelector('[data-pdf-canvas-wrap]');
     const embed = root.querySelector('[data-pdf-embed]');
@@ -249,6 +201,7 @@ function initPdfJsReader(root) {
     const state = createSharedReaderState(root);
 
     embed?.classList.add('hidden');
+    canvasWrap?.classList.remove('hidden');
 
     let pdfDoc = null;
     let renderTask = null;
@@ -257,7 +210,7 @@ function initPdfJsReader(root) {
         const wrapWidth = canvasWrap?.clientWidth || 0;
         const rootWidth = root.clientWidth || 0;
 
-        return Math.max(wrapWidth, rootWidth, window.innerWidth) - (mobile ? 0 : 16);
+        return Math.max(wrapWidth, rootWidth, window.innerWidth);
     };
 
     const renderPage = async (pageNumber) => {
@@ -272,19 +225,18 @@ function initPdfJsReader(root) {
         const page = await pdfDoc.getPage(pageNumber);
         const availableWidth = Math.max(getAvailableWidth(), 280);
         const viewport = page.getViewport({ scale: 1 });
-        const maxScale = mobile ? 2 : 2.5;
+        const maxScale = mobile ? 1.75 : 2.5;
         const scale = Math.min(availableWidth / viewport.width, maxScale);
         const scaledViewport = page.getViewport({ scale });
-        const outputScale = mobile ? 1 : Math.min(window.devicePixelRatio || 1, 2);
 
-        canvas.width = Math.floor(scaledViewport.width * outputScale);
-        canvas.height = Math.floor(scaledViewport.height * outputScale);
+        canvas.width = Math.floor(scaledViewport.width);
+        canvas.height = Math.floor(scaledViewport.height);
         canvas.style.width = '100%';
         canvas.style.height = 'auto';
         canvas.style.display = 'block';
 
         const context = canvas.getContext('2d');
-        context.setTransform(outputScale, 0, 0, outputScale, 0, 0);
+        context.setTransform(1, 0, 0, 1, 0, 0);
 
         renderTask = page.render({
             canvas,
@@ -295,11 +247,15 @@ function initPdfJsReader(root) {
         await renderTask.promise;
         renderTask = null;
         state.hideLoading();
-        canvasWrap?.scrollTo({ top: 0, behavior: 'smooth' });
+        canvasWrap?.scrollTo({ top: 0, behavior: 'auto' });
     };
 
     const goToPage = async (pageNumber) => {
-        if (!pdfDoc || pageNumber < 1 || pageNumber > state.totalPages) {
+        if (!pdfDoc || pageNumber < 1) {
+            return;
+        }
+
+        if (state.totalPages > 0 && pageNumber > state.totalPages) {
             return;
         }
 
@@ -335,7 +291,7 @@ function initPdfJsReader(root) {
         state.saveProgress(true);
     });
 
-    loadPdfDocument(pdfUrl)
+    loadDocument(pdfUrl)
         .then(async (doc) => {
             pdfDoc = doc;
             state.totalPages = doc.numPages;
@@ -349,17 +305,17 @@ function initPdfJsReader(root) {
             state.saveProgress();
         })
         .catch(() => {
-            initSafariPdfReader(root);
+            showReaderError(root);
         });
 }
 
 function initPdfReader(root) {
     if (isSafariBrowser()) {
-        initSafariPdfReader(root);
+        initCanvasPdfReader(root, loadLegacyPdfDocument);
         return;
     }
 
-    initPdfJsReader(root);
+    initCanvasPdfReader(root, loadPdfDocument);
 }
 
 document.querySelectorAll('[data-pdf-reader]').forEach(initPdfReader);
