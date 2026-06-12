@@ -64,7 +64,9 @@ class WebhookLogResource extends Resource
                             ->disabled(),
                         TextInput::make('processing_status')
                             ->label('Resultado')
-                            ->formatStateUsing(fn ($state) => $state instanceof WebhookLogStatus ? $state->label() : $state)
+                            ->formatStateUsing(fn ($state) => $state instanceof WebhookLogStatus
+                                ? $state->label()
+                                : WebhookLogStatus::tryFrom((string) $state)?->label() ?? $state)
                             ->disabled(),
                         TextInput::make('http_status')
                             ->label('HTTP')
@@ -94,7 +96,13 @@ class WebhookLogResource extends Resource
                             ->disabled(),
                         TextInput::make('created_at')
                             ->label('Recebido em')
-                            ->formatStateUsing(fn ($state) => $state?->format('d/m/Y H:i:s'))
+                            ->formatStateUsing(function ($state): ?string {
+                                if ($state instanceof \DateTimeInterface) {
+                                    return $state->format('d/m/Y H:i:s');
+                                }
+
+                                return filled($state) ? (string) $state : null;
+                            })
                             ->disabled(),
                     ])
                     ->columns(2),
@@ -102,7 +110,7 @@ class WebhookLogResource extends Resource
                     ->schema([
                         Textarea::make('payload')
                             ->label('JSON')
-                            ->formatStateUsing(fn ($state) => json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES))
+                            ->formatStateUsing(fn ($state) => static::formatJsonField($state))
                             ->rows(18)
                             ->disabled()
                             ->columnSpanFull(),
@@ -111,7 +119,7 @@ class WebhookLogResource extends Resource
                     ->schema([
                         Textarea::make('response')
                             ->label('JSON')
-                            ->formatStateUsing(fn ($state) => json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES))
+                            ->formatStateUsing(fn ($state) => static::formatJsonField($state))
                             ->rows(8)
                             ->disabled()
                             ->columnSpanFull(),
@@ -162,6 +170,7 @@ class WebhookLogResource extends Resource
                     ->label('HTTP')
                     ->badge()
                     ->color(fn (?int $state) => match (true) {
+                        $state === null => 'gray',
                         $state >= 200 && $state < 300 => 'success',
                         $state >= 400 && $state < 500 => 'warning',
                         $state >= 500 => 'danger',
@@ -196,5 +205,23 @@ class WebhookLogResource extends Resource
             'index' => Pages\ListWebhookLogs::route('/'),
             'view' => Pages\ViewWebhookLog::route('/{record}'),
         ];
+    }
+
+    private static function formatJsonField(mixed $state): string
+    {
+        if (! filled($state)) {
+            return '—';
+        }
+
+        if (is_string($state)) {
+            return $state;
+        }
+
+        $encoded = json_encode(
+            $state,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE
+        );
+
+        return $encoded !== false ? $encoded : '—';
     }
 }
