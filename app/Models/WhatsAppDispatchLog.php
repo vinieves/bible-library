@@ -15,11 +15,13 @@ class WhatsAppDispatchLog extends Model
 
     protected $fillable = [
         'trigger',
+        'message_event',
         'status',
         'phone',
         'phone_normalized',
         'user_id',
         'purchase_id',
+        'hotmart_transaction',
         'message',
         'error_message',
         'http_status',

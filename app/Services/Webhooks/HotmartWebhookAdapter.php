@@ -153,21 +153,13 @@ class HotmartWebhookAdapter implements WebhookAdapterInterface
 
     private function resolvePhone(array $data): ?string
     {
-        $candidates = [
-            Arr::get($data, 'buyer.checkout_phone'),
-            Arr::get($data, 'buyer.phone'),
-            Arr::get($data, 'buyer.phone_number'),
-        ];
+        $buyer = $data['buyer'] ?? [];
 
-        foreach ($candidates as $candidate) {
-            $normalized = PhoneNumber::normalize($candidate);
-
-            if ($normalized) {
-                return $normalized;
-            }
+        if (! is_array($buyer)) {
+            return null;
         }
 
-        return null;
+        return PhoneNumber::fromHotmartBuyer($buyer);
     }
 
     private function resolveAmount(array $data): ?float

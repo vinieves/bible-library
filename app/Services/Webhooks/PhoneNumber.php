@@ -10,16 +10,89 @@ class PhoneNumber
             return null;
         }
 
-        $digits = preg_replace('/\D+/', '', (string) $value);
+        $digits = self::digitsOnly((string) $value);
 
         if (blank($digits)) {
             return null;
         }
 
-        if (strlen($digits) <= 11 && ! str_starts_with($digits, '55')) {
-            $digits = '55'.$digits;
+        return strlen($digits) >= 10 ? $digits : null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $buyer
+     */
+    public static function fromHotmartBuyer(array $buyer): ?string
+    {
+        $checkoutPhone = trim((string) ($buyer['checkout_phone'] ?? ''));
+        $areaCode = trim((string) ($buyer['checkout_phone_code'] ?? ''));
+        $countryIso = strtoupper(trim((string) data_get($buyer, 'address.country_iso', '')));
+
+        if (filled($checkoutPhone)) {
+            $normalized = self::normalizeHotmartCheckoutPhone($checkoutPhone, $areaCode, $countryIso);
+
+            if ($normalized) {
+                return $normalized;
+            }
         }
 
-        return $digits;
+        foreach (['phone', 'phone_number'] as $field) {
+            $normalized = self::normalize($buyer[$field] ?? null);
+
+            if ($normalized) {
+                return $normalized;
+            }
+        }
+
+        return null;
+    }
+
+    public static function normalizeHotmartCheckoutPhone(
+        string $checkoutPhone,
+        ?string $areaCode = null,
+        ?string $countryIso = null,
+    ): ?string {
+        $digits = self::digitsOnly($checkoutPhone);
+
+        if (blank($digits)) {
+            return null;
+        }
+
+        $countryIso = strtoupper(trim((string) $countryIso));
+        $areaCode = self::digitsOnly((string) $areaCode);
+
+        if ($countryIso === 'BR' || filled($areaCode)) {
+            return self::normalizeBrazilianPhone($digits, $areaCode);
+        }
+
+        if (strlen($digits) >= 11) {
+            return $digits;
+        }
+
+        return null;
+    }
+
+    private static function normalizeBrazilianPhone(string $digits, string $areaCode = ''): ?string
+    {
+        $local = ltrim($digits, '0');
+
+        if (str_starts_with($local, '55') && strlen($local) >= 12) {
+            return $local;
+        }
+
+        if (filled($areaCode) && ! str_starts_with($local, $areaCode)) {
+            $local = $areaCode.$local;
+        }
+
+        if (! str_starts_with($local, '55')) {
+            $local = '55'.$local;
+        }
+
+        return strlen($local) >= 12 ? $local : null;
+    }
+
+    private static function digitsOnly(string $value): string
+    {
+        return preg_replace('/\D+/', '', $value) ?? '';
     }
 }

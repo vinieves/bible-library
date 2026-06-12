@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\WhatsAppDispatchStatus;
 use App\Enums\WhatsAppDispatchTrigger;
+use App\Enums\WhatsAppMessageEvent;
 use App\Models\WhatsAppDispatchLog;
 use Throwable;
 
@@ -11,10 +12,12 @@ class WhatsAppDispatchLogService
 {
     public function recordSuccess(
         WhatsAppDispatchTrigger $trigger,
+        WhatsAppMessageEvent $messageEvent,
         string $phone,
         ?string $phoneNormalized,
         ?int $userId,
         ?int $purchaseId,
+        ?string $hotmartTransaction,
         string $message,
         array $evolutionResponse,
         int $attempt = 1,
@@ -22,11 +25,13 @@ class WhatsAppDispatchLogService
     ): WhatsAppDispatchLog {
         return $this->create([
             'trigger' => $trigger,
+            'message_event' => $messageEvent->value,
             'status' => WhatsAppDispatchStatus::Sent,
             'phone' => $phone,
             'phone_normalized' => $phoneNormalized,
             'user_id' => $userId,
             'purchase_id' => $purchaseId,
+            'hotmart_transaction' => $hotmartTransaction,
             'message' => $message,
             'http_status' => $httpStatus ?? 200,
             'attempt' => $attempt,
@@ -36,10 +41,12 @@ class WhatsAppDispatchLogService
 
     public function recordFailure(
         WhatsAppDispatchTrigger $trigger,
+        WhatsAppMessageEvent $messageEvent,
         string $phone,
         ?string $phoneNormalized,
         ?int $userId,
         ?int $purchaseId,
+        ?string $hotmartTransaction,
         ?string $message,
         string $errorMessage,
         int $attempt = 1,
@@ -48,11 +55,13 @@ class WhatsAppDispatchLogService
     ): WhatsAppDispatchLog {
         return $this->create([
             'trigger' => $trigger,
+            'message_event' => $messageEvent->value,
             'status' => WhatsAppDispatchStatus::Failed,
             'phone' => $phone,
             'phone_normalized' => $phoneNormalized,
             'user_id' => $userId,
             'purchase_id' => $purchaseId,
+            'hotmart_transaction' => $hotmartTransaction,
             'message' => $message,
             'error_message' => $errorMessage,
             'http_status' => $httpStatus,
@@ -63,10 +72,12 @@ class WhatsAppDispatchLogService
 
     public function recordThrowable(
         WhatsAppDispatchTrigger $trigger,
+        WhatsAppMessageEvent $messageEvent,
         string $phone,
         ?string $phoneNormalized,
         ?int $userId,
         ?int $purchaseId,
+        ?string $hotmartTransaction,
         ?string $message,
         Throwable $exception,
         int $attempt = 1,
@@ -75,10 +86,12 @@ class WhatsAppDispatchLogService
 
         return $this->recordFailure(
             trigger: $trigger,
+            messageEvent: $messageEvent,
             phone: $phone,
             phoneNormalized: $phoneNormalized,
             userId: $userId,
             purchaseId: $purchaseId,
+            hotmartTransaction: $hotmartTransaction,
             message: $message,
             errorMessage: $exception->getMessage(),
             attempt: $attempt,
