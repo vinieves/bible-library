@@ -36,12 +36,14 @@ class PurchaseWebhookService
 
         $product = Product::query()
             ->where('is_active', true)
-            ->where('product_code', $data->productCode)
+            ->whereIn('product_code', $data->productCodesForLookup())
             ->first();
 
         if (! $product) {
+            $codes = implode(', ', $data->productCodesForLookup());
+
             throw new WebhookProcessingException(
-                "Produto não mapeado para product_code: {$data->productCode}"
+                "Produto não mapeado para product_code: {$codes}"
             );
         }
 
@@ -84,7 +86,7 @@ class PurchaseWebhookService
                     'email' => $data->email,
                     'name' => $data->name,
                     'phone' => $data->phone,
-                    'product_code' => $data->productCode,
+                    'product_code' => $product->product_code,
                     'amount' => $data->amount ?? $product->price,
                     'status' => PurchaseStatus::Approved,
                     'metadata' => [

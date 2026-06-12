@@ -48,9 +48,9 @@ class HotmartWebhookAdapter implements WebhookAdapterInterface
             return ParsedWebhookResult::ignored('E-mail do comprador inválido.');
         }
 
-        $productCode = $this->resolveProductCode($data);
+        $productCodes = $this->resolveProductCodes($data);
 
-        if (blank($productCode)) {
+        if ($productCodes === []) {
             return ParsedWebhookResult::ignored('Código do produto Hotmart não encontrado.');
         }
 
@@ -66,27 +66,30 @@ class HotmartWebhookAdapter implements WebhookAdapterInterface
             email: $email,
             name: $this->resolveName($data),
             phone: $this->resolvePhone($data),
-            productCode: $productCode,
+            productCode: $productCodes[0],
             amount: $this->resolveAmount($data),
             externalReference: $transaction,
             eventId: $eventId,
             rawPayload: $payload,
+            productCodeCandidates: $productCodes,
         ));
     }
 
-    private function resolveProductCode(array $data): ?string
+    /**
+     * @return list<string>
+     */
+    private function resolveProductCodes(array $data): array
     {
-        $candidates = array_filter([
+        $candidates = [
             Arr::get($data, 'product.id'),
             Arr::get($data, 'product.ucode'),
             Arr::get($data, 'purchase.offer.code'),
-        ], fn ($value) => filled($value));
+        ];
 
-        foreach ($candidates as $candidate) {
-            return (string) $candidate;
-        }
-
-        return null;
+        return array_values(array_unique(array_filter(
+            array_map(fn ($value) => trim((string) $value), $candidates),
+            fn (string $value) => filled($value),
+        )));
     }
 
     private function resolveName(array $data): ?string

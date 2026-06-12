@@ -46,13 +46,11 @@ class ManageIntegrations extends Page
 
         $this->form->fill([
             'webhook_secret' => IntegrationSettings::webhookSecret(),
-            'hotmart_hottok' => IntegrationSettings::hotmartHottok(),
             'hotmart_webhook_url' => IntegrationSettings::webhookUrl(WebhookPlatform::Hotmart),
             'generic_webhook_url' => IntegrationSettings::webhookUrl(WebhookPlatform::Generic),
             'whatsapp_enabled' => IntegrationSettings::whatsappEnabled(),
             'evolution_base_url' => Setting::get('evolution_base_url'),
             'evolution_instance' => Setting::get('evolution_instance'),
-            'evolution_api_key' => IntegrationSettings::evolutionApiKey(),
             'whatsapp_welcome_template' => IntegrationSettings::whatsappTemplate(),
             'whatsapp_test_phone' => '',
         ]);
@@ -97,11 +95,18 @@ class ManageIntegrations extends Page
                             ->revealable()
                             ->helperText('Usado por integrações genéricas e como reserva de segurança.')
                             ->columnSpanFull(),
+                        Placeholder::make('hotmart_hottok_status')
+                            ->label('Status do hottok')
+                            ->content(fn (): HtmlString => filled(IntegrationSettings::hotmartHottok())
+                                ? new HtmlString('<span class="text-success-600 dark:text-success-400">Configurado no servidor.</span>')
+                                : new HtmlString('<span class="text-danger-600 dark:text-danger-400">Não configurado — cole o hottok da Hotmart abaixo e salve.</span>'))
+                            ->columnSpanFull(),
                         TextInput::make('hotmart_hottok')
                             ->label('Hotmart hottok')
                             ->password()
                             ->revealable()
-                            ->helperText('Cole novamente ao salvar. Se deixar em branco, o valor anterior é mantido.')
+                            ->placeholder('Cole o hottok da Hotmart aqui')
+                            ->helperText('O campo fica vazio por segurança. Se deixar em branco ao salvar, o valor anterior é mantido.')
                             ->columnSpanFull(),
                     ]),
                 Section::make('Evolution API (WhatsApp)')

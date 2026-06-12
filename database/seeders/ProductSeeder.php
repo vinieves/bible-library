@@ -16,6 +16,14 @@ class ProductSeeder extends Seeder
 
         $products = [
             [
+                'title' => 'Plan Completo — Hotmart',
+                'product_code' => '7773711',
+                'price' => 97.00,
+                'plan_id' => $planCompleto->id,
+                'checkout_url' => null,
+                'sort_order' => 0,
+            ],
+            [
                 'title' => 'Mapas Mentales Bíblicos Premium',
                 'product_code' => 'MAPAS_PREMIUM',
                 'price' => 29.90,
