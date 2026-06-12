@@ -108,6 +108,7 @@ class ManageIntegrations extends Page
                     ->schema([
                         Toggle::make('whatsapp_enabled')
                             ->label('Enviar WhatsApp automático')
+                            ->helperText('Só afeta compras reais (webhook). O botão de teste funciona com o toggle desligado.')
                             ->inline(false),
                         TextInput::make('evolution_base_url')
                             ->label('URL base Evolution API')
@@ -187,14 +188,25 @@ class ManageIntegrations extends Page
                         return;
                     }
 
-                    if (! IntegrationSettings::whatsappEnabled()) {
+                    $formState = $this->form->getState();
+
+                    if (
+                        blank($formState['evolution_base_url'] ?? null)
+                        || blank($formState['evolution_instance'] ?? null)
+                        || blank($formState['evolution_api_key'] ?? null)
+                    ) {
                         Notification::make()
-                            ->title('Ative o envio automático de WhatsApp')
+                            ->title('Preencha URL, instância e API Key da Evolution')
+                            ->body('Clique em Salvar integrações antes de testar.')
                             ->warning()
                             ->send();
 
                         return;
                     }
+
+                    Setting::set('evolution_base_url', $formState['evolution_base_url'] ?? '');
+                    Setting::set('evolution_instance', $formState['evolution_instance'] ?? '');
+                    Setting::setEncrypted('evolution_api_key', $formState['evolution_api_key'] ?? '');
 
                     $admin = auth()->user();
 
