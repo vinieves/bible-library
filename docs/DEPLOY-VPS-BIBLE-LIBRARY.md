@@ -4,14 +4,21 @@
 **Stack:** Ubuntu 22.04/24.04 · Nginx · PHP 8.3 · MySQL 8 · Node.js 20 · Supervisor  
 **Projeto:** Laravel 13 + Filament 4
 
-> Execute os comandos **na VPS**, conectado via SSH como root ou usuário com `sudo`, salvo quando indicado que o comando roda **no seu PC Windows**.
+> Execute os comandos **na VPS**, conectado via SSH como root ou usuário com `sudo`.
+
+### Status atual (já concluído)
+
+- [x] Projeto no GitHub
+- [x] Pasta do projeto na VPS em `/var/www/bible-library`
+
+**Comece pela [seção 2](#2-confirmar-projeto-na-vps)** e siga em ordem até o fim.
 
 ---
 
 ## Índice
 
 1. [Antes de começar](#1-antes-de-começar)
-2. [Enviar o projeto para a VPS](#2-enviar-o-projeto-para-a-vps)
+2. [Confirmar projeto na VPS](#2-confirmar-projeto-na-vps)
 3. [Preparar o servidor (Ubuntu)](#3-preparar-o-servidor-ubuntu)
 4. [Instalar PHP 8.3 e extensões](#4-instalar-php-83-e-extensões)
 5. [Instalar Composer, Node.js e MySQL](#5-instalar-composer-nodejs-e-mysql)
@@ -45,8 +52,8 @@ Crie estes registros **antes** do Certbot:
 
 | Tipo | Nome | Valor | TTL |
 |------|------|-------|-----|
-| A | `@` | IP_DA_VPS | 300 |
-| A | `www` | IP_DA_VPS | 300 |
+| A | `@` | `72.61.222.108` | 300 |
+| A | `www` | `72.61.222.108` | 300 |
 
 Aguarde a propagação (5–30 minutos). Teste:
 
@@ -56,64 +63,62 @@ ping mediamrkt.online
 
 ---
 
-## 2. Enviar o projeto para a VPS
-
-O projeto ainda **não está em um repositório Git remoto**. Escolha **uma** opção:
-
-### Opção A — Enviar do Windows via SCP (recomendado agora)
-
-**No PowerShell do seu PC Windows** (ajuste o IP):
-
-```powershell
-scp -r "C:\Users\T-GAMER\OneDrive\Área de Trabalho\BIBLE_LIBRARY" root@72.61.222.108:/var/www/bible-library
-```
-
-> Se der erro de caminho, compacte antes:
->
-> ```powershell
-> Compress-Archive -Path "C:\Users\T-GAMER\OneDrive\Área de Trabalho\BIBLE_LIBRARY\*" -DestinationPath "C:\Users\T-GAMER\Desktop\bible-library.zip" -Force
-> scp "C:\Users\T-GAMER\Desktop\bible-library.zip" root@72.61.222.108:/tmp/
-> ```
->
-> **Na VPS**, depois do upload do zip:
->
-> ```bash
-> apt install -y unzip
-> mkdir -p /var/www/bible-library
-> unzip /tmp/bible-library.zip -d /var/www/bible-library
-> ```
-
-### Opção B — GitHub (melhor para atualizações futuras)
-
-**No PC**, dentro da pasta do projeto:
-
-```powershell
-cd "C:\Users\T-GAMER\OneDrive\Área de Trabalho\BIBLE_LIBRARY"
-git init
-git add .
-git commit -m "Deploy inicial Bible Library"
-git branch -M main
-git remote add origin https://github.com/SEU_USUARIO/bible-library.git
-git push -u origin main
-```
-
-**Na VPS**:
-
-```bash
-mkdir -p /var/www
-cd /var/www
-git clone https://github.com/SEU_USUARIO/bible-library.git bible-library
-```
-
----
-
-## 3. Preparar o servidor (Ubuntu)
+## 2. Confirmar projeto na VPS
 
 Conecte na VPS:
 
 ```bash
 ssh root@72.61.222.108
 ```
+
+Entre na pasta do projeto:
+
+```bash
+cd /var/www/bible-library
+```
+
+Confirme que os arquivos estão corretos:
+
+```bash
+ls -la
+ls composer.json artisan .env.example docs/DEPLOY-VPS-BIBLE-LIBRARY.md
+```
+
+Deve existir `composer.json`, `artisan` e a pasta `app/`.
+
+### Sincronizar com o GitHub (última versão)
+
+Antes de instalar dependências, puxe o código mais recente:
+
+```bash
+cd /var/www/bible-library
+git status
+git remote -v
+git pull origin main
+```
+
+Se `git pull` pedir credenciais do GitHub, use um **Personal Access Token** como senha.
+
+> Se a pasta **não** for um clone Git (foi copiada manualmente), inicialize o remoto:
+>
+> ```bash
+> cd /var/www/bible-library
+> git init
+> git remote add origin https://github.com/SEU_USUARIO/bible-library.git
+> git fetch origin
+> git checkout -b main origin/main
+> ```
+
+### Atenção ao `.env`
+
+- Se **não existir** `.env` → crie na [seção 7](#7-configurar-o-projeto-laravel) com `cp .env.example .env`
+- Se **já existir** `.env` copiado do PC local → **substitua** pelo `.env` de produção da seção 7 (o local usa SQLite e `APP_DEBUG=true`)
+
+---
+
+## 3. Preparar o servidor (Ubuntu)
+
+Na VPS (já conectado):
 
 Atualize o sistema e instale pacotes base:
 
@@ -340,6 +345,77 @@ php artisan db:seed --class=ProductSeeder --force
 ```
 
 > **Não** rode `php artisan db:seed` completo em produção — ele cria usuários demo com senha `password`.
+
+### Seeders de conteúdo (livros, bônus e áudios)
+
+**Obrigatório** para os clientes verem materiais em `/mi-biblioteca/libros` e `/mi-biblioteca/bonos`.  
+Esses seeders **não** fazem parte do `DatabaseSeeder` padrão — sem eles o banco fica só com planos/categorias vazias.
+
+```bash
+cd /var/www/bible-library
+
+php artisan db:seed --class=LibroSeeder --force
+php artisan db:seed --class=BonusPdfSeeder --force
+php artisan db:seed --class=AudioSeeder --force
+```
+
+Confirme que os registros foram criados:
+
+```bash
+php artisan tinker --execute="echo 'Livros: '.App\Models\Material::where('type', App\Enums\MaterialType::Libro)->count().PHP_EOL;"
+php artisan tinker --execute="echo 'Bônus: '.App\Models\Material::where('type', App\Enums\MaterialType::Bonus)->count().PHP_EOL;"
+```
+
+Resultado esperado:
+
+| Tipo | Quantidade |
+|------|------------|
+| Livros | **7** |
+| Bônus | **5** |
+
+### PDFs e capas (via Git)
+
+Os arquivos devem ficar nestas pastas **dentro do projeto**:
+
+```
+storage/app/private/pdfs/bonuses/
+  bonus1-mandamentos.pdf
+  bonus2-milagres.pdf
+  bonus3-historias.pdf
+  bonus4-devocional.pdf
+  bonus5-manual.pdf
+
+storage/app/public/covers/
+  libros/          → el-pentateuco.jpg, los-4-evangelicos.jpg, etc.
+  bonuses/         → img-bonus-1.jpg, img-bonus-2.jpg, etc.
+  audios/          → capas dos áudios (opcional)
+```
+
+Os nomes dos PDFs de bônus precisam bater com o `BonusPdfSeeder`. As capas usam o nome base + extensão (`.jpg`, `.png` ou `.webp`).
+
+**No PC Windows** — copie seus arquivos para essas pastas e envie ao GitHub:
+
+```powershell
+cd "C:\Users\T-GAMER\OneDrive\Área de Trabalho\BIBLE_LIBRARY"
+
+git add storage/app/private/pdfs storage/app/public/covers
+git status
+git commit -m "Adiciona PDFs e capas dos materiais"
+git push origin main
+```
+
+**Na VPS** — puxe e ajuste permissões:
+
+```bash
+cd /var/www/bible-library
+git pull origin main
+chown -R www-data:www-data storage
+chmod -R 775 storage
+php artisan storage:link
+```
+
+> Repositório **privado** recomendado — os PDFs são conteúdo pago.  
+> Se o `git push` reclamar de arquivo grande (>100 MB), use [Git LFS](https://git-lfs.com/) ou envie só esse arquivo via SCP.
 
 ### Otimizar Laravel para produção
 
@@ -593,13 +669,22 @@ Permissão de execução:
 chmod +x /var/www/bible-library/deploy.sh
 ```
 
-Para atualizar no futuro:
+Fluxo completo de atualização:
+
+**No PC** (após alterações locais):
+
+```powershell
+cd "C:\Users\T-GAMER\OneDrive\Área de Trabalho\BIBLE_LIBRARY"
+git add .
+git commit -m "Descreva o que mudou"
+git push origin main
+```
+
+**Na VPS**:
 
 ```bash
 /var/www/bible-library/deploy.sh
 ```
-
-> Se você usa SCP em vez de Git, envie os arquivos alterados do PC e rode manualmente os comandos dentro do script (sem `git pull`).
 
 ---
 
@@ -647,6 +732,20 @@ npm run build
 php artisan view:clear
 php artisan view:cache
 ```
+
+### Livros ou bônus não aparecem para o cliente
+
+Causa mais comum: seeders de conteúdo não foram executados.
+
+```bash
+cd /var/www/bible-library
+php artisan db:seed --class=LibroSeeder --force
+php artisan db:seed --class=BonusPdfSeeder --force
+php artisan tinker --execute="echo 'Livros: '.App\Models\Material::where('type', App\Enums\MaterialType::Libro)->count().' | Bônus: '.App\Models\Material::where('type', App\Enums\MaterialType::Bonus)->count().PHP_EOL;"
+```
+
+O cliente também precisa de **pelo menos um plano** atribuído no admin (ex.: **Acceso Vitalicio**).  
+Permissão de admin **não** substitui plano para a área de membros — marque os planos em **Usuários → Planos atribuídos**.
 
 ### Fila não processa (WhatsApp não envia)
 
