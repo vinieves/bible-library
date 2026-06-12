@@ -20,9 +20,12 @@
          data-total-pages="{{ $material->pdf_page_count ?? 0 }}">
 
         <div class="pdf-reader-container relative min-h-0 flex-1 bg-bible-black">
-            <div class="absolute inset-0 overflow-auto p-2">
+            <div data-pdf-canvas-wrap class="absolute inset-0 overflow-auto p-2">
                 <canvas data-pdf-canvas class="mx-auto block max-w-full"></canvas>
             </div>
+            <iframe data-pdf-fallback
+                    class="hidden absolute inset-0 h-full w-full border-0 bg-bible-black"
+                    title="{{ $material->title }}"></iframe>
             <p data-pdf-loading class="absolute inset-0 flex items-center justify-center text-sm text-bible-cream/50">
                 Cargando PDF…
             </p>
@@ -33,7 +36,7 @@
 
         <div class="reader-toolbar shrink-0 border-t border-bible-gold/20 bg-bible-dark/95 px-3 py-2.5 backdrop-blur sm:px-4">
             <div class="mx-auto flex max-w-3xl items-center justify-between gap-3">
-                <div class="flex items-center gap-1.5">
+                <div data-pdf-page-controls class="flex items-center gap-1.5">
                     <button type="button"
                             data-page-prev
                             class="btn-reader-action px-2.5"

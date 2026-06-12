@@ -68,6 +68,10 @@
         min-height: 280px;
     }
 
+    .pdf-reader-container [data-pdf-fallback] {
+        min-height: 100%;
+    }
+
     .btn-material-primary {
         @apply flex w-full items-center justify-center gap-2.5 rounded-xl bg-bible-green px-5 py-3.5 text-base font-semibold text-white shadow-md shadow-bible-green/15 transition hover:bg-bible-green-light active:scale-[0.99];
     }

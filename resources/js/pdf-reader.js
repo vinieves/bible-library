@@ -3,7 +3,99 @@ import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
-function initPdfReader(root) {
+function prefersNativePdfViewer() {
+    const ua = navigator.userAgent || '';
+
+    if (/iPhone|iPad|iPod|Android|Mobile/i.test(ua)) {
+        return true;
+    }
+
+    return window.matchMedia('(pointer: coarse)').matches && window.innerWidth < 1024;
+}
+
+function initNativePdfViewer(root) {
+    const pdfUrl = root.dataset.pdfUrl;
+    const saveUrl = root.dataset.saveUrl;
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+    const canvasWrap = root.querySelector('[data-pdf-canvas-wrap]');
+    const canvas = root.querySelector('[data-pdf-canvas]');
+    const fallback = root.querySelector('[data-pdf-fallback]');
+    const pageControls = root.querySelector('[data-pdf-page-controls]');
+    const loadingEl = root.querySelector('[data-pdf-loading]');
+    const errorEl = root.querySelector('[data-pdf-error]');
+    const pageTotal = root.querySelector('[data-page-total]');
+
+    canvasWrap?.classList.add('hidden');
+    canvas?.classList.add('hidden');
+    pageControls?.classList.add('hidden');
+    loadingEl?.classList.remove('hidden');
+    errorEl?.classList.add('hidden');
+
+    if (!fallback || !pdfUrl) {
+        showReaderError(root);
+        return;
+    }
+
+    const markOpened = async () => {
+        if (!saveUrl) {
+            return;
+        }
+
+        const totalPages = Math.max(1, parseInt(root.dataset.totalPages || '1', 10));
+
+        try {
+            await fetch(saveUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': csrf,
+                },
+                body: JSON.stringify({
+                    page: 1,
+                    total_pages: totalPages,
+                }),
+            });
+        } catch {
+            // Progresso opcional no modo nativo.
+        }
+    };
+
+    fallback.addEventListener('load', () => {
+        loadingEl?.classList.add('hidden');
+        if (pageTotal) {
+            pageTotal.textContent = 'PDF';
+        }
+        markOpened();
+    });
+
+    fallback.addEventListener('error', () => {
+        showReaderError(root);
+    });
+
+    fallback.src = pdfUrl;
+    fallback.classList.remove('hidden');
+
+    // iOS nem sempre dispara "load" em iframes de PDF.
+    setTimeout(() => {
+        loadingEl?.classList.add('hidden');
+    }, 1200);
+}
+
+function showReaderError(root) {
+    const loadingEl = root.querySelector('[data-pdf-loading]');
+    const errorEl = root.querySelector('[data-pdf-error]');
+    const pageTotal = root.querySelector('[data-page-total]');
+
+    loadingEl?.classList.add('hidden');
+    errorEl?.classList.remove('hidden');
+
+    if (pageTotal) {
+        pageTotal.textContent = '—';
+    }
+}
+
+function initPdfJsReader(root) {
     const pdfUrl = root.dataset.pdfUrl;
     const saveUrl = root.dataset.saveUrl;
     const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
@@ -22,14 +114,6 @@ function initPdfReader(root) {
     let renderTask = null;
     let saveTimer = null;
     let lastSavedPage = currentPage;
-
-    const showError = () => {
-        loadingEl?.classList.add('hidden');
-        errorEl?.classList.remove('hidden');
-        if (pageTotal) {
-            pageTotal.textContent = '—';
-        }
-    };
 
     const updateUi = () => {
         if (pageCurrent) {
@@ -57,7 +141,7 @@ function initPdfReader(root) {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Accept': 'application/json',
+                        Accept: 'application/json',
                         'X-CSRF-TOKEN': csrf,
                     },
                     body: JSON.stringify({
@@ -96,7 +180,7 @@ function initPdfReader(root) {
 
         const page = await pdfDoc.getPage(pageNumber);
         const container = canvas.parentElement;
-        const containerWidth = Math.max(container.clientWidth - 16, 280);
+        const containerWidth = Math.max(container?.clientWidth ? container.clientWidth - 16 : 280, 280);
         const viewport = page.getViewport({ scale: 1 });
         const scale = Math.min(containerWidth / viewport.width, 2);
         const scaledViewport = page.getViewport({ scale });
@@ -128,7 +212,7 @@ function initPdfReader(root) {
             await renderPage(currentPage);
             saveProgress();
         } catch {
-            showError();
+            showReaderError(root);
         }
     };
 
@@ -156,18 +240,11 @@ function initPdfReader(root) {
 
     updateUi();
 
-    fetch(pdfUrl, {
-        credentials: 'same-origin',
-        headers: { Accept: 'application/pdf' },
-    })
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-
-            return response.arrayBuffer();
-        })
-        .then((data) => pdfjsLib.getDocument({ data }).promise)
+    pdfjsLib.getDocument({
+        url: pdfUrl,
+        withCredentials: true,
+        rangeChunkSize: 65536,
+    }).promise
         .then(async (doc) => {
             pdfDoc = doc;
             totalPages = doc.numPages;
@@ -182,8 +259,17 @@ function initPdfReader(root) {
             saveProgress();
         })
         .catch(() => {
-            showError();
+            initNativePdfViewer(root);
         });
+}
+
+function initPdfReader(root) {
+    if (prefersNativePdfViewer()) {
+        initNativePdfViewer(root);
+        return;
+    }
+
+    initPdfJsReader(root);
 }
 
 document.querySelectorAll('[data-pdf-reader]').forEach(initPdfReader);
