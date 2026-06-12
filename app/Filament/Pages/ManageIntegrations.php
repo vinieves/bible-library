@@ -74,7 +74,7 @@ class ManageIntegrations extends Page
                             ->label('Autenticação')
                             ->content(new HtmlString(
                                 '<div class="space-y-2 text-sm text-gray-600 dark:text-gray-300">'.
-                                '<p><strong>Hotmart:</strong> use o campo <code>hottok</code> que a Hotmart envia no payload. Também é possível enviar o header <code>X-Webhook-Secret</code>.</p>'.
+                                '<p><strong>Hotmart:</strong> use o <code>hottok</code> do payload ou o header <code>X-HOTMART-HOTTOK</code>. Também é possível enviar o header <code>X-Webhook-Secret</code>.</p>'.
                                 '<p><strong>Genérico:</strong> envie o header <code>X-Webhook-Secret</code> com o token abaixo.</p>'.
                                 '<p>Em produtos internos, o <code>product_code</code> deve coincidir com o ID, ucode ou offer code da Hotmart.</p>'.
                                 '</div>'
@@ -101,7 +101,7 @@ class ManageIntegrations extends Page
                             ->label('Hotmart hottok')
                             ->password()
                             ->revealable()
-                            ->helperText('Token de autenticação que a Hotmart envia em cada webhook.')
+                            ->helperText('Cole novamente ao salvar. Se deixar em branco, o valor anterior é mantido.')
                             ->columnSpanFull(),
                     ]),
                 Section::make('Evolution API (WhatsApp)')
@@ -139,12 +139,22 @@ class ManageIntegrations extends Page
     {
         $data = $this->form->getState();
 
-        Setting::setEncrypted('webhook_secret', $data['webhook_secret'] ?? '');
-        Setting::setEncrypted('hotmart_hottok', $data['hotmart_hottok'] ?? '');
+        if (filled($data['webhook_secret'] ?? null)) {
+            Setting::setEncrypted('webhook_secret', $data['webhook_secret']);
+        }
+
+        if (filled($data['hotmart_hottok'] ?? null)) {
+            Setting::setEncrypted('hotmart_hottok', $data['hotmart_hottok']);
+        }
+
         Setting::set('whatsapp_enabled', ! empty($data['whatsapp_enabled']) ? '1' : '0');
         Setting::set('evolution_base_url', $data['evolution_base_url'] ?? '');
         Setting::set('evolution_instance', $data['evolution_instance'] ?? '');
-        Setting::setEncrypted('evolution_api_key', $data['evolution_api_key'] ?? '');
+
+        if (filled($data['evolution_api_key'] ?? null)) {
+            Setting::setEncrypted('evolution_api_key', $data['evolution_api_key']);
+        }
+
         Setting::set('whatsapp_welcome_template', $data['whatsapp_welcome_template'] ?? '');
 
         Notification::make()

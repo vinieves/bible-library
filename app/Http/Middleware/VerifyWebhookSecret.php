@@ -38,7 +38,7 @@ class VerifyWebhookSecret
             request: $request,
             platform: $resolvedPlatform,
             status: WebhookLogStatus::Unauthorized,
-            message: 'Não autorizado.',
+            message: $this->unauthorizedMessage($resolvedPlatform, $request),
             httpStatus: Response::HTTP_UNAUTHORIZED,
             response: ['message' => 'Não autorizado.'],
         );
@@ -48,10 +48,44 @@ class VerifyWebhookSecret
         ], Response::HTTP_UNAUTHORIZED);
     }
 
+    private function unauthorizedMessage(WebhookPlatform $platform, Request $request): string
+    {
+        if ($platform === WebhookPlatform::Hotmart && blank(IntegrationSettings::hotmartHottok())) {
+            return 'Hottok da Hotmart não configurado no painel admin.';
+        }
+
+        if ($platform === WebhookPlatform::Hotmart && blank($this->resolveHotmartHottok($request))) {
+            return 'Hottok ausente no payload ou headers da Hotmart.';
+        }
+
+        return 'Não autorizado.';
+    }
+
+    private function resolveHotmartHottok(Request $request): string
+    {
+        foreach ([
+            $request->input('hottok'),
+            $request->header('X-HOTMART-HOTTOK'),
+            $request->header('X-Hottok'),
+        ] as $candidate) {
+            $value = trim((string) $candidate);
+
+            if (filled($value)) {
+                return $value;
+            }
+        }
+
+        if ($request->isJson()) {
+            return trim((string) $request->json('hottok', ''));
+        }
+
+        return '';
+    }
+
     private function isValidHotmartRequest(Request $request): bool
     {
-        $configuredHottok = IntegrationSettings::hotmartHottok();
-        $payloadHottok = trim((string) $request->input('hottok', ''));
+        $configuredHottok = trim((string) IntegrationSettings::hotmartHottok());
+        $payloadHottok = $this->resolveHotmartHottok($request);
 
         return filled($configuredHottok)
             && filled($payloadHottok)
