@@ -11,14 +11,20 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('whatsapp_message_templates', function (Blueprint $table) {
-            $table->id();
-            $table->string('event')->unique();
-            $table->text('body');
-            $table->boolean('is_enabled')->default(true);
-            $table->unsignedSmallInteger('sort_order')->default(0);
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('whatsapp_message_templates')) {
+            Schema::create('whatsapp_message_templates', function (Blueprint $table) {
+                $table->id();
+                $table->string('event')->unique();
+                $table->text('body');
+                $table->boolean('is_enabled')->default(true);
+                $table->unsignedSmallInteger('sort_order')->default(0);
+                $table->timestamps();
+            });
+        }
+
+        if (WhatsAppMessageTemplate::query()->exists()) {
+            return;
+        }
 
         $legacyWelcome = Setting::get('whatsapp_welcome_template');
 

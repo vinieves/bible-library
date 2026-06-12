@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class WhatsAppMessageTemplate extends Model
 {
+    protected $table = 'whatsapp_message_templates';
+
     protected $fillable = [
         'event',
         'body',
