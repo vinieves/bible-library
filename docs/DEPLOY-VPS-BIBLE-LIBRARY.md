@@ -34,10 +34,10 @@
 
 | Item | Exemplo |
 |------|---------|
-| IP da VPS | `203.0.113.10` |
-| Acesso SSH | `ssh root@203.0.113.10` |
+| IP da VPS | `72.61.222.108` |
+| Acesso SSH | `ssh root@72.61.222.108` |
 | Domínio | `mediamrkt.online` |
-| E-mail para SSL | `seu@email.com` |
+| E-mail para SSL | `profitminer369@gmail.com` |
 
 ### DNS (painel do domínio)
 
@@ -65,14 +65,14 @@ O projeto ainda **não está em um repositório Git remoto**. Escolha **uma** op
 **No PowerShell do seu PC Windows** (ajuste o IP):
 
 ```powershell
-scp -r "C:\Users\T-GAMER\OneDrive\Área de Trabalho\BIBLE_LIBRARY" root@203.0.113.10:/var/www/bible-library
+scp -r "C:\Users\T-GAMER\OneDrive\Área de Trabalho\BIBLE_LIBRARY" root@72.61.222.108:/var/www/bible-library
 ```
 
 > Se der erro de caminho, compacte antes:
 >
 > ```powershell
 > Compress-Archive -Path "C:\Users\T-GAMER\OneDrive\Área de Trabalho\BIBLE_LIBRARY\*" -DestinationPath "C:\Users\T-GAMER\Desktop\bible-library.zip" -Force
-> scp "C:\Users\T-GAMER\Desktop\bible-library.zip" root@203.0.113.10:/tmp/
+> scp "C:\Users\T-GAMER\Desktop\bible-library.zip" root@72.61.222.108:/tmp/
 > ```
 >
 > **Na VPS**, depois do upload do zip:
@@ -112,7 +112,7 @@ git clone https://github.com/SEU_USUARIO/bible-library.git bible-library
 Conecte na VPS:
 
 ```bash
-ssh root@203.0.113.10
+ssh root@72.61.222.108
 ```
 
 Atualize o sistema e instale pacotes base:
@@ -213,7 +213,7 @@ Substitua `SUA_SENHA_MYSQL_FORTE` por uma senha real:
 ```bash
 mysql -u root -p <<'EOF'
 CREATE DATABASE bible_library CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'bible_library'@'localhost' IDENTIFIED BY 'SUA_SENHA_MYSQL_FORTE';
+CREATE USER 'bible_library'@'localhost' IDENTIFIED BY 'Viniroot333+';
 GRANT ALL PRIVILEGES ON bible_library.* TO 'bible_library'@'localhost';
 FLUSH PRIVILEGES;
 EOF
@@ -276,7 +276,7 @@ DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=bible_library
 DB_USERNAME=bible_library
-DB_PASSWORD=SUA_SENHA_MYSQL_FORTE
+DB_PASSWORD=Viniroot333+
 
 SESSION_DRIVER=database
 SESSION_LIFETIME=120
@@ -431,7 +431,7 @@ systemctl reload nginx
 Substitua o e-mail:
 
 ```bash
-certbot --nginx -d mediamrkt.online -d www.mediamrkt.online --non-interactive --agree-tos -m seu@email.com --redirect
+certbot --nginx -d mediamrkt.online -d www.mediamrkt.online --non-interactive --agree-tos -m profitminer369@gmail.com --redirect
 ```
 
 Renovação automática (já vem com certbot, confirme):
@@ -502,7 +502,7 @@ Preencha:
 Depois, no MySQL, marque como admin:
 
 ```bash
-mysql -u bible_library -p bible_library -e "UPDATE users SET is_admin = 1 WHERE email = 'seu@email.com';"
+mysql -u bible_library -p bible_library -e "UPDATE users SET is_admin = 1 WHERE email = 'profitminer369@gmail.com';"
 ```
 
 Acesse o painel: **https://mediamrkt.online/admin**

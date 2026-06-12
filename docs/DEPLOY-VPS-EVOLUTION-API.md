@@ -71,7 +71,7 @@ ping wpp.mediamrkt.online
 Conecte na VPS:
 
 ```bash
-ssh root@203.0.113.10
+ssh root@72.61.222.108
 ```
 
 Instale Docker oficial:
@@ -215,7 +215,7 @@ SERVER_URL=https://wpp.mediamrkt.online
 # ===========================================
 # AUTENTICAÇÃO (cole a API Key gerada acima)
 # ===========================================
-AUTHENTICATION_API_KEY=COLE_SUA_API_KEY_AQUI
+AUTHENTICATION_API_KEY=7f3a9c2e8d5b1f6a4c0e2d9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9
 AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES=true
 
 # ===========================================
@@ -347,7 +347,7 @@ systemctl reload nginx
 Substitua o e-mail:
 
 ```bash
-certbot --nginx -d wpp.mediamrkt.online --non-interactive --agree-tos -m seu@email.com --redirect
+certbot --nginx -d wpp.mediamrkt.online --non-interactive --agree-tos -m profitminer369@gmail.com --redirect
 ```
 
 Teste externo:
@@ -367,7 +367,7 @@ Substitua `COLE_SUA_API_KEY_AQUI` pela mesma chave do `.env`.
 ```bash
 curl -X POST "https://wpp.mediamrkt.online/instance/create" \
   -H "Content-Type: application/json" \
-  -H "apikey: COLE_SUA_API_KEY_AQUI" \
+  -H "apikey: 7f3a9c2e8d5b1f6a4c0e2d9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9" \
   -d '{
     "instanceName": "biblioteca",
     "integration": "WHATSAPP-BAILEYS",
@@ -379,7 +379,7 @@ curl -X POST "https://wpp.mediamrkt.online/instance/create" \
 
 ```bash
 curl -X GET "https://wpp.mediamrkt.online/instance/connect/biblioteca" \
-  -H "apikey: COLE_SUA_API_KEY_AQUI"
+  -H "apikey: 7f3a9c2e8d5b1f6a4c0e2d9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9"
 ```
 
 A resposta trará o QR Code (base64 ou pairing code). Alternativa pelo navegador:
@@ -394,7 +394,7 @@ https://wpp.mediamrkt.online/manager
 
 ```bash
 curl -X GET "https://wpp.mediamrkt.online/instance/fetchInstances" \
-  -H "apikey: COLE_SUA_API_KEY_AQUI"
+  -H "apikey: 7f3a9c2e8d5b1f6a4c0e2d9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9"
 ```
 
 ### 9.3 Conectar no celular
@@ -407,7 +407,7 @@ curl -X GET "https://wpp.mediamrkt.online/instance/fetchInstances" \
 
 ```bash
 curl -X GET "https://wpp.mediamrkt.online/instance/connectionState/biblioteca" \
-  -H "apikey: COLE_SUA_API_KEY_AQUI"
+  -H "apikey: 7f3a9c2e8d5b1f6a4c0e2d9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9"
 ```
 
 Estado esperado: `"state": "open"` (conectado).
@@ -458,7 +458,7 @@ O **hottok** da Hotmart vai no mesmo painel de Integrações.
 ```bash
 curl -X POST "https://wpp.mediamrkt.online/message/sendText/biblioteca" \
   -H "Content-Type: application/json" \
-  -H "apikey: COLE_SUA_API_KEY_AQUI" \
+  -H "apikey: 7f3a9c2e8d5b1f6a4c0e2d9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9" \
   -d '{
     "number": "5511999999999",
     "text": "Teste Evolution + Bible Library OK"
@@ -498,14 +498,14 @@ Verificar se ainda está conectada:
 
 ```bash
 curl -X GET "https://wpp.mediamrkt.online/instance/connectionState/biblioteca" \
-  -H "apikey: COLE_SUA_API_KEY_AQUI"
+  -H "apikey: 7f3a9c2e8d5b1f6a4c0e2d9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9"
 ```
 
 Se `"state"` não for `"open"`, reconecte:
 
 ```bash
 curl -X GET "https://wpp.mediamrkt.online/instance/connect/biblioteca" \
-  -H "apikey: COLE_SUA_API_KEY_AQUI"
+  -H "apikey: 7f3a9c2e8d5b1f6a4c0e2d9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9"
 ```
 
 E escaneie o QR Code novamente.
@@ -582,10 +582,10 @@ docker compose up -d --force-recreate evolution-api
 
 ```bash
 curl -X GET "https://wpp.mediamrkt.online/instance/connectionState/biblioteca" \
-  -H "apikey: COLE_SUA_API_KEY_AQUI"
+  -H "apikey: 7f3a9c2e8d5b1f6a4c0e2d9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9"
 
 curl -X GET "https://wpp.mediamrkt.online/instance/connect/biblioteca" \
-  -H "apikey: COLE_SUA_API_KEY_AQUI"
+  -H "apikey: 7f3a9c2e8d5b1f6a4c0e2d9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9"
 ```
 
 Escaneie o QR Code novamente no celular.
