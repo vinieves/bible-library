@@ -175,7 +175,8 @@ class ManageIntegrations extends Page
             Action::make('sendTestWhatsApp')
                 ->label('Enviar teste WhatsApp')
                 ->action(function (): void {
-                    $phone = PhoneNumber::normalize($this->form->getState()['whatsapp_test_phone'] ?? null);
+                    // Campo com dehydrated(false) não entra em getState() — ler de $this->data
+                    $phone = PhoneNumber::normalize($this->data['whatsapp_test_phone'] ?? null);
 
                     if (blank($phone)) {
                         Notification::make()
