@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WhatsAppDispatchLog extends Model
 {
+    protected $table = 'whatsapp_dispatch_logs';
+
     public $timestamps = false;
 
     protected $fillable = [

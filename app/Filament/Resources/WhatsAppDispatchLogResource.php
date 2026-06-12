@@ -123,7 +123,11 @@ class WhatsAppDispatchLogResource extends Resource
                 TextColumn::make('trigger')
                     ->label('Origem')
                     ->badge()
-                    ->color(fn ($state) => $state === WhatsAppDispatchTrigger::ManualTest ? 'info' : 'primary')
+                    ->color(fn ($state) => match (true) {
+                        $state instanceof WhatsAppDispatchTrigger && $state === WhatsAppDispatchTrigger::ManualTest => 'info',
+                        $state === WhatsAppDispatchTrigger::ManualTest->value => 'info',
+                        default => 'primary',
+                    })
                     ->formatStateUsing(fn ($state) => $state instanceof WhatsAppDispatchTrigger ? $state->label() : $state),
                 TextColumn::make('status')
                     ->label('Resultado')
@@ -151,6 +155,7 @@ class WhatsAppDispatchLogResource extends Resource
                     ->label('HTTP')
                     ->badge()
                     ->color(fn (?int $state) => match (true) {
+                        $state === null => 'gray',
                         $state >= 200 && $state < 300 => 'success',
                         $state >= 400 && $state < 500 => 'warning',
                         $state >= 500 => 'danger',
