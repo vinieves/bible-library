@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Enums\WebhookPlatform;
+use App\Enums\WhatsAppDispatchTrigger;
 use App\Jobs\SendWelcomeWhatsAppJob;
 use App\Models\Setting;
 use App\Services\Webhooks\PhoneNumber;
@@ -214,6 +215,7 @@ class ManageIntegrations extends Page
                         userId: $admin->id,
                         phone: $phone,
                         purchaseId: 0,
+                        trigger: WhatsAppDispatchTrigger::ManualTest,
                     );
 
                     Notification::make()

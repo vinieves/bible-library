@@ -43,6 +43,9 @@ class EvolutionApiService
             );
         }
 
-        return $response->json() ?? ['status' => 'sent'];
+        return [
+            'http_status' => $response->status(),
+            'body' => $response->json() ?? [],
+        ];
     }
 }
