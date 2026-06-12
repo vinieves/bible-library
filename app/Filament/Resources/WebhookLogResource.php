@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enums\WebhookLogStatus;
 use App\Enums\WebhookPlatform;
+use App\Filament\Resources\WebhookLogResource\Actions\ReprocessWebhookAction;
 use App\Filament\Resources\WebhookLogResource\Pages;
 use App\Models\WebhookLog;
 use BackedEnum;
@@ -195,6 +196,7 @@ class WebhookLogResource extends Resource
                         ->all()),
             ])
             ->recordActions([
+                ReprocessWebhookAction::make(),
                 ViewAction::make(),
             ]);
     }
