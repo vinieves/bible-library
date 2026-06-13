@@ -6,14 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Models\UserVideoProgress;
 use App\Models\Video;
-use App\Support\RangeFileStreamer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class VideoController extends Controller
 {
@@ -73,18 +72,18 @@ class VideoController extends Controller
         return view('members.videos.show', compact('video', 'progress'));
     }
 
-    public function stream(Request $request, Video $video): StreamedResponse
+    public function stream(Video $video): BinaryFileResponse
     {
         $this->authorizeVideo($video);
 
         $absolutePath = Storage::disk('private')->path($video->video_file);
 
-        return RangeFileStreamer::stream(
-            request: $request,
-            absolutePath: $absolutePath,
-            mimeType: $video->streamMimeType(),
-            downloadName: $video->streamFilename(),
-        );
+        return response()->file($absolutePath, [
+            'Content-Type' => $video->streamMimeType(),
+            'Content-Disposition' => 'inline; filename="'.$video->streamFilename().'"',
+            'Accept-Ranges' => 'bytes',
+            'Cache-Control' => 'private, no-transform',
+        ]);
     }
 
     public function saveProgress(Request $request, Video $video): JsonResponse

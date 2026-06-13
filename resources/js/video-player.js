@@ -36,7 +36,15 @@ function initVideoPlayer(root) {
     const initialSeconds = parseInt(root.dataset.initialSeconds || '0', 10);
     const knownDuration = parseInt(root.dataset.durationSeconds || '0', 10);
 
-    video.src = streamUrl;
+    video.playsInline = true;
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
+
+    if (!video.getAttribute('src')) {
+        video.src = streamUrl;
+    }
+
+    video.load();
 
     const updateProgressUi = () => {
         const duration = video.duration && Number.isFinite(video.duration) ? video.duration : knownDuration;
@@ -98,8 +106,30 @@ function initVideoPlayer(root) {
         }
     };
 
-    playBtn?.addEventListener('click', togglePlay);
-    playCenterBtn?.addEventListener('click', togglePlay);
+    const bindTap = (element, handler) => {
+        if (!element) {
+            return;
+        }
+
+        let lastTouch = 0;
+
+        element.addEventListener('touchend', (event) => {
+            event.preventDefault();
+            lastTouch = Date.now();
+            handler();
+        }, { passive: false });
+
+        element.addEventListener('click', () => {
+            if (Date.now() - lastTouch < 400) {
+                return;
+            }
+
+            handler();
+        });
+    };
+
+    bindTap(playBtn, togglePlay);
+    bindTap(playCenterBtn, togglePlay);
 
     backBtn?.addEventListener('click', () => {
         video.currentTime = Math.max(0, video.currentTime - 10);
@@ -127,12 +157,13 @@ function initVideoPlayer(root) {
     });
 
     video.addEventListener('loadedmetadata', () => {
-        if (initialSeconds > 0) {
+        if (initialSeconds > 0 && initialSeconds < (video.duration || Infinity)) {
             video.currentTime = initialSeconds;
         }
         updateProgressUi();
     });
 
+    video.addEventListener('canplay', updateProgressUi);
     video.addEventListener('play', () => setPlayingState(true));
     video.addEventListener('pause', () => setPlayingState(false));
     video.addEventListener('timeupdate', () => {

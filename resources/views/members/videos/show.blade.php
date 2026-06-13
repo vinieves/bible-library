@@ -18,9 +18,12 @@
             <div class="video-player-shell">
                 <video data-video-element
                        class="video-player-media"
+                       src="{{ route('members.videos.stream', $video) }}"
                        playsinline
-                       preload="metadata"
-                       poster="{{ $video->coverUrl() }}"></video>
+                       webkit-playsinline
+                       x-webkit-airplay="allow"
+                       preload="auto"
+                       @if($video->coverUrl()) poster="{{ $video->coverUrl() }}" @endif></video>
 
                 <div class="video-player-overlay" data-video-overlay>
                     <button type="button" data-video-play-center class="btn-video-play-center" aria-label="Reproducir">

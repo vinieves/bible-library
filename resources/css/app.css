@@ -163,12 +163,18 @@
         @apply rounded-2xl border border-bible-green/20 bg-gradient-to-br from-bible-green/15 to-bible-dark/80 p-5 sm:p-6;
     }
 
+    .video-player-page {
+        @apply -mx-4 sm:mx-0;
+    }
+
     .video-player-shell {
-        @apply relative overflow-hidden rounded-2xl border border-bible-gold/20 bg-black shadow-lg;
+        @apply relative overflow-hidden rounded-none border-x-0 border-bible-gold/20 bg-black shadow-lg sm:rounded-2xl sm:border-x;
     }
 
     .video-player-media {
-        @apply aspect-video w-full bg-black object-contain;
+        @apply w-full bg-black object-contain sm:aspect-video;
+        min-height: 50vh;
+        max-height: 65vh;
     }
 
     .video-player-overlay {
