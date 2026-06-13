@@ -27,7 +27,7 @@
             </template>
 
             {{-- Paso 1: libro y capítulo --}}
-            <section class="bible-reader-card">
+            <section class="bible-reader-card" :class="{ 'bible-reader-card-raised': bookOpen }">
                 <div class="bible-reader-card-head">
                     <span class="bible-reader-step">1</span>
                     <div>

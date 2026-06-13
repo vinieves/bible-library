@@ -518,9 +518,13 @@
     }
 
     .bible-reader-card {
-        @apply rounded-2xl p-4 shadow-sm backdrop-blur-sm sm:p-5;
+        @apply relative overflow-visible rounded-2xl p-4 shadow-sm backdrop-blur-sm sm:p-5;
         background: rgba(28, 23, 17, 0.72);
         border: 1px solid rgba(240, 199, 94, 0.12);
+    }
+
+    .bible-reader-card-raised {
+        @apply z-40;
     }
 
     .bible-reader-card-head {
@@ -565,7 +569,9 @@
     }
 
     .bible-reader-dropdown {
-        @apply absolute z-30 mt-1 max-h-64 w-full overflow-y-auto rounded-xl border border-bible-gold/20 bg-bible-dark-elevated py-1 shadow-xl;
+        @apply absolute z-50 mt-1 max-h-64 w-full overflow-y-auto rounded-xl border border-bible-gold/20 py-1 shadow-2xl;
+        background: rgba(28, 23, 17, 0.98);
+        border-color: rgba(240, 199, 94, 0.22);
     }
 
     .bible-reader-dropdown-item {
