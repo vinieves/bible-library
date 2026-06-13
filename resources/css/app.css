@@ -164,6 +164,10 @@
     }
 
     .video-player-page {
+        @apply w-full;
+    }
+
+    .video-player-stage {
         width: 100vw;
         max-width: 100vw;
         margin-left: calc(50% - 50vw);
@@ -180,8 +184,25 @@
         min-height: min(56.25vw, 78vh);
     }
 
+    .video-player-meta {
+        @apply mt-4 px-1 sm:mt-5 sm:px-0;
+    }
+
+    .video-player-title {
+        @apply text-lg font-semibold leading-snug text-bible-gold sm:text-2xl;
+    }
+
+    .video-player-actions {
+        @apply mt-5 space-y-2.5 sm:mt-6 sm:space-y-3;
+    }
+
+    .video-player-actions .btn-material-ghost,
+    .video-player-actions .btn-material-secondary {
+        @apply py-2.5 text-sm sm:py-3;
+    }
+
     @media (min-width: 768px) {
-        .video-player-page {
+        .video-player-stage {
             width: min(92vw, 56rem);
             max-width: min(92vw, 56rem);
             margin-left: calc(50% - min(46vw, 28rem));
