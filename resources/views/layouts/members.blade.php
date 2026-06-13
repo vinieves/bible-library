@@ -30,7 +30,7 @@
 
     <main @class([
         'mx-auto max-w-3xl',
-        'px-3 py-4 sm:px-4 sm:py-5' => ($headerStyle ?? 'home') === 'tab',
+        'px-4 py-4 sm:px-6 sm:py-5' => ($headerStyle ?? 'home') === 'tab',
         'px-4 py-5 sm:px-6 sm:py-6' => ($headerStyle ?? 'home') !== 'tab',
     ])>
         @yield('content')

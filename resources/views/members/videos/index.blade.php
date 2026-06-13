@@ -9,31 +9,28 @@
             :search="$search"
             :categories="$categories"
             :category-id="$categoryId"
-            class="mb-5"
         />
 
-        <section>
-            @if($videos->isEmpty())
-                @if($search || $categoryId)
-                    <p class="py-6 text-center text-sm text-bible-muted-warm">No se encontraron videos con esos filtros.</p>
-                @else
-                    <x-members.empty-state
-                        icon="video"
-                        title="Pronto, nuevos videos para su estudio"
-                        message="Estamos preparando enseñanzas en video para profundizar en la Palabra."
-                    />
-                @endif
+        @if($videos->isEmpty())
+            @if($search || $categoryId)
+                <p class="py-8 text-center text-sm text-bible-muted-warm">No se encontraron videos con esos filtros.</p>
             @else
-                <div class="video-list space-y-3">
-                    @foreach($videos as $video)
-                        <x-members.video-card
-                            :video="$video"
-                            :progress="$progressByVideo->get($video->id)"
-                            :locked="! auth()->user()->hasAccessToVideo($video)"
-                        />
-                    @endforeach
-                </div>
+                <x-members.empty-state
+                    icon="video"
+                    title="Pronto, nuevos videos para su estudio"
+                    message="Estamos preparando enseñanzas en video para profundizar en la Palabra."
+                />
             @endif
-        </section>
+        @else
+            <div class="video-list space-y-3">
+                @foreach($videos as $video)
+                    <x-members.video-card
+                        :video="$video"
+                        :progress="$progressByVideo->get($video->id)"
+                        :locked="! auth()->user()->hasAccessToVideo($video)"
+                    />
+                @endforeach
+            </div>
+        @endif
     </x-members.tab-shell>
 @endsection

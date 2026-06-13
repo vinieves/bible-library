@@ -7,22 +7,12 @@
         background-attachment: fixed;
     }
 
-    .members-tab-panel {
-        @apply rounded-2xl backdrop-blur-md;
-        background: rgba(24, 20, 14, 0.78);
-        border: 1px solid rgba(240, 199, 94, 0.16);
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(240, 199, 94, 0.06);
-        padding: 1rem 1rem 1.25rem;
+    .members-tab-page {
+        @apply space-y-5;
     }
 
-    @media (min-width: 640px) {
-        .members-tab-panel {
-            padding: 1.25rem 1.25rem 1.5rem;
-        }
-    }
-
-    .members-tab-panel-head {
-        @apply mb-5 flex items-center justify-between gap-3;
+    .members-tab-head {
+        @apply flex items-center justify-between gap-3;
     }
 
     .members-tab-title {
