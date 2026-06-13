@@ -28,6 +28,28 @@ class PhoneNumberTest extends TestCase
         $this->assertSame('5531999999999', $phone);
     }
 
+    public function test_it_keeps_full_brazilian_number_from_hotmart_without_adding_prefix(): void
+    {
+        $phone = PhoneNumber::fromHotmartBuyer([
+            'checkout_phone' => '55990044198',
+            'checkout_phone_code' => '99',
+            'address' => ['country_iso' => 'BR'],
+        ]);
+
+        $this->assertSame('55990044198', $phone);
+    }
+
+    public function test_it_does_not_prepend_area_code_when_checkout_phone_is_already_complete(): void
+    {
+        $phone = PhoneNumber::fromHotmartBuyer([
+            'checkout_phone' => '55990044198',
+            'checkout_phone_code' => '56',
+            'address' => ['country_iso' => 'BR'],
+        ]);
+
+        $this->assertSame('55990044198', $phone);
+    }
+
     public function test_it_does_not_force_brazil_prefix_on_short_international_numbers(): void
     {
         $phone = PhoneNumber::fromHotmartBuyer([

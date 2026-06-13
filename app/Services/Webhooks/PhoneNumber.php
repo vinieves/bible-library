@@ -58,15 +58,18 @@ class PhoneNumber
             return null;
         }
 
-        $countryIso = strtoupper(trim((string) $countryIso));
         $areaCode = self::digitsOnly((string) $areaCode);
+        $countryIso = strtoupper(trim((string) $countryIso));
 
-        if ($countryIso === 'BR' || filled($areaCode)) {
-            return self::normalizeBrazilianPhone($digits, $areaCode);
-        }
-
+        // Hotmart já envia DDI + número em checkout_phone quando o número está completo
+        // (vendas internacionais e muitos checkouts BR). Não remontar nesses casos.
         if (strlen($digits) >= 11) {
             return $digits;
+        }
+
+        // BR legado: checkout_phone local (9 dígitos) + checkout_phone_code (DDD).
+        if (($countryIso === 'BR' || filled($areaCode)) && filled($areaCode)) {
+            return self::normalizeBrazilianPhone($digits, $areaCode);
         }
 
         return null;
@@ -76,7 +79,7 @@ class PhoneNumber
     {
         $local = ltrim($digits, '0');
 
-        if (str_starts_with($local, '55') && strlen($local) >= 12) {
+        if (str_starts_with($local, '55') && strlen($local) >= 11) {
             return $local;
         }
 
