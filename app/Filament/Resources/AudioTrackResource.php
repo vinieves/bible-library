@@ -62,9 +62,10 @@ class AudioTrackResource extends Resource
                         ->columnSpanFull(),
                     Select::make('audio_category_id')
                         ->label('Categoria')
-                        ->relationship('category', 'name')
+                        ->relationship('category', 'name', fn ($query) => $query->where('is_active', true))
                         ->searchable()
-                        ->preload(),
+                        ->preload()
+                        ->required(),
                     TextInput::make('duration')
                         ->label('Duração (mm:ss)')
                         ->placeholder('03:45'),

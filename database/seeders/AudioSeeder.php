@@ -16,13 +16,14 @@ class AudioSeeder extends Seeder
         $planCompleto = Plan::query()->where('slug', 'completo')->firstOrFail();
 
         $categories = [
-            ['name' => 'Introducción', 'order' => 1],
-            ['name' => 'Devocionales', 'order' => 2],
-            ['name' => 'Salmos', 'order' => 3],
-            ['name' => 'Proverbios', 'order' => 4],
-            ['name' => 'Evangelios', 'order' => 5],
-            ['name' => 'Oraciones guiadas', 'order' => 6],
-            ['name' => 'Estudios premium', 'order' => 7],
+            ['name' => 'Introducción', 'order' => 1, 'badge_color' => 'gold'],
+            ['name' => 'Devocionales', 'order' => 2, 'badge_color' => 'green'],
+            ['name' => 'Salmos', 'order' => 3, 'badge_color' => 'emerald'],
+            ['name' => 'Proverbios', 'order' => 4, 'badge_color' => 'blue'],
+            ['name' => 'Evangelios', 'order' => 5, 'badge_color' => 'purple'],
+            ['name' => 'Oraciones guiadas', 'order' => 6, 'badge_color' => 'rose'],
+            ['name' => 'Estudios premium', 'order' => 7, 'badge_color' => 'amber'],
+            ['name' => 'General', 'order' => 999, 'badge_color' => 'gold'],
         ];
 
         foreach ($categories as $category) {
@@ -30,6 +31,7 @@ class AudioSeeder extends Seeder
                 ['slug' => Str::slug($category['name'])],
                 [
                     'name' => $category['name'],
+                    'badge_color' => $category['badge_color'],
                     'description' => 'Audios de la categoría '.$category['name'].'.',
                     'order' => $category['order'],
                     'is_active' => true,

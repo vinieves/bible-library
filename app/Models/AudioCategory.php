@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CategoryBadgeColor;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
@@ -11,6 +12,7 @@ class AudioCategory extends Model
     protected $fillable = [
         'name',
         'slug',
+        'badge_color',
         'description',
         'order',
         'is_active',
@@ -32,6 +34,12 @@ class AudioCategory extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    public function badgeColorClasses(): string
+    {
+        return CategoryBadgeColor::tryFrom((string) ($this->badge_color ?? ''))?->badgeClasses()
+            ?? CategoryBadgeColor::Gold->badgeClasses();
     }
 
     protected static function booted(): void

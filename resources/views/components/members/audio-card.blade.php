@@ -33,15 +33,10 @@
             {{ $track->title }}
         </h3>
 
-        <p class="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-bible-cream/50">
-            @if($track->category)
-                <span>{{ $track->category->name }}</span>
-                @if($track->duration)
-                    <span aria-hidden="true">·</span>
-                @endif
-            @endif
+        <p class="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-1">
+            <x-members.category-badge :category="$track->category" />
             @if($track->duration)
-                <span>{{ $track->duration }}</span>
+                <span class="text-xs text-bible-cream/50">{{ $track->duration }}</span>
             @endif
         </p>
 

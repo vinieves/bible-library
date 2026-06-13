@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Members;
 
 use App\Http\Controllers\Controller;
+use App\Models\AudioCategory;
 use App\Models\AudioTrack;
 use App\Models\Setting;
 use App\Models\UserAudioProgress;
@@ -16,13 +17,23 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class AudioController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $user = Auth::user();
+        $search = $request->string('q')->trim()->toString();
+        $categoryId = $request->integer('categoria') ?: null;
 
         $tracks = AudioTrack::query()
             ->published()
-            ->with(['category', 'requiredPlan'])
+            ->with('category')
+            ->when($search, fn ($query) => $query->where('title', 'like', "%{$search}%"))
+            ->when($categoryId, fn ($query) => $query->where('audio_category_id', $categoryId))
+            ->orderBy('order')
+            ->get();
+
+        $categories = AudioCategory::query()
+            ->where('is_active', true)
+            ->whereHas('tracks', fn ($query) => $query->published())
             ->orderBy('order')
             ->get();
 
@@ -33,6 +44,9 @@ class AudioController extends Controller
 
         return view('members.audio.index', [
             'tracks' => $tracks,
+            'categories' => $categories,
+            'search' => $search,
+            'categoryId' => $categoryId,
             'progressByTrack' => $progressByTrack,
         ]);
     }
