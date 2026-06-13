@@ -8,7 +8,7 @@
     $backHref = $backUrl ?? (url()->previous() !== url()->current() ? url()->previous() : route('members.dashboard'));
 @endphp
 
-<header class="sticky top-0 z-40 border-b border-bible-gold/15 bg-bible-dark/95 backdrop-blur supports-[backdrop-filter]:bg-bible-dark/80">
+<header class="sticky top-0 z-40 border-b border-bible-gold/12 bg-[rgba(20,17,10,0.88)] backdrop-blur-md supports-[backdrop-filter]:bg-[rgba(20,17,10,0.78)]">
     <div class="mx-auto max-w-3xl px-4 sm:px-6">
         <div class="flex min-h-[3.75rem] items-center justify-between gap-3 py-3 sm:min-h-[4rem]">
             <div class="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">

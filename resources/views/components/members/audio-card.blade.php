@@ -7,9 +7,9 @@
 @php
     $user = auth()->user();
     $hasAccess = ! $locked && $user->hasAccessToAudioTrack($track);
-    $coverUrl = $track->coverUrl();
     $percent = $progress?->completionPercent($track) ?? 0;
     $statusLabel = $progress?->statusLabel($track) ?? null;
+    $iconClasses = $track->category?->iconThumbClasses() ?? 'icon-thumb-gold';
 @endphp
 
 <a href="{{ route('members.audio.show', $track) }}"
@@ -17,31 +17,23 @@
        'audio-list-item group',
        'audio-list-item-locked' => ! $hasAccess,
    ])>
-    <div class="audio-list-thumb">
-        @if($coverUrl)
-            <img src="{{ $coverUrl }}"
-                 alt=""
-                 class="h-full w-full object-cover"
-                 loading="lazy">
-        @else
-            <span class="flex h-full w-full items-center justify-center text-lg text-bible-gold/80" aria-hidden="true">🎧</span>
-        @endif
+    <div @class(['audio-list-thumb flex items-center justify-center', $iconClasses])>
+        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z"/>
+        </svg>
     </div>
 
     <div class="audio-list-body min-w-0 flex-1">
-        <h3 class="truncate text-sm font-semibold text-bible-gold sm:text-base">
+        <h3 class="truncate text-[0.9375rem] font-medium leading-snug text-bible-cream sm:text-base">
             {{ $track->title }}
         </h3>
 
-        <p class="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-1">
+        <div class="mt-1.5">
             <x-members.category-badge :category="$track->category" />
-            @if($track->duration)
-                <span class="text-xs text-bible-cream/50">{{ $track->duration }}</span>
-            @endif
-        </p>
+        </div>
 
         @if($hasAccess && $percent > 0)
-            <div class="mt-2">
+            <div class="mt-2.5">
                 <x-members.progress-bar
                     :percent="$percent"
                     :status="$statusLabel"
@@ -53,9 +45,9 @@
     </div>
 
     <span @class([
-        'audio-list-action shrink-0',
-        'text-bible-green' => $hasAccess,
-        'text-bible-cream/35' => ! $hasAccess,
+        'audio-list-play shrink-0',
+        'text-bible-gold' => $hasAccess,
+        'text-bible-muted' => ! $hasAccess,
     ]) aria-hidden="true">
         @if($hasAccess)
             <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">

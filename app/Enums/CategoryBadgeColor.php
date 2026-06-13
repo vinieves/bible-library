@@ -27,15 +27,12 @@ enum CategoryBadgeColor: string
 
     public function badgeClasses(): string
     {
-        return match ($this) {
-            self::Gold => 'bg-bible-gold/10 text-bible-gold',
-            self::Green => 'bg-bible-green/20 text-green-300',
-            self::Emerald => 'bg-emerald-900/35 text-emerald-300',
-            self::Blue => 'bg-blue-900/35 text-blue-300',
-            self::Purple => 'bg-purple-900/35 text-purple-300',
-            self::Rose => 'bg-rose-900/35 text-rose-300',
-            self::Amber => 'bg-amber-900/35 text-amber-300',
-        };
+        return 'badge-tone-'.$this->value;
+    }
+
+    public function iconThumbClasses(): string
+    {
+        return 'icon-thumb-'.$this->value;
     }
 
     /**

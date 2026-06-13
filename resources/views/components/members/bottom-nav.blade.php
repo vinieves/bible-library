@@ -7,7 +7,7 @@
     ];
 @endphp
 
-<nav class="fixed bottom-0 left-0 right-0 z-50 border-t border-bible-gold/20 bg-bible-dark md:hidden">
+<nav class="fixed bottom-0 left-0 right-0 z-50 border-t border-bible-gold/12 bg-[rgba(20,17,10,0.92)] backdrop-blur-md md:hidden">
     <div class="mx-auto flex max-w-3xl justify-around px-2 py-2">
         @foreach($items as $item)
             @php

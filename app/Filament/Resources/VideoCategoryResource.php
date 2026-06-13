@@ -2,10 +2,12 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\CategoryBadgeColor;
 use App\Filament\Resources\VideoCategoryResource\Pages;
 use App\Models\VideoCategory;
 use BackedEnum;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -47,6 +49,11 @@ class VideoCategoryResource extends Resource
                         ->required()
                         ->maxLength(255)
                         ->unique(ignoreRecord: true),
+                    Select::make('badge_color')
+                        ->label('Cor da badge (cliente)')
+                        ->options(CategoryBadgeColor::options())
+                        ->default(CategoryBadgeColor::Gold->value)
+                        ->required(),
                     Textarea::make('description')
                         ->label('Descrição (visível ao cliente)')
                         ->rows(3)
@@ -69,6 +76,9 @@ class VideoCategoryResource extends Resource
             ->columns([
                 TextColumn::make('name')->label('Nome')->searchable()->sortable(),
                 TextColumn::make('slug')->label('Slug'),
+                TextColumn::make('badge_color')
+                    ->label('Badge')
+                    ->formatStateUsing(fn (?string $state) => CategoryBadgeColor::tryFrom((string) $state)?->label() ?? 'Dourado'),
                 TextColumn::make('videos_count')
                     ->label('Vídeos')
                     ->counts('videos'),

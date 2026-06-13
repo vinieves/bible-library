@@ -8,7 +8,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('scripts')
 </head>
-<body class="flex min-h-dvh flex-col bg-bible-black font-sans text-bible-cream antialiased">
+<body class="members-shell flex min-h-dvh flex-col bg-members-divine bg-bible-black font-sans text-bible-cream antialiased">
     {{-- Header compacto --}}
     <header class="shrink-0 border-b border-bible-gold/20 bg-bible-dark/95 backdrop-blur">
         <div class="flex min-h-[3.25rem] items-center justify-between gap-2 px-3 py-2 sm:px-4">

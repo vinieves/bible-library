@@ -10,6 +10,7 @@
     $coverUrl = $video->coverUrl();
     $percent = $progress?->completionPercent($video) ?? 0;
     $statusLabel = $progress?->statusLabel($video) ?? 'Sin iniciar';
+    $iconClasses = $video->category?->iconThumbClasses() ?? 'icon-thumb-gold';
 @endphp
 
 <a href="{{ route('members.videos.show', $video) }}"
@@ -25,8 +26,8 @@
                      class="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                      loading="lazy">
             @else
-                <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-bible-green/25 via-bible-dark to-bible-gold/10" aria-hidden="true">
-                    <svg class="h-8 w-8 text-bible-gold/70 sm:h-9 sm:w-9" fill="currentColor" viewBox="0 0 24 24">
+                <div @class(['flex h-full w-full items-center justify-center', $iconClasses]) aria-hidden="true">
+                    <svg class="h-8 w-8 sm:h-9 sm:w-9" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M8 5v14l11-7z"/>
                     </svg>
                 </div>
@@ -64,29 +65,22 @@
         </div>
 
         <div class="flex min-w-0 flex-1 flex-col justify-center px-4 py-3.5 sm:px-5 sm:py-4">
-            <h3 class="text-base font-semibold leading-snug text-bible-gold sm:text-lg">
+            <h3 class="text-base font-medium leading-snug text-bible-cream sm:text-lg">
                 {{ $video->title }}
             </h3>
 
             @if(filled($video->description))
-                <p class="mt-1.5 line-clamp-2 text-sm leading-relaxed text-bible-cream/70 sm:text-base">
+                <p class="mt-1.5 line-clamp-2 text-sm leading-relaxed text-bible-muted-warm sm:text-base">
                     {{ $video->description }}
                 </p>
             @endif
 
             <div class="mt-2 flex flex-wrap gap-1.5">
                 @if($video->category)
-                    <span class="inline-flex items-center rounded-full bg-bible-gold/10 px-2.5 py-0.5 text-xs font-medium text-bible-gold">
-                        {{ $video->category->name }}
-                    </span>
-                @endif
-                @if($video->duration)
-                    <span class="rounded-full bg-white/5 px-2.5 py-0.5 text-xs text-bible-cream/50 sm:hidden">
-                        {{ $video->duration }}
-                    </span>
+                    <x-members.category-badge :category="$video->category" />
                 @endif
                 @if(! $hasAccess)
-                    <span class="rounded-full bg-red-900/30 px-2.5 py-0.5 text-xs text-red-300/90">Bloqueado</span>
+                    <span class="badge-tone-rose inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium">Bloqueado</span>
                 @endif
             </div>
 

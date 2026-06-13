@@ -1,14 +1,17 @@
-@extends('layouts.members', ['showBack' => true])
+@extends('layouts.members', ['headerStyle' => 'tab'])
 
 @section('title', 'La Biblia Explicada')
 
 @section('content')
     @if(! $bibleAvailable)
-        <div class="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-6 text-center">
-            <p class="text-base text-bible-cream/80">La Biblia no está disponible en este momento.</p>
-            <p class="mt-2 text-sm text-bible-cream/50">Contacte al soporte si el problema persiste.</p>
-        </div>
+        <x-members.tab-shell title="La Biblia Explicada">
+            <div class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-6 text-center">
+                <p class="text-base text-bible-cream/80">La Biblia no está disponible en este momento.</p>
+                <p class="mt-2 text-sm text-bible-muted-warm">Contacte al soporte si el problema persiste.</p>
+            </div>
+        </x-members.tab-shell>
     @else
+        <x-members.tab-shell title="La Biblia Explicada">
         <div
             x-data="bibleReader({
                 booksUrl: @js($booksUrl),
@@ -17,7 +20,7 @@
             class="bible-reader space-y-4"
             @click.outside="bookOpen = false"
         >
-            <p class="text-sm text-bible-cream/60">Elija un libro y un capítulo para leer la explicación.</p>
+            <p class="text-sm text-bible-muted-warm">Elija un libro y un capítulo para leer la explicación.</p>
 
             <template x-if="loadError">
                 <div class="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-4 text-sm text-bible-cream/80" x-text="loadError"></div>
@@ -212,5 +215,6 @@
                 </template>
             </section>
         </div>
+        </x-members.tab-shell>
     @endif
 @endsection

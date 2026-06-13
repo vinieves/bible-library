@@ -2,15 +2,19 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\InteractsWithCategoryBadgeColor;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 class VideoCategory extends Model
 {
+    use InteractsWithCategoryBadgeColor;
+
     protected $fillable = [
         'name',
         'slug',
+        'badge_color',
         'description',
         'order',
         'is_active',

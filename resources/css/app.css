@@ -3,6 +3,187 @@
 @tailwind utilities;
 
 @layer components {
+    .members-shell {
+        background-attachment: fixed;
+    }
+
+    .members-tab-panel {
+        @apply rounded-2xl backdrop-blur-md;
+        background: rgba(24, 20, 14, 0.78);
+        border: 1px solid rgba(240, 199, 94, 0.16);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(240, 199, 94, 0.06);
+        padding: 1rem 1rem 1.25rem;
+    }
+
+    @media (min-width: 640px) {
+        .members-tab-panel {
+            padding: 1.25rem 1.25rem 1.5rem;
+        }
+    }
+
+    .members-tab-panel-head {
+        @apply mb-5 flex items-center justify-between gap-3;
+    }
+
+    .members-tab-title {
+        @apply font-serif text-2xl font-semibold tracking-tight text-bible-gold sm:text-[1.65rem];
+    }
+
+    .library-search-bar {
+        @apply flex items-center gap-2.5 rounded-xl px-3.5 py-3;
+        background: rgba(10, 9, 7, 0.55);
+        border: 1px solid rgba(240, 199, 94, 0.1);
+    }
+
+    .library-search-bar-icon {
+        @apply h-4 w-4 shrink-0 text-bible-muted;
+    }
+
+    .library-search-bar-input {
+        @apply min-w-0 flex-1 border-0 bg-transparent text-sm text-bible-cream placeholder:text-bible-muted focus:outline-none focus:ring-0;
+    }
+
+    .library-search-category {
+        @apply w-full appearance-none rounded-xl bg-[length:1rem] bg-[right_0.75rem_center] bg-no-repeat py-2.5 pl-3.5 pr-10 text-sm text-bible-muted-warm focus:outline-none focus:ring-1 focus:ring-bible-gold/15;
+        background-color: rgba(10, 9, 7, 0.45);
+        border: 1px solid rgba(240, 199, 94, 0.08);
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23f0c75e' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+    }
+
+    .library-search-category:focus {
+        border-color: rgba(240, 199, 94, 0.2);
+    }
+
+    .member-card {
+        @apply block rounded-2xl p-6 text-bible-cream shadow-lg backdrop-blur-sm transition hover:shadow-xl;
+        background: rgba(28, 23, 17, 0.72);
+        border: 1px solid rgba(240, 199, 94, 0.12);
+    }
+
+    .member-card:hover {
+        border-color: rgba(240, 199, 94, 0.28);
+    }
+
+    .badge-tone-gold {
+        background: rgba(240, 199, 94, 0.12);
+        color: #f0c75e;
+        border: 1px solid rgba(240, 199, 94, 0.16);
+    }
+
+    .badge-tone-green {
+        background: rgba(45, 122, 82, 0.16);
+        color: #8fd4a8;
+        border: 1px solid rgba(45, 122, 82, 0.22);
+    }
+
+    .badge-tone-emerald {
+        background: rgba(52, 211, 153, 0.12);
+        color: #7eecc8;
+        border: 1px solid rgba(52, 211, 153, 0.18);
+    }
+
+    .badge-tone-blue {
+        background: rgba(96, 165, 250, 0.12);
+        color: #9ecaff;
+        border: 1px solid rgba(96, 165, 250, 0.18);
+    }
+
+    .badge-tone-purple {
+        background: rgba(167, 139, 250, 0.12);
+        color: #cbb8ff;
+        border: 1px solid rgba(167, 139, 250, 0.18);
+    }
+
+    .badge-tone-rose {
+        background: rgba(251, 113, 133, 0.12);
+        color: #ffb3c0;
+        border: 1px solid rgba(251, 113, 133, 0.18);
+    }
+
+    .badge-tone-amber {
+        background: rgba(251, 191, 36, 0.12);
+        color: #ffd978;
+        border: 1px solid rgba(251, 191, 36, 0.18);
+    }
+
+    .badge-tone-muted {
+        background: rgba(28, 23, 17, 0.8);
+        color: #9a9588;
+        border: 1px solid rgba(240, 199, 94, 0.08);
+    }
+
+    .icon-thumb-gold {
+        background: rgba(240, 199, 94, 0.14);
+        color: #f0c75e;
+        border: 1px solid rgba(240, 199, 94, 0.22);
+    }
+
+    .icon-thumb-green {
+        background: rgba(26, 92, 56, 0.22);
+        color: #8fd4a8;
+        border: 1px solid rgba(45, 122, 82, 0.28);
+    }
+
+    .icon-thumb-emerald {
+        background: rgba(16, 95, 70, 0.24);
+        color: #7eecc8;
+        border: 1px solid rgba(52, 211, 153, 0.24);
+    }
+
+    .icon-thumb-blue {
+        background: rgba(30, 64, 120, 0.28);
+        color: #9ecaff;
+        border: 1px solid rgba(96, 165, 250, 0.24);
+    }
+
+    .icon-thumb-purple {
+        background: rgba(76, 45, 130, 0.26);
+        color: #cbb8ff;
+        border: 1px solid rgba(167, 139, 250, 0.24);
+    }
+
+    .icon-thumb-rose {
+        background: rgba(120, 40, 60, 0.26);
+        color: #ffb3c0;
+        border: 1px solid rgba(251, 113, 133, 0.24);
+    }
+
+    .icon-thumb-amber {
+        background: rgba(120, 80, 20, 0.26);
+        color: #ffd978;
+        border: 1px solid rgba(251, 191, 36, 0.24);
+    }
+
+    .member-empty-state {
+        @apply flex min-h-[14rem] flex-col items-center justify-center px-2 py-8 text-center sm:min-h-[16rem] sm:py-10;
+    }
+
+    .member-empty-state-glow {
+        @apply relative mb-4 flex h-28 w-28 items-center justify-center;
+        background: radial-gradient(circle, rgba(240, 199, 94, 0.28) 0%, rgba(240, 199, 94, 0.08) 42%, transparent 70%);
+    }
+
+    .member-empty-state-icon {
+        @apply flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-2xl text-bible-gold;
+        background: rgba(20, 17, 12, 0.9);
+        border: 1px solid rgba(240, 199, 94, 0.2);
+        box-shadow: 0 0 32px rgba(240, 199, 94, 0.15);
+    }
+
+    .member-empty-state-title {
+        @apply text-base font-medium text-bible-gold sm:text-lg;
+    }
+
+    .member-empty-state-message {
+        @apply mt-2 max-w-xs text-sm leading-relaxed text-bible-muted-warm;
+    }
+
+    .badge-tone-muted {
+        background: rgba(28, 23, 17, 0.8);
+        color: #9a9588;
+        border: 1px solid rgba(240, 199, 94, 0.08);
+    }
+
     .btn-primary {
         @apply inline-flex items-center justify-center rounded-xl bg-bible-green px-6 py-4 text-lg font-semibold text-white shadow-md transition hover:bg-bible-green-light focus:outline-none focus:ring-2 focus:ring-bible-gold focus:ring-offset-2;
     }
@@ -15,28 +196,33 @@
         @apply inline-flex items-center justify-center rounded-xl bg-bible-gold px-6 py-4 text-lg font-semibold text-bible-black shadow-md transition hover:bg-bible-gold-light focus:outline-none focus:ring-2 focus:ring-bible-green;
     }
 
-    .member-card {
-        @apply block rounded-2xl border border-bible-gold/20 bg-bible-dark p-6 text-bible-cream shadow-lg transition hover:border-bible-gold/50 hover:shadow-xl;
-    }
-
     .input-field {
         @apply w-full rounded-xl border-2 border-bible-gold/30 bg-bible-dark px-4 py-4 text-lg text-bible-cream placeholder:text-bible-cream/50 focus:border-bible-gold focus:outline-none focus:ring-2 focus:ring-bible-gold/30;
     }
 
     .library-filter {
-        @apply rounded-2xl border border-bible-gold/10 bg-bible-dark/50 p-3 shadow-sm backdrop-blur-sm sm:p-3.5;
+        @apply rounded-2xl p-3 shadow-sm backdrop-blur-sm sm:p-3.5;
+        background: rgba(28, 23, 17, 0.65);
+        border: 1px solid rgba(240, 199, 94, 0.1);
     }
 
     .library-filter-input {
-        @apply min-w-0 flex-1 border-0 bg-transparent py-2.5 pr-2 text-sm text-bible-cream placeholder:text-bible-cream/35 focus:outline-none focus:ring-0;
+        @apply min-w-0 flex-1 border-0 bg-transparent py-2.5 pr-2 text-sm text-bible-cream placeholder:text-bible-muted focus:outline-none focus:ring-0;
     }
 
     .library-filter-field {
-        @apply flex min-w-0 flex-1 items-center gap-0.5 rounded-xl border border-white/5 bg-bible-black/30 pl-1 pr-1 transition focus-within:border-bible-gold/30 focus-within:bg-bible-black/50 focus-within:ring-1 focus-within:ring-bible-gold/15;
+        @apply flex min-w-0 flex-1 items-center gap-0.5 rounded-xl pl-1 pr-1 transition focus-within:ring-1 focus-within:ring-bible-gold/15;
+        background: rgba(10, 9, 7, 0.45);
+        border: 1px solid rgba(240, 199, 94, 0.08);
+    }
+
+    .library-filter-field:focus-within {
+        border-color: rgba(240, 199, 94, 0.22);
+        background: rgba(10, 9, 7, 0.62);
     }
 
     .library-filter-search-btn {
-        @apply flex shrink-0 items-center justify-center rounded-lg p-2 text-bible-cream/45 transition hover:bg-bible-gold/10 hover:text-bible-gold active:scale-95;
+        @apply flex shrink-0 items-center justify-center rounded-lg p-2 text-bible-muted transition hover:bg-bible-gold/10 hover:text-bible-gold active:scale-95;
     }
 
     .library-filter-search-submit {
@@ -44,8 +230,15 @@
     }
 
     .library-filter-select {
-        @apply w-full appearance-none rounded-xl border border-white/5 bg-bible-black/30 bg-[length:1rem] bg-[right_0.65rem_center] bg-no-repeat py-2.5 pl-3 pr-9 text-sm text-bible-cream/85 transition focus:border-bible-gold/30 focus:bg-bible-black/50 focus:outline-none focus:ring-1 focus:ring-bible-gold/15;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23c9a227' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+        @apply w-full appearance-none rounded-xl bg-[length:1rem] bg-[right_0.65rem_center] bg-no-repeat py-2.5 pl-3 pr-9 text-sm text-bible-cream transition focus:outline-none focus:ring-1 focus:ring-bible-gold/15;
+        background-color: rgba(10, 9, 7, 0.45);
+        border: 1px solid rgba(240, 199, 94, 0.08);
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23f0c75e' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+    }
+
+    .library-filter-select:focus {
+        border-color: rgba(240, 199, 94, 0.22);
+        background-color: rgba(10, 9, 7, 0.62);
     }
 
     .page-title {
@@ -116,7 +309,9 @@
     }
 
     .dashboard-progress {
-        @apply rounded-2xl border border-bible-gold/10 bg-gradient-to-br from-bible-dark/90 to-bible-black/60 p-4 shadow-sm backdrop-blur-sm sm:p-5;
+        @apply rounded-2xl p-4 shadow-sm backdrop-blur-sm sm:p-5;
+        background: rgba(28, 23, 17, 0.72);
+        border: 1px solid rgba(240, 199, 94, 0.1);
     }
 
     .dashboard-progress-ring {
@@ -124,7 +319,14 @@
     }
 
     .dashboard-nav-card {
-        @apply flex items-stretch overflow-hidden rounded-2xl border border-bible-gold/15 bg-bible-dark/80 text-bible-cream shadow-sm transition hover:border-bible-gold/35 hover:bg-bible-dark active:scale-[0.99];
+        @apply flex items-stretch overflow-hidden rounded-2xl text-bible-cream shadow-sm transition active:scale-[0.99];
+        background: rgba(28, 23, 17, 0.72);
+        border: 1px solid rgba(240, 199, 94, 0.1);
+    }
+
+    .dashboard-nav-card:hover {
+        border-color: rgba(240, 199, 94, 0.24);
+        background: rgba(32, 26, 19, 0.82);
     }
 
     .dashboard-nav-icon {
@@ -136,19 +338,30 @@
     }
 
     .audio-list-item {
-        @apply flex items-center gap-3 rounded-xl border border-bible-gold/10 bg-bible-dark/40 px-3 py-2.5 transition hover:border-bible-gold/25 hover:bg-bible-dark/70 active:scale-[0.99];
+        @apply flex items-center gap-3.5 rounded-2xl px-3.5 py-3.5 transition active:scale-[0.995];
+        background: rgba(20, 17, 12, 0.72);
+        border: 1px solid rgba(240, 199, 94, 0.1);
+    }
+
+    .audio-list-item:hover {
+        border-color: rgba(240, 199, 94, 0.2);
+        background: rgba(28, 23, 17, 0.88);
     }
 
     .audio-list-item-locked {
-        @apply opacity-80 hover:border-bible-gold/15;
+        @apply opacity-75;
     }
 
     .audio-list-thumb {
-        @apply h-11 w-11 shrink-0 overflow-hidden rounded-lg border border-bible-gold/10 bg-bible-green/10 sm:h-12 sm:w-12;
+        @apply h-12 w-12 shrink-0 rounded-xl sm:h-[3.25rem] sm:w-[3.25rem];
+    }
+
+    .audio-list-play {
+        @apply flex h-8 w-8 items-center justify-center opacity-90 transition group-hover:opacity-100;
     }
 
     .audio-list-action {
-        @apply flex h-8 w-8 items-center justify-center rounded-full border border-bible-gold/15 bg-bible-black/40 transition group-hover:border-bible-green/40 group-hover:bg-bible-green/10;
+        @apply flex h-9 w-9 items-center justify-center rounded-xl transition;
     }
 
     .video-list-thumb {
@@ -263,7 +476,9 @@
     }
 
     .member-header-logout {
-        @apply inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 rounded-xl border border-bible-gold/10 bg-transparent px-2.5 text-xs font-medium text-bible-cream/45 transition hover:border-bible-gold/20 hover:bg-bible-gold/5 hover:text-bible-cream/70 active:scale-[0.98] sm:px-3;
+        @apply inline-flex min-h-[2.5rem] items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-medium text-bible-gold transition hover:bg-bible-gold/10 active:scale-[0.98] sm:min-h-[2.75rem] sm:px-3.5 sm:text-sm;
+        border: 1px solid rgba(240, 199, 94, 0.28);
+        background: rgba(10, 9, 7, 0.35);
     }
 
     /* ── Páginas públicas (home + login) ── */
@@ -313,7 +528,9 @@
     }
 
     .bible-reader-card {
-        @apply rounded-2xl border border-bible-gold/15 bg-bible-dark/80 p-4 shadow-sm sm:p-5;
+        @apply rounded-2xl p-4 shadow-sm backdrop-blur-sm sm:p-5;
+        background: rgba(28, 23, 17, 0.72);
+        border: 1px solid rgba(240, 199, 94, 0.12);
     }
 
     .bible-reader-card-head {
@@ -333,11 +550,11 @@
     }
 
     .bible-reader-card-subtitle {
-        @apply text-sm text-bible-cream/50;
+        @apply text-sm text-bible-muted-warm;
     }
 
     .bible-reader-label {
-        @apply mb-1.5 block text-xs font-medium text-bible-cream/55;
+        @apply mb-1.5 block text-xs font-medium text-bible-muted-warm;
     }
 
     .bible-reader-combobox {
