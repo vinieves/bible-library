@@ -3,12 +3,9 @@
 @section('title', 'Videos')
 
 @section('content')
-    <header class="mb-4">
-        <h1 class="page-title mb-1 text-xl sm:text-2xl">Biblioteca Bíblica en Video</h1>
-        <p class="text-sm leading-relaxed text-bible-cream/60 sm:text-base">
-            Estudios y enseñanzas en video incluidos en su Plan Completo.
-        </p>
-    </header>
+    @if($videos->isEmpty() && ! $search && ! $categoryId)
+        <p class="mb-4 text-sm text-bible-cream/60">Estudios y enseñanzas en video de su biblioteca.</p>
+    @endif
 
     <form method="GET" action="{{ route('members.videos.index') }}" class="library-filter mb-4">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-2.5">
@@ -67,8 +64,8 @@
     </form>
 
     <section>
-        <h2 class="section-title mb-2.5 text-base sm:text-lg">Videos disponibles</h2>
         @if($videos->isEmpty())
+            <h2 class="section-title mb-2.5 text-base sm:text-lg">Videos disponibles</h2>
             <p class="text-sm text-bible-cream/60">
                 @if($search || $categoryId)
                     No se encontraron videos.

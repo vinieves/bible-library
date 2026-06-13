@@ -17,13 +17,7 @@
             class="bible-reader space-y-4"
             @click.outside="bookOpen = false"
         >
-            <header class="mb-1">
-                <p class="text-xs font-medium uppercase tracking-wider text-bible-gold/70">Todos los libros · versículo por versículo</p>
-                <h1 class="page-title mt-1 text-2xl sm:text-3xl">La Biblia Explicada</h1>
-                <p class="mt-2 text-sm leading-relaxed text-bible-cream/60 sm:text-base">
-                    Elija un libro y un capítulo. Después toque cualquier versículo para leer su explicación.
-                </p>
-            </header>
+            <p class="text-sm text-bible-cream/60">Elija un libro y un capítulo para leer la explicación.</p>
 
             <template x-if="loadError">
                 <div class="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-4 text-sm text-bible-cream/80" x-text="loadError"></div>
@@ -217,10 +211,6 @@
                     </div>
                 </template>
             </section>
-
-            <p class="pb-2 text-center text-xs text-bible-cream/35">
-                Una guía sencilla para leer y comprender la Palabra.
-            </p>
         </div>
     @endif
 @endsection

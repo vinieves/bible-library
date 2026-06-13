@@ -3,12 +3,9 @@
 @section('title', 'Escuchar')
 
 @section('content')
-    <header class="mb-4">
-        <h1 class="page-title mb-1 text-xl sm:text-2xl">Biblioteca en Audio</h1>
-        <p class="text-sm leading-relaxed text-bible-cream/60 sm:text-base">
-            Estudios y devocionales incluidos en su Plan Completo.
-        </p>
-    </header>
+    @if($tracks->isEmpty() && ! $search && ! $categoryId)
+        <p class="mb-4 text-sm text-bible-cream/60">Estudios y devocionales para escuchar desde su celular.</p>
+    @endif
 
     <form method="GET" action="{{ route('members.audio.index') }}" class="library-filter mb-4">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-2.5">
@@ -64,16 +61,9 @@
         @endif
     </form>
 
-    <section class="audio-highlight mb-5 px-4 py-3.5 sm:px-5 sm:py-4">
-        <p class="text-[0.65rem] font-medium uppercase tracking-wider text-bible-gold/80">Plan Completo</p>
-        <p class="mt-0.5 text-sm text-bible-cream/75">
-            Escuche donde quiera — ideal para el camino, el descanso o la oración.
-        </p>
-    </section>
-
     <section>
-        <h2 class="section-title mb-2.5 text-base sm:text-lg">Audios disponibles</h2>
         @if($tracks->isEmpty())
+            <h2 class="section-title mb-2.5 text-base sm:text-lg">Audios disponibles</h2>
             <p class="text-sm text-bible-cream/60">No se encontraron audios.</p>
         @else
             <div class="audio-list space-y-2">

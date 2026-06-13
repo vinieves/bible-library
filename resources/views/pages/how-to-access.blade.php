@@ -13,9 +13,7 @@
                 <li>Ingrese su correo y contraseña.</li>
                 <li>Entrará directamente a su panel personal de estudio.</li>
             </ol>
-            <p>Si no encuentra el correo, revise la carpeta de spam o escríbanos a
-                <a href="mailto:{{ $siteSettings['support_email'] }}" class="text-bible-gold underline">{{ $siteSettings['support_email'] }}</a>.
-            </p>
+            <p>Si no encuentra el correo, revise la carpeta de spam.</p>
             <a href="{{ route('login') }}" class="btn-primary mt-4 inline-flex">Iniciar sesión</a>
         </div>
     </div>
