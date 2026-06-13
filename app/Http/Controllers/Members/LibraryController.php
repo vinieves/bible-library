@@ -13,6 +13,8 @@ class LibraryController extends Controller
     {
         return view('members.library.index', [
             'bibleAvailable' => $bible->isAvailable(),
+            'booksUrl' => url('/mi-biblioteca/libros/api/libros'),
+            'chapterUrl' => url('/mi-biblioteca/libros/api/__BOOK__/__CHAPTER__'),
         ]);
     }
 

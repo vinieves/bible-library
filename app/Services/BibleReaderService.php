@@ -68,7 +68,16 @@ class BibleReaderService
 
     public function isAvailable(): bool
     {
-        return is_readable(config('bible.data_path'));
+        $path = config('bible.data_path');
+
+        return filled($path) && is_string($path) && is_readable($path);
+    }
+
+    public function dataPath(): ?string
+    {
+        $path = config('bible.data_path');
+
+        return filled($path) && is_string($path) ? $path : null;
     }
 
     /**
@@ -77,10 +86,10 @@ class BibleReaderService
     private function allData(): array
     {
         return Cache::rememberForever(self::CACHE_KEY, function (): array {
-            $path = config('bible.data_path');
+            $path = $this->dataPath();
 
-            if (! is_readable($path)) {
-                throw new RuntimeException("Arquivo da Bíblia não encontrado: {$path}");
+            if (! $path || ! is_readable($path)) {
+                throw new RuntimeException('Arquivo da Bíblia não encontrado ou ilegível.');
             }
 
             $decoded = json_decode(file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);

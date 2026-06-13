@@ -11,8 +11,8 @@
     @else
         <div
             x-data="bibleReader({
-                booksUrl: @js(route('members.library.books')),
-                chapterUrl: @js(route('members.library.chapter', ['book' => '__BOOK__', 'chapter' => '__CHAPTER__'])),
+                booksUrl: @js($booksUrl),
+                chapterUrl: @js($chapterUrl),
             })"
             class="bible-reader space-y-4"
             @click.outside="bookOpen = false"
