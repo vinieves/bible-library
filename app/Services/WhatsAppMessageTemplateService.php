@@ -4,8 +4,10 @@ namespace App\Services;
 
 use App\Enums\WhatsAppMessageEvent;
 use App\Models\Purchase;
+use App\Models\Product;
 use App\Models\User;
 use App\Models\WhatsAppMessageTemplate;
+use App\Models\Setting;
 
 class WhatsAppMessageTemplateService
 {
@@ -43,6 +45,7 @@ class WhatsAppMessageTemplateService
             '{telefone}' => $purchase?->phone ?? $context?->phone ?? '',
             '{producto}' => $productTitle,
             '{link_acceso}' => route('login'),
+            '{link_checkout}' => $this->resolveCheckoutLink($event, $context?->productTitle),
             '{transacao}' => $purchase?->external_reference ?? $context?->transaction ?? '',
             '{evento}' => $context?->hotmartEvent ?? $event->hotmartEvent(),
             '{moeda}' => $context?->currency ?? '',
@@ -64,6 +67,7 @@ class WhatsAppMessageTemplateService
             '{telefone}' => '5215512345678',
             '{producto}' => 'Plan Completo — Hotmart',
             '{link_acceso}' => route('login'),
+            '{link_checkout}' => Setting::get('checkout_completo_url', route('home')),
             '{transacao}' => 'HP1234567890',
             '{evento}' => 'PURCHASE_APPROVED',
             '{moeda}' => 'USD',
@@ -130,8 +134,9 @@ class WhatsAppMessageTemplateService
             ->groupBy(fn (WhatsAppMessageEvent $event): string => $event->group())
             ->sortBy(fn ($events, string $group): int => match ($group) {
                 'Vendas aprovadas' => 1,
-                'Pós-venda e pagamentos' => 2,
-                'Sistema' => 3,
+                'Recuperação de vendas' => 2,
+                'Pós-venda e pagamentos' => 3,
+                'Sistema' => 4,
                 default => 99,
             })
             ->map(fn ($events): array => $events
@@ -210,5 +215,28 @@ class WhatsAppMessageTemplateService
         }
 
         return number_format((float) $amount, 2, '.', '');
+    }
+
+    private function resolveCheckoutLink(WhatsAppMessageEvent $event, ?string $productTitle): string
+    {
+        if ($event !== WhatsAppMessageEvent::PurchaseOutOfShoppingCart) {
+            return '';
+        }
+
+        if (filled($productTitle)) {
+            $product = Product::query()
+                ->where('title', $productTitle)
+                ->whereNotNull('checkout_url')
+                ->where('checkout_url', '!=', '')
+                ->first();
+
+            if ($product?->checkout_url) {
+                return $product->checkout_url;
+            }
+        }
+
+        $checkoutUrl = Setting::get('checkout_completo_url', '');
+
+        return filled($checkoutUrl) ? $checkoutUrl : route('home');
     }
 }

@@ -6,6 +6,8 @@ use App\Enums\AudioTrackStatus;
 use App\Filament\Resources\AudioTrackResource\Pages;
 use App\Models\AudioTrack;
 use BackedEnum;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -149,6 +151,11 @@ class AudioTrackResource extends Resource
             ])
             ->recordActions([
                 EditAction::make(),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
             ]);
     }
 

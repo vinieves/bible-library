@@ -19,6 +19,7 @@ class PurchaseWebhookService
 {
     public function __construct(
         private readonly WhatsAppNotificationService $whatsappNotifications,
+        private readonly ProductWebhookSyncService $productSync,
     ) {}
 
     public function handle(NormalizedPurchaseData $data, WebhookPlatform $platform): array
@@ -36,6 +37,10 @@ class PurchaseWebhookService
     private function processGrantAccess(NormalizedPurchaseData $data, WebhookPlatform $platform): array
     {
         $product = $this->findProduct($data);
+
+        if (! $product->grantsAccess()) {
+            return $this->acknowledgeFunnelPurchase($data, $platform);
+        }
 
         if (! $product->plan_id) {
             throw new WebhookProcessingException(
@@ -190,12 +195,16 @@ class PurchaseWebhookService
     private function notifyOnly(NormalizedPurchaseData $data, WebhookPlatform $platform): array
     {
         $productName = (string) data_get($data->rawPayload, 'data.product.name', $data->productCode);
+        $isCartAbandonment = $data->hotmartEvent === 'PURCHASE_OUT_OF_SHOPPING_CART';
 
-        Log::info('Webhook Hotmart registrado (somente notificação).', [
+        Log::info($isCartAbandonment
+            ? 'Abandono de checkout Hotmart registrado (somente notificação).'
+            : 'Webhook Hotmart registrado (somente notificação).', [
             'platform' => $platform->value,
             'hotmart_event' => $data->hotmartEvent,
             'external_reference' => $data->externalReference,
             'email' => $data->email,
+            'product' => $productName,
         ]);
 
         $this->whatsappNotifications->dispatchForWebhook(
@@ -205,7 +214,9 @@ class PurchaseWebhookService
 
         return [
             'status' => 'acknowledged',
-            'message' => "Evento {$data->hotmartEvent} registrado.",
+            'message' => $isCartAbandonment
+                ? 'Abandono de checkout registrado (sem liberação de acesso).'
+                : "Evento {$data->hotmartEvent} registrado.",
             'hotmart_event' => $data->hotmartEvent,
             'product' => $productName,
         ];
@@ -213,18 +224,7 @@ class PurchaseWebhookService
 
     private function findProduct(NormalizedPurchaseData $data): Product
     {
-        $product = Product::query()
-            ->where('is_active', true)
-            ->whereIn('product_code', $data->productCodesForLookup())
-            ->first();
-
-        if (! $product) {
-            throw new WebhookProcessingException(
-                'Produto não mapeado para product_code: '.implode(', ', $data->productCodesForLookup())
-            );
-        }
-
-        return $product;
+        return $this->productSync->resolve($data);
     }
 
     private function findExistingPurchase(

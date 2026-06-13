@@ -104,6 +104,7 @@ class ManageMessages extends Page
                             '<p><code>{telefone}</code> — Telefone do checkout</p>'.
                             '<p><code>{producto}</code> — Nome do produto Hotmart</p>'.
                             '<p><code>{link_acceso}</code> — URL de login</p>'.
+                            '<p><code>{link_checkout}</code> — URL de checkout (carrinho abandonado)</p>'.
                             '<p><code>{transacao}</code> — Código HP da Hotmart</p>'.
                             '<p><code>{evento}</code> — Evento Hotmart (ex: PURCHASE_APPROVED)</p>'.
                             '<p><code>{moeda}</code> — Moeda da compra</p>'.

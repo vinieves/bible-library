@@ -7,11 +7,15 @@ use App\DataTransferObjects\NormalizedPurchaseData;
 use App\DataTransferObjects\ParsedWebhookResult;
 use App\Enums\PurchaseWebhookAction;
 use App\Models\Product;
+use App\Services\ProductWebhookSyncService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 
 class HotmartWebhookAdapter implements WebhookAdapterInterface
 {
+    public function __construct(
+        private readonly ProductWebhookSyncService $productSync,
+    ) {}
     private const SUPPORTED_EVENTS = [
         'PURCHASE_APPROVED',
         'PURCHASE_COMPLETE',
@@ -22,6 +26,11 @@ class HotmartWebhookAdapter implements WebhookAdapterInterface
         'PURCHASE_CHARGEBACK',
         'PURCHASE_EXPIRED',
         'PURCHASE_DELAYED',
+        'PURCHASE_OUT_OF_SHOPPING_CART',
+    ];
+
+    private const CART_EVENTS = [
+        'PURCHASE_OUT_OF_SHOPPING_CART',
     ];
 
     private const ACCESS_EVENTS = [
@@ -60,13 +69,15 @@ class HotmartWebhookAdapter implements WebhookAdapterInterface
             return ParsedWebhookResult::ignored('Código do produto Hotmart não encontrado.');
         }
 
-        $transaction = trim((string) Arr::get($data, 'purchase.transaction', ''));
+        $transaction = $this->resolveExternalReference($payload, $data);
 
         if (blank($transaction)) {
-            return ParsedWebhookResult::ignored('Transação Hotmart ausente.');
+            return ParsedWebhookResult::ignored('Referência da transação Hotmart ausente.');
         }
 
-        $action = $this->resolveAction($event, $data, $productCodes);
+        $product = $this->productSync->syncFromHotmartPayload($payload, $productCodes);
+
+        $action = $this->resolveAction($event, $data, $product);
 
         if ($action === null) {
             $status = strtoupper((string) Arr::get($data, 'purchase.status', ''));
@@ -92,11 +103,12 @@ class HotmartWebhookAdapter implements WebhookAdapterInterface
         ));
     }
 
-  /**
-     * @param  list<string>  $productCodes
-     */
-    private function resolveAction(string $event, array $data, array $productCodes): ?PurchaseWebhookAction
+    private function resolveAction(string $event, array $data, Product $product): ?PurchaseWebhookAction
     {
+        if (in_array($event, self::CART_EVENTS, true)) {
+            return PurchaseWebhookAction::NotifyOnly;
+        }
+
         if ($event === 'PURCHASE_COMPLETE') {
             return PurchaseWebhookAction::NotifyOnly;
         }
@@ -109,15 +121,6 @@ class HotmartWebhookAdapter implements WebhookAdapterInterface
 
         if ($purchaseStatus !== 'APPROVED') {
             return null;
-        }
-
-        $product = Product::query()
-            ->where('is_active', true)
-            ->whereIn('product_code', $productCodes)
-            ->first();
-
-        if (! $product) {
-            return PurchaseWebhookAction::UnmappedProduct;
         }
 
         if ($product->grantsAccess()) {
@@ -194,5 +197,26 @@ class HotmartWebhookAdapter implements WebhookAdapterInterface
             ?? Arr::get($data, 'purchase.price.currency_value');
 
         return filled($currency) ? strtoupper((string) $currency) : null;
+    }
+
+    private function resolveExternalReference(array $payload, array $data): string
+    {
+        $transaction = trim((string) Arr::get($data, 'purchase.transaction', ''));
+
+        if (filled($transaction)) {
+            return $transaction;
+        }
+
+        $eventId = trim((string) ($payload['id'] ?? ''));
+
+        if (filled($eventId)) {
+            return $eventId;
+        }
+
+        $email = strtolower(trim((string) Arr::get($data, 'buyer.email', '')));
+        $productId = trim((string) Arr::get($data, 'product.id', 'unknown'));
+        $timestamp = (string) ($payload['creation_date'] ?? now()->timestamp);
+
+        return 'cart-'.$productId.'-'.substr(hash('sha256', $email.'|'.$productId.'|'.$timestamp), 0, 16);
     }
 }

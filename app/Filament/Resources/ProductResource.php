@@ -60,7 +60,7 @@ class ProductResource extends Resource
                     ->required()
                     ->maxLength(255)
                     ->unique(ignoreRecord: true)
-                    ->helperText('Deve coincidir com o ID, ucode ou offer code do produto na Hotmart (ou código no webhook genérico).'),
+                    ->helperText('ID/ucode/offer da Hotmart. Produtos novos são cadastrados automaticamente pelo webhook (Libera acesso = desligado). Ative manualmente só no produto principal.'),
                 Textarea::make('description')
                     ->label('Descrição')
                     ->rows(4)
@@ -82,9 +82,9 @@ class ProductResource extends Resource
                     ->columnSpanFull(),
                 Toggle::make('grants_access')
                     ->label('Libera acesso ao Plan Completo')
-                    ->default(true)
+                    ->default(false)
                     ->live()
-                    ->helperText('Desative para order bumps e upsells que só devem ser registrados.'),
+                    ->helperText('Novos produtos da Hotmart entram desligados. Ative apenas no Plan Completo principal.'),
                 Select::make('plan_id')
                     ->label('Plano que libera')
                     ->relationship('plan', 'name', fn ($query) => $query->where('slug', 'completo'))
