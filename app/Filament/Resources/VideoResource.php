@@ -110,6 +110,7 @@ class VideoResource extends Resource
                         ->disk('public')
                         ->directory('covers/videos')
                         ->imageEditor()
+                        ->helperText('Recomendado: JPG/PNG 16:9 (ex.: 1280×720). Aparece na lista e como poster do player.')
                         ->columnSpanFull(),
                     FileUpload::make('video_file')
                         ->label('Arquivo de vídeo (MP4)')
