@@ -156,6 +156,10 @@ class SendWelcomeWhatsAppJob implements ShouldBeUnique, ShouldQueue
 
     private function wasAlreadySent(?int $purchaseId): bool
     {
+        if ($this->trigger === WhatsAppDispatchTrigger::ManualTest) {
+            return false;
+        }
+
         $query = WhatsAppDispatchLog::query()
             ->where('status', WhatsAppDispatchStatus::Sent)
             ->where('trigger', $this->trigger)

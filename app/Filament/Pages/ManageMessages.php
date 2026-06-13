@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Enums\WhatsAppDispatchTrigger;
 use App\Enums\WhatsAppMessageEvent;
 use App\Jobs\SendWelcomeWhatsAppJob;
 use App\Models\WhatsAppMessageTemplate;
@@ -26,6 +27,7 @@ use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Collection;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Str;
 use UnitEnum;
 
 class ManageMessages extends Page
@@ -400,12 +402,12 @@ class ManageMessages extends Page
                         phone: $phone,
                         purchaseId: 0,
                         messageEvent: $event,
-                        trigger: $event->dispatchTrigger(),
+                        trigger: WhatsAppDispatchTrigger::ManualTest,
                         contextHotmartEvent: $event->hotmartEvent(),
                         contextProductTitle: 'Plan Completo — Hotmart',
                         contextCurrency: 'USD',
                         contextAmount: 4.9,
-                        contextTransaction: 'HP0000000000',
+                        contextTransaction: 'HP-TEST-'.Str::uuid(),
                     );
 
                     Notification::make()
