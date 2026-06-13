@@ -2,3 +2,5 @@
 !.gitignore
 !pdfs/
 !pdfs/**
+!videos/
+!videos/**

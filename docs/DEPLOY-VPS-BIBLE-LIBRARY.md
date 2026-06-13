@@ -174,13 +174,13 @@ php -v
 
 Deve mostrar **PHP 8.3.x**.
 
-Ajuste limites do PHP (upload de PDFs/áudios):
+Ajuste limites do PHP (upload de PDFs/áudios/vídeos):
 
 ```bash
-sed -i 's/upload_max_filesize = .*/upload_max_filesize = 64M/' /etc/php/8.3/fpm/php.ini
-sed -i 's/post_max_size = .*/post_max_size = 64M/' /etc/php/8.3/fpm/php.ini
-sed -i 's/memory_limit = .*/memory_limit = 256M/' /etc/php/8.3/fpm/php.ini
-sed -i 's/max_execution_time = .*/max_execution_time = 120/' /etc/php/8.3/fpm/php.ini
+sed -i 's/upload_max_filesize = .*/upload_max_filesize = 512M/' /etc/php/8.3/fpm/php.ini
+sed -i 's/post_max_size = .*/post_max_size = 512M/' /etc/php/8.3/fpm/php.ini
+sed -i 's/memory_limit = .*/memory_limit = 512M/' /etc/php/8.3/fpm/php.ini
+sed -i 's/max_execution_time = .*/max_execution_time = 300/' /etc/php/8.3/fpm/php.ini
 
 systemctl restart php8.3-fpm
 systemctl enable php8.3-fpm
@@ -483,7 +483,7 @@ server {
     index index.php;
     charset utf-8;
 
-    client_max_body_size 64M;
+    client_max_body_size 512M;
 
     # PDF.js worker — Nginx precisa servir .mjs como JavaScript
     location ~ \.mjs$ {

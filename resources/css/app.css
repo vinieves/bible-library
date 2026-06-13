@@ -159,6 +159,34 @@
         @apply rounded-2xl border border-bible-gold/15 bg-bible-dark/60 p-5;
     }
 
+    .video-highlight {
+        @apply rounded-2xl border border-bible-green/20 bg-gradient-to-br from-bible-green/15 to-bible-dark/80 p-5 sm:p-6;
+    }
+
+    .video-player-shell {
+        @apply relative overflow-hidden rounded-2xl border border-bible-gold/20 bg-black shadow-lg;
+    }
+
+    .video-player-media {
+        @apply aspect-video w-full bg-black object-contain;
+    }
+
+    .video-player-overlay {
+        @apply pointer-events-auto absolute inset-0 flex items-center justify-center bg-black/25 transition-opacity duration-300;
+    }
+
+    .btn-video-play-center {
+        @apply flex h-20 w-20 items-center justify-center rounded-full bg-bible-green/90 text-white shadow-lg shadow-bible-green/30 transition hover:scale-105 hover:bg-bible-green active:scale-95;
+    }
+
+    .video-player-controls {
+        @apply border-t border-bible-gold/15 bg-bible-dark/90 p-4;
+    }
+
+    .btn-video-control {
+        @apply rounded-lg border border-bible-gold/20 px-3 py-1.5 text-xs font-medium text-bible-cream/80 transition hover:border-bible-gold/40 hover:text-bible-gold active:scale-95;
+    }
+
     .member-header-brand-icon {
         @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-bible-gold/15 bg-bible-green/10 text-bible-gold sm:h-12 sm:w-12;
     }

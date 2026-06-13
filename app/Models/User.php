@@ -51,6 +51,11 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(UserAudioProgress::class);
     }
 
+    public function videoProgress(): HasMany
+    {
+        return $this->hasMany(UserVideoProgress::class);
+    }
+
     public function hasPlan(string|Plan $plan): bool
     {
         if ($this->is_admin) {
@@ -89,6 +94,19 @@ class User extends Authenticatable implements FilamentUser
         }
 
         if ($track->is_free) {
+            return true;
+        }
+
+        return $this->hasPlan('completo');
+    }
+
+    public function hasAccessToVideo(Video $video): bool
+    {
+        if ($this->is_admin) {
+            return true;
+        }
+
+        if ($video->is_free) {
             return true;
         }
 

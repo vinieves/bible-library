@@ -61,6 +61,14 @@
                 icon="🎧"
                 accent="gold"
             />
+
+            <x-members.card
+                href="{{ route('members.bonuses') }}"
+                title="Bonos exclusivos"
+                subtitle="Materiales extra, mapas mentales y recursos especiales para profundizar."
+                icon="🎁"
+                accent="green"
+            />
         </div>
     </section>
 @endsection
