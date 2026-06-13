@@ -18,7 +18,7 @@ class ReprocessWebhookAction
             ->label('Reprocessar')
             ->icon('heroicon-o-arrow-path')
             ->color('warning')
-            ->visible(fn (WebhookLog $record): bool => filled($record->payload))
+            ->visible(fn (WebhookLog $record): bool => self::canReprocess($record))
             ->requiresConfirmation()
             ->modalHeading('Reprocessar webhook')
             ->modalDescription(fn (WebhookLog $record): string => match ($record->processing_status) {
@@ -62,5 +62,20 @@ class ReprocessWebhookAction
 
                 return redirect(WebhookLogResource::getUrl('view', ['record' => $newLog]));
             });
+    }
+
+    public static function canReprocess(WebhookLog $record): bool
+    {
+        $payload = $record->payload;
+
+        if (! is_array($payload) || $payload === []) {
+            return false;
+        }
+
+        if ($record->platform === 'hotmart') {
+            return filled($payload['event'] ?? null) && is_array($payload['data'] ?? null);
+        }
+
+        return filled($payload['product_code'] ?? null) && filled($payload['external_reference'] ?? null);
     }
 }

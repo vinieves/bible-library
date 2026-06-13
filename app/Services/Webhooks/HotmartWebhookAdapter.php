@@ -139,6 +139,7 @@ class HotmartWebhookAdapter implements WebhookAdapterInterface
             Arr::get($data, 'product.id'),
             Arr::get($data, 'product.ucode'),
             Arr::get($data, 'purchase.offer.code'),
+            Arr::get($data, 'offer.code'),
         ];
 
         return array_values(array_unique(array_filter(

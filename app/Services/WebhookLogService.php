@@ -68,6 +68,7 @@ class WebhookLogService
             Arr::get($data, 'product.id'),
             Arr::get($data, 'product.ucode'),
             Arr::get($data, 'purchase.offer.code'),
+            Arr::get($data, 'offer.code'),
         ] as $candidate) {
             if (filled($candidate)) {
                 $productCode = (string) $candidate;
@@ -83,7 +84,7 @@ class WebhookLogService
             'product_code' => $productCode,
             'external_reference' => filled(Arr::get($data, 'purchase.transaction'))
                 ? trim((string) Arr::get($data, 'purchase.transaction'))
-                : null,
+                : (filled($payload['id'] ?? null) ? trim((string) $payload['id']) : null),
         ];
     }
 

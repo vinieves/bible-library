@@ -34,14 +34,18 @@ class WebhookReprocessService
             );
         }
 
-        $request = Request::create(
-            '/api/webhooks/'.$platform->value,
-            'POST',
-            $this->preparePayload($platform, $payload),
-        );
+        $payload = $this->preparePayload($platform, $payload);
+        $content = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
 
-        $request->headers->set('Content-Type', 'application/json');
-        $request->server->set('REMOTE_ADDR', 'reprocess');
+        $request = Request::create(
+            uri: '/api/webhooks/'.$platform->value,
+            method: 'POST',
+            server: [
+                'CONTENT_TYPE' => 'application/json',
+                'REMOTE_ADDR' => 'reprocess',
+            ],
+            content: $content,
+        );
 
         return $this->processor->handle($request, $platform)['log'];
     }
