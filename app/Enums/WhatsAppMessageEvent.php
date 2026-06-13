@@ -143,7 +143,7 @@ enum WhatsAppMessageEvent: string
             self::PurchaseFunnel => "¡Hola {nome}! Confirmamos su compra adicional: {producto}.\n\nGracias por confiar en nosotros.",
             self::PurchaseCanceled => "Hola {nome}, su compra de {producto} fue cancelada.\n\nSi tiene dudas, responda este mensaje.",
             self::PurchaseBilletPrinted => "Hola {nome}, recibimos su solicitud de boleto para {producto}.\n\nComplete el pago para activar su acceso.",
-            self::PurchaseProtest => "Hola {nome}, recibimos su solicitud de reembolso referente a {producto}.\n\nNuestro equipo revisará su caso.",
+            self::PurchaseProtest => "Hola {nome}, recibimos su solicitud de reembolso sobre {producto}.\n\nLamentamos que no haya tenido la experiencia esperada. Nuestro equipo revisará su caso y le responderá pronto.\n\nTransacción: {transacao}",
             self::PurchaseRefunded => "Hola {nome}, su compra de {producto} fue reembolsada.\n\nTransacción: {transacao}",
             self::PurchaseChargeback => "Hola {nome}, se registró un chargeback en la transacción {transacao}.\n\nProducto: {producto}",
             self::PurchaseExpired => "Hola {nome}, su oportunidad de compra de {producto} expiró.\n\nSi aún le interesa, puede volver a adquirirlo.",

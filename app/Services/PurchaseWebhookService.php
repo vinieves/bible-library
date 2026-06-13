@@ -195,11 +195,14 @@ class PurchaseWebhookService
     private function notifyOnly(NormalizedPurchaseData $data, WebhookPlatform $platform): array
     {
         $productName = (string) data_get($data->rawPayload, 'data.product.name', $data->productCode);
-        $isCartAbandonment = $data->hotmartEvent === 'PURCHASE_OUT_OF_SHOPPING_CART';
 
-        Log::info($isCartAbandonment
-            ? 'Abandono de checkout Hotmart registrado (somente notificação).'
-            : 'Webhook Hotmart registrado (somente notificação).', [
+        $logMessage = match ($data->hotmartEvent) {
+            'PURCHASE_OUT_OF_SHOPPING_CART' => 'Abandono de checkout Hotmart registrado (somente notificação).',
+            'PURCHASE_PROTEST' => 'Pedido de reembolso Hotmart registrado (somente notificação).',
+            default => 'Webhook Hotmart registrado (somente notificação).',
+        };
+
+        Log::info($logMessage, [
             'platform' => $platform->value,
             'hotmart_event' => $data->hotmartEvent,
             'external_reference' => $data->externalReference,
@@ -212,11 +215,15 @@ class PurchaseWebhookService
             action: PurchaseWebhookAction::NotifyOnly,
         );
 
+        $responseMessage = match ($data->hotmartEvent) {
+            'PURCHASE_OUT_OF_SHOPPING_CART' => 'Abandono de checkout registrado (sem liberação de acesso).',
+            'PURCHASE_PROTEST' => 'Pedido de reembolso registrado (sem alteração de acesso).',
+            default => "Evento {$data->hotmartEvent} registrado.",
+        };
+
         return [
             'status' => 'acknowledged',
-            'message' => $isCartAbandonment
-                ? 'Abandono de checkout registrado (sem liberação de acesso).'
-                : "Evento {$data->hotmartEvent} registrado.",
+            'message' => $responseMessage,
             'hotmart_event' => $data->hotmartEvent,
             'product' => $productName,
         ];

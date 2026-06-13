@@ -44,7 +44,11 @@ class ReprocessWebhookAction
                 $notification = Notification::make()
                     ->title(match ($newLog->processing_status) {
                         WebhookLogStatus::Processed => 'Webhook reprocessado com sucesso',
-                        WebhookLogStatus::Acknowledged => 'Funil registrado sem liberação de acesso',
+                        WebhookLogStatus::Acknowledged => match (true) {
+                    str_contains((string) ($result['message'] ?? ''), 'reembolso') => 'Pedido de reembolso registrado',
+                    str_contains((string) ($result['message'] ?? ''), 'checkout') => 'Abandono de checkout registrado',
+                    default => 'Funil registrado sem liberação de acesso',
+                },
                         WebhookLogStatus::Duplicate => 'Compra já havia sido processada',
                         WebhookLogStatus::Ignored => 'Webhook reprocessado (ignorado)',
                         WebhookLogStatus::Error => 'Webhook reprocessado com erro',
