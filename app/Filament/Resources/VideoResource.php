@@ -117,7 +117,7 @@ class VideoResource extends Resource
                         ->directory('videos')
                         ->acceptedFileTypes(['video/mp4', 'video/webm', 'video/quicktime'])
                         ->maxSize(2097152)
-                        ->helperText('MP4 recomendado. Máx. ~2 GB por upload. Na VPS, configure PHP e Nginx para pelo menos 2048M.')
+                        ->helperText('Exporte no CapCut (ou similar) em MP4, H.264 + AAC, com faststart se disponível. Máx. ~2 GB por upload.')
                         ->columnSpanFull(),
                 ]),
         ]);

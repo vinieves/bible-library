@@ -164,7 +164,10 @@
     }
 
     .video-player-page {
-        @apply -mx-4 sm:mx-0;
+        width: 100vw;
+        max-width: 100vw;
+        margin-left: calc(50% - 50vw);
+        margin-right: calc(50% - 50vw);
     }
 
     .video-player-shell {
@@ -172,9 +175,22 @@
     }
 
     .video-player-media {
-        @apply w-full bg-black object-contain sm:aspect-video;
-        min-height: 50vh;
-        max-height: 65vh;
+        @apply w-full bg-black object-contain;
+        aspect-ratio: 16 / 9;
+        min-height: min(56.25vw, 78vh);
+    }
+
+    @media (min-width: 768px) {
+        .video-player-page {
+            width: min(92vw, 56rem);
+            max-width: min(92vw, 56rem);
+            margin-left: calc(50% - min(46vw, 28rem));
+            margin-right: calc(50% - min(46vw, 28rem));
+        }
+
+        .video-player-media {
+            min-height: min(31.5vw, 72vh);
+        }
     }
 
     .video-player-overlay {
