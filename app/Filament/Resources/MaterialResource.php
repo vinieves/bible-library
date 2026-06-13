@@ -107,7 +107,8 @@ class MaterialResource extends Resource
                             ->disk('private')
                             ->directory('pdfs')
                             ->acceptedFileTypes(['application/pdf'])
-                            ->maxSize(51200)
+                            ->maxSize(2097152)
+                            ->helperText('Máx. ~2 GB por upload. Na VPS: PHP-FPM e Nginx com client_max_body_size 2048M.')
                             ->columnSpanFull(),
                     ]),
                 Section::make('Conteúdo interno')
