@@ -186,6 +186,24 @@ systemctl restart php8.3-fpm
 systemctl enable php8.3-fpm
 ```
 
+Ajuste também o **Nginx** (obrigatório para uploads de vídeo — sem isso retorna **413 Request Entity Too Large**):
+
+```bash
+# Site da aplicação
+grep -n client_max_body_size /etc/nginx/sites-available/bible-library || true
+sed -i 's/client_max_body_size .*/client_max_body_size 2048M;/' /etc/nginx/sites-available/bible-library
+
+# Se a linha não existir, adicione dentro do bloco server { ... }:
+# client_max_body_size 2048M;
+
+# Limite global (algumas VPS têm 1M aqui e bloqueiam antes do site)
+grep -n client_max_body_size /etc/nginx/nginx.conf || true
+sed -i 's/client_max_body_size .*/client_max_body_size 2048M;/' /etc/nginx/nginx.conf
+
+nginx -t
+systemctl reload nginx
+```
+
 ---
 
 ## 5. Instalar Composer, Node.js e MySQL
@@ -505,6 +523,8 @@ server {
         fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
         include fastcgi_params;
         fastcgi_hide_header X-Powered-By;
+        fastcgi_read_timeout 600;
+        fastcgi_send_timeout 600;
     }
 
     location ~ /\.(?!well-known).* {
@@ -724,6 +744,25 @@ Configure Hotmart e integrações em: **Admin → Integrações**
 ---
 
 ## 15. Solução de problemas
+
+### Erro 413 — upload de vídeo (Request Entity Too Large)
+
+O Nginx rejeitou o arquivo **antes** de chegar ao PHP. Confira os limites:
+
+```bash
+grep -r client_max_body_size /etc/nginx/
+
+# Deve mostrar 2048M no site e no nginx.conf. Se mostrar 64M ou 512M, corrija:
+sed -i 's/client_max_body_size .*/client_max_body_size 2048M;/' /etc/nginx/sites-available/bible-library
+sed -i 's/client_max_body_size .*/client_max_body_size 2048M;/' /etc/nginx/nginx.conf
+
+nginx -t && systemctl reload nginx
+
+# Confirme PHP também:
+php -i | grep -E 'upload_max_filesize|post_max_size'
+```
+
+Se o Certbot criou arquivo SSL separado (`/etc/nginx/sites-enabled/bible-library`), edite **esse** arquivo — é o que o Nginx usa de fato.
 
 ### Erro 502 Bad Gateway
 
