@@ -2,49 +2,33 @@
 
 namespace App\Http\Controllers\Members;
 
-use App\Enums\MaterialStatus;
-use App\Enums\MaterialType;
 use App\Http\Controllers\Controller;
-use App\Models\Category;
-use App\Models\Material;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Services\BibleReaderService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 
 class LibraryController extends Controller
 {
-    public function index(Request $request): View
+    public function index(BibleReaderService $bible): View
     {
-        $search = $request->string('q')->trim()->toString();
-        $categoryId = $request->integer('categoria') ?: null;
+        return view('members.library.index', [
+            'bibleAvailable' => $bible->isAvailable(),
+        ]);
+    }
 
-        $materials = Material::query()
-            ->published()
-            ->where('type', MaterialType::Libro)
-            ->with(['category', 'plan'])
-            ->when($search, fn ($query) => $query->where('title', 'like', "%{$search}%"))
-            ->when($categoryId, fn ($query) => $query->where('category_id', $categoryId))
-            ->orderBy('sort_order')
-            ->get();
+    public function books(BibleReaderService $bible): JsonResponse
+    {
+        return response()->json($bible->booksIndex());
+    }
 
-        $categories = Category::query()
-            ->where('is_active', true)
-            ->whereHas('materials', fn ($query) => $query->where('status', MaterialStatus::Published)->where('type', MaterialType::Libro))
-            ->orderBy('sort_order')
-            ->get();
+    public function chapter(string $book, int $chapter, BibleReaderService $bible): JsonResponse
+    {
+        $data = $bible->chapter($book, $chapter);
 
-        $user = Auth::user();
-        $progressByMaterial = $user->materialProgress()
-            ->whereIn('material_id', $materials->pluck('id'))
-            ->get()
-            ->keyBy('material_id');
+        if ($data === null) {
+            return response()->json(['message' => 'Capítulo no encontrado.'], 404);
+        }
 
-        return view('members.library.index', compact(
-            'materials',
-            'categories',
-            'search',
-            'categoryId',
-            'progressByMaterial',
-        ));
+        return response()->json($data);
     }
 }

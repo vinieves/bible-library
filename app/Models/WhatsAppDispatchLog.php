@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\WhatsAppDispatchStatus;
 use App\Enums\WhatsAppDispatchTrigger;
+use App\Enums\WhatsAppMessageEvent;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -34,6 +35,7 @@ class WhatsAppDispatchLog extends Model
     {
         return [
             'trigger' => WhatsAppDispatchTrigger::class,
+            'message_event' => WhatsAppMessageEvent::class,
             'status' => WhatsAppDispatchStatus::class,
             'evolution_response' => 'array',
             'created_at' => 'datetime',

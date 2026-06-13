@@ -161,6 +161,62 @@ enum WhatsAppMessageEvent: string
         };
     }
 
+    /** Rótulo curto para a coluna Origem em Disparos WhatsApp. */
+    public function originLabel(): string
+    {
+        return match ($this) {
+            self::PurchaseApproved => 'Aprovada',
+            self::PurchaseComplete => 'Completa',
+            self::PurchaseFunnel => 'Order bump',
+            self::PurchaseCanceled => 'Cancelada',
+            self::PurchaseBilletPrinted => 'Boleto',
+            self::PurchaseProtest => 'Reembolso',
+            self::PurchaseRefunded => 'Reembolsada',
+            self::PurchaseChargeback => 'Chargeback',
+            self::PurchaseExpired => 'Expirada',
+            self::PurchaseDelayed => 'Atrasada',
+            self::PurchaseOutOfShoppingCart => 'Abandonado',
+            self::ManualTest => 'Teste manual',
+        };
+    }
+
+    public function originColor(): string
+    {
+        return match ($this) {
+            self::PurchaseApproved, self::PurchaseFunnel => 'success',
+            self::PurchaseOutOfShoppingCart => 'warning',
+            self::PurchaseCanceled, self::PurchaseProtest, self::PurchaseRefunded, self::PurchaseChargeback => 'danger',
+            self::PurchaseBilletPrinted, self::PurchaseDelayed, self::ManualTest => 'info',
+            self::PurchaseComplete, self::PurchaseExpired => 'gray',
+        };
+    }
+
+    public static function resolveOrigin(?string $messageEvent, ?WhatsAppDispatchTrigger $trigger = null): string
+    {
+        $event = filled($messageEvent)
+            ? self::tryFrom($messageEvent)
+            : null;
+
+        if ($event) {
+            return $event->originLabel();
+        }
+
+        return $trigger?->label() ?? '—';
+    }
+
+    public static function resolveOriginColor(?string $messageEvent, ?WhatsAppDispatchTrigger $trigger = null): string
+    {
+        $event = filled($messageEvent)
+            ? self::tryFrom($messageEvent)
+            : null;
+
+        if ($event) {
+            return $event->originColor();
+        }
+
+        return $trigger === WhatsAppDispatchTrigger::ManualTest ? 'info' : 'gray';
+    }
+
     public function isAutomatic(): bool
     {
         return $this !== self::ManualTest;

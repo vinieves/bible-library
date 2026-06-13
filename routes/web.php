@@ -25,6 +25,10 @@ Route::get('/dashboard', fn () => redirect()->route('members.dashboard'))
 Route::middleware('auth')->prefix('mi-biblioteca')->name('members.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/libros', [LibraryController::class, 'index'])->name('library');
+    Route::get('/libros/api/libros', [LibraryController::class, 'books'])->name('library.books');
+    Route::get('/libros/api/{book}/{chapter}', [LibraryController::class, 'chapter'])
+        ->where(['book' => '[A-Za-z0-9]+', 'chapter' => '[0-9]+'])
+        ->name('library.chapter');
     Route::get('/bonos', [BonusController::class, 'index'])->name('bonuses');
     Route::get('/progreso', [ProgressController::class, 'index'])->name('progress');
     Route::get('/escuchar', [AudioController::class, 'index'])->name('audio.index');

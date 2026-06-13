@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enums\WhatsAppDispatchStatus;
 use App\Enums\WhatsAppDispatchTrigger;
+use App\Enums\WhatsAppMessageEvent;
 use App\Filament\Resources\WhatsAppDispatchLogResource\Pages;
 use App\Models\WhatsAppDispatchLog;
 use BackedEnum;
@@ -55,8 +56,14 @@ class WhatsAppDispatchLogResource extends Resource
             ->components([
                 Section::make('Resumo')
                     ->schema([
+                        TextInput::make('message_event')
+                            ->label('Tipo de disparo')
+                            ->formatStateUsing(fn ($state) => $state instanceof WhatsAppMessageEvent
+                                ? $state->conditionLabel()
+                                : WhatsAppMessageEvent::tryFrom((string) $state)?->conditionLabel() ?? $state)
+                            ->disabled(),
                         TextInput::make('trigger')
-                            ->label('Origem')
+                            ->label('Canal')
                             ->formatStateUsing(fn ($state) => $state instanceof WhatsAppDispatchTrigger
                                 ? $state->label()
                                 : WhatsAppDispatchTrigger::tryFrom((string) $state)?->label() ?? $state)
@@ -133,15 +140,18 @@ class WhatsAppDispatchLogResource extends Resource
                     ->label('Data')
                     ->dateTime('d/m/Y H:i:s')
                     ->sortable(),
-                TextColumn::make('trigger')
+                TextColumn::make('message_event')
                     ->label('Origem')
                     ->badge()
-                    ->color(fn ($state) => match (true) {
-                        $state instanceof WhatsAppDispatchTrigger && $state === WhatsAppDispatchTrigger::ManualTest => 'info',
-                        $state === WhatsAppDispatchTrigger::ManualTest->value => 'info',
-                        default => 'primary',
-                    })
-                    ->formatStateUsing(fn ($state) => $state instanceof WhatsAppDispatchTrigger ? $state->label() : $state),
+                    ->color(fn (WhatsAppDispatchLog $record) => WhatsAppMessageEvent::resolveOriginColor(
+                        $record->message_event?->value,
+                        $record->trigger,
+                    ))
+                    ->formatStateUsing(fn (WhatsAppDispatchLog $record) => WhatsAppMessageEvent::resolveOrigin(
+                        $record->message_event?->value,
+                        $record->trigger,
+                    ))
+                    ->sortable(),
                 TextColumn::make('status')
                     ->label('Resultado')
                     ->badge()
@@ -178,9 +188,11 @@ class WhatsAppDispatchLogResource extends Resource
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
-                SelectFilter::make('trigger')
+                SelectFilter::make('message_event')
                     ->label('Origem')
-                    ->options(collect(WhatsAppDispatchTrigger::cases())->mapWithKeys(fn ($t) => [$t->value => $t->label()])),
+                    ->options(collect(WhatsAppMessageEvent::cases())->mapWithKeys(
+                        fn (WhatsAppMessageEvent $event) => [$event->value => $event->originLabel()],
+                    )),
                 SelectFilter::make('status')
                     ->label('Resultado')
                     ->options(collect(WhatsAppDispatchStatus::cases())->mapWithKeys(fn ($s) => [$s->value => $s->label()])),
