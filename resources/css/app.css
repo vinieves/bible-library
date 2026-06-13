@@ -132,7 +132,23 @@
     }
 
     .audio-highlight {
-        @apply rounded-2xl border border-bible-green/20 bg-gradient-to-br from-bible-green/15 to-bible-dark/80 p-5 sm:p-6;
+        @apply rounded-xl border border-bible-green/20 bg-gradient-to-br from-bible-green/10 to-bible-dark/80;
+    }
+
+    .audio-list-item {
+        @apply flex items-center gap-3 rounded-xl border border-bible-gold/10 bg-bible-dark/40 px-3 py-2.5 transition hover:border-bible-gold/25 hover:bg-bible-dark/70 active:scale-[0.99];
+    }
+
+    .audio-list-item-locked {
+        @apply opacity-80 hover:border-bible-gold/15;
+    }
+
+    .audio-list-thumb {
+        @apply h-11 w-11 shrink-0 overflow-hidden rounded-lg border border-bible-gold/10 bg-bible-green/10 sm:h-12 sm:w-12;
+    }
+
+    .audio-list-action {
+        @apply flex h-8 w-8 items-center justify-center rounded-full border border-bible-gold/15 bg-bible-black/40 transition group-hover:border-bible-green/40 group-hover:bg-bible-green/10;
     }
 
     .audio-offer {

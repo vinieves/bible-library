@@ -93,20 +93,12 @@ class User extends Authenticatable implements FilamentUser
             return true;
         }
 
-        if ($track->is_free) {
-            return true;
-        }
-
         return $this->hasPlan('completo');
     }
 
     public function hasAccessToVideo(Video $video): bool
     {
         if ($this->is_admin) {
-            return true;
-        }
-
-        if ($video->is_free) {
             return true;
         }
 

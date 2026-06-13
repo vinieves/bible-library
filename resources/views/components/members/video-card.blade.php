@@ -53,13 +53,6 @@
                         {{ $video->category->name }}
                     </span>
                 @endif
-                <span @class([
-                    'rounded-full px-2.5 py-0.5 text-xs font-medium',
-                    'bg-bible-green/20 text-green-300' => $video->is_free,
-                    'bg-bible-gold/15 text-bible-gold-light' => $video->is_premium,
-                ])>
-                    {{ $video->accessLabel() }}
-                </span>
                 @if($video->duration)
                     <span class="rounded-full bg-white/5 px-2.5 py-0.5 text-xs text-bible-cream/50">
                         {{ $video->duration }}

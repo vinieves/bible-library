@@ -20,32 +20,20 @@ class AudioController extends Controller
     {
         $user = Auth::user();
 
-        $freeTracks = AudioTrack::query()
+        $tracks = AudioTrack::query()
             ->published()
-            ->where('is_free', true)
-            ->with('category')
-            ->orderBy('order')
-            ->get();
-
-        $premiumTracks = AudioTrack::query()
-            ->published()
-            ->where('is_premium', true)
             ->with(['category', 'requiredPlan'])
             ->orderBy('order')
             ->get();
 
         $progressByTrack = $user->audioProgress()
-            ->whereIn('audio_track_id', $freeTracks->pluck('id')->merge($premiumTracks->pluck('id')))
+            ->whereIn('audio_track_id', $tracks->pluck('id'))
             ->get()
             ->keyBy('audio_track_id');
 
         return view('members.audio.index', [
-            'freeTracks' => $freeTracks,
-            'premiumTracks' => $premiumTracks,
+            'tracks' => $tracks,
             'progressByTrack' => $progressByTrack,
-            'subscriptionTitle' => Setting::get('audio_subscription_title', 'Biblioteca Bíblica en Audio'),
-            'subscriptionPrice' => Setting::get('audio_subscription_price', 'USD $4.90/mes'),
-            'checkoutUrl' => Setting::get('audio_subscription_checkout_url', '#'),
         ]);
     }
 

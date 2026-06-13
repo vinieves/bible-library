@@ -20,28 +20,19 @@ class VideoController extends Controller
     {
         $user = Auth::user();
 
-        $freeVideos = Video::query()
+        $videos = Video::query()
             ->published()
-            ->where('is_free', true)
-            ->with('category')
-            ->orderBy('order')
-            ->get();
-
-        $premiumVideos = Video::query()
-            ->published()
-            ->where('is_premium', true)
             ->with(['category', 'requiredPlan'])
             ->orderBy('order')
             ->get();
 
         $progressByVideo = $user->videoProgress()
-            ->whereIn('video_id', $freeVideos->pluck('id')->merge($premiumVideos->pluck('id')))
+            ->whereIn('video_id', $videos->pluck('id'))
             ->get()
             ->keyBy('video_id');
 
         return view('members.videos.index', [
-            'freeVideos' => $freeVideos,
-            'premiumVideos' => $premiumVideos,
+            'videos' => $videos,
             'progressByVideo' => $progressByVideo,
             'subscriptionTitle' => Setting::get('audio_subscription_title', 'Biblioteca Bíblica Digital'),
             'checkoutUrl' => Setting::get('audio_subscription_checkout_url', '#'),
