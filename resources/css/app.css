@@ -151,16 +151,8 @@
         @apply flex h-8 w-8 items-center justify-center rounded-full border border-bible-gold/15 bg-bible-black/40 transition group-hover:border-bible-green/40 group-hover:bg-bible-green/10;
     }
 
-    .video-list-item {
-        @apply flex items-center gap-3 rounded-xl border border-bible-gold/10 bg-bible-dark/40 p-2.5 transition hover:border-bible-gold/25 hover:bg-bible-dark/70 active:scale-[0.99];
-    }
-
-    .video-list-item-locked {
-        @apply opacity-80 hover:border-bible-gold/15;
-    }
-
     .video-list-thumb {
-        @apply relative aspect-video w-[7.25rem] shrink-0 overflow-hidden rounded-lg border border-bible-gold/15 bg-gradient-to-br from-bible-green/15 to-bible-gold/5 sm:w-36;
+        @apply relative aspect-video w-36 shrink-0 overflow-hidden bg-gradient-to-br from-bible-green/15 to-bible-gold/5 sm:w-44;
     }
 
     .video-list-thumb-play {
@@ -168,11 +160,7 @@
     }
 
     .video-list-duration {
-        @apply absolute bottom-1 right-1 rounded-md bg-black/80 px-1.5 py-0.5 text-[0.65rem] font-medium tabular-nums text-bible-cream/90 backdrop-blur-sm;
-    }
-
-    .video-list-action {
-        @apply flex h-8 w-8 items-center justify-center rounded-full border border-bible-gold/15 bg-bible-black/40 transition group-hover:border-bible-green/40 group-hover:bg-bible-green/10;
+        @apply absolute bottom-1.5 right-1.5 rounded-md bg-black/80 px-1.5 py-0.5 text-[0.65rem] font-medium tabular-nums text-bible-cream/90 backdrop-blur-sm;
     }
 
     .audio-offer {

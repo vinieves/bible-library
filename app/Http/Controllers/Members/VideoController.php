@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Models\UserVideoProgress;
 use App\Models\Video;
+use App\Models\VideoCategory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,13 +17,26 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class VideoController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $user = Auth::user();
+        $search = $request->string('q')->trim()->toString();
+        $categoryId = $request->integer('categoria') ?: null;
 
         $videos = Video::query()
             ->published()
             ->with(['category', 'requiredPlan'])
+            ->when($search, fn ($query) => $query->where(function ($query) use ($search) {
+                $query->where('title', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            }))
+            ->when($categoryId, fn ($query) => $query->where('video_category_id', $categoryId))
+            ->orderBy('order')
+            ->get();
+
+        $categories = VideoCategory::query()
+            ->where('is_active', true)
+            ->whereHas('videos', fn ($query) => $query->published())
             ->orderBy('order')
             ->get();
 
@@ -33,9 +47,10 @@ class VideoController extends Controller
 
         return view('members.videos.index', [
             'videos' => $videos,
+            'categories' => $categories,
+            'search' => $search,
+            'categoryId' => $categoryId,
             'progressByVideo' => $progressByVideo,
-            'subscriptionTitle' => Setting::get('audio_subscription_title', 'Biblioteca Bíblica Digital'),
-            'checkoutUrl' => Setting::get('audio_subscription_checkout_url', '#'),
         ]);
     }
 
