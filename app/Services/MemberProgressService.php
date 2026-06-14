@@ -185,7 +185,7 @@ class MemberProgressService
         if ($bible && $bible->isInProgress()) {
             return [
                 'title' => 'Continuar leyendo',
-                'subtitle' => $bible->statusLabel(),
+                'subtitle' => $bible->chapterLabel(),
                 'href' => $this->bibleUrl($bible),
                 'icon' => '📖',
                 'accent' => 'gold',
@@ -217,7 +217,7 @@ class MemberProgressService
 
         return [
             'title' => 'Continuar leyendo',
-            'subtitle' => $material->title.' · '.$percent.'%',
+            'subtitle' => $material->title,
             'href' => $material->hasPdf()
                 ? route('members.materials.pdf.reader', $material)
                 : route('members.materials.show', $material),

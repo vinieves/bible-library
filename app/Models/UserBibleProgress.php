@@ -65,13 +65,18 @@ class UserBibleProgress extends Model
 
     public function statusLabel(): string
     {
+        return $this->chapterLabel().' · '.$this->completionPercent().'%';
+    }
+
+    public function chapterLabel(): string
+    {
         $label = "{$this->bookName()} · Capítulo {$this->chapter}";
 
         if ($this->verse) {
             $label .= ":{$this->verse}";
         }
 
-        return $label.' · '.$this->completionPercent().'%';
+        return $label;
     }
 
     public function isInProgress(): bool

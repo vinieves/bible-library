@@ -15,7 +15,6 @@ class DashboardController extends Controller
 
         return view('members.dashboard', [
             'continueCards' => $progressService->continueCards($user),
-            'lastActivityAt' => $progressService->lastActivityAt($user),
             'suggestedStartUrl' => $progressService->suggestedStartUrl($user),
             'suggestedStartLabel' => $progressService->suggestedStartLabel(),
         ]);
