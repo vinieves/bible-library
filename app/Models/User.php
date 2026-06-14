@@ -56,6 +56,11 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(UserVideoProgress::class);
     }
 
+    public function bibleProgress(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(UserBibleProgress::class);
+    }
+
     public function hasPlan(string|Plan $plan): bool
     {
         if ($this->is_admin) {

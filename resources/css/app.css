@@ -308,6 +308,11 @@
         @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-bible-gold/25 bg-bible-green/10 shadow-inner;
     }
 
+    .dashboard-continue-empty {
+        background: rgba(28, 23, 17, 0.72);
+        border: 1px solid rgba(240, 199, 94, 0.1);
+    }
+
     .dashboard-nav-card {
         @apply flex items-stretch overflow-hidden rounded-2xl text-bible-cream shadow-sm transition active:scale-[0.99];
         background: rgba(28, 23, 17, 0.72);

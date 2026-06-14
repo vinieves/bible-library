@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Members\AudioController;
-use App\Http\Controllers\Members\BonusController;
 use App\Http\Controllers\Members\DashboardController;
 use App\Http\Controllers\Members\LibraryController;
 use App\Http\Controllers\Members\MaterialController;
@@ -29,7 +28,7 @@ Route::middleware('auth')->prefix('mi-biblioteca')->name('members.')->group(func
     Route::get('/libros/api/{book}/{chapter}', [LibraryController::class, 'chapter'])
         ->where(['book' => '[A-Za-z0-9]+', 'chapter' => '[0-9]+'])
         ->name('library.chapter');
-    Route::get('/bonos', [BonusController::class, 'index'])->name('bonuses');
+    Route::post('/libros/progreso', [LibraryController::class, 'saveProgress'])->name('library.progress');
     Route::get('/progreso', [ProgressController::class, 'index'])->name('progress');
     Route::get('/escuchar', [AudioController::class, 'index'])->name('audio.index');
     Route::get('/escuchar/{audioTrack}', [AudioController::class, 'show'])->name('audio.show');

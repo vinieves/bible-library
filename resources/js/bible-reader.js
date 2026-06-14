@@ -25,10 +25,65 @@ document.addEventListener('alpine:init', () => {
                 }
 
                 this.books = await response.json();
+                await this.restoreProgress();
             } catch {
                 this.loadError = 'No se pudo cargar la Biblia. Intente de nuevo más tarde.';
             } finally {
                 this.loadingBooks = false;
+            }
+        },
+
+        async restoreProgress() {
+            if (! config.initialBook) {
+                return;
+            }
+
+            const book = this.books.find((item) => item.abbr === config.initialBook);
+
+            if (! book) {
+                return;
+            }
+
+            this.selectBook(book);
+
+            if (! config.initialChapter) {
+                return;
+            }
+
+            await this.selectChapter(Number(config.initialChapter), { skipSave: true });
+
+            if (! config.initialVerse) {
+                return;
+            }
+
+            const verse = this.verses.find((item) => item.number === Number(config.initialVerse));
+
+            if (verse) {
+                this.openVerse(verse, { skipSave: true });
+            }
+        },
+
+        async saveProgress(verse = null) {
+            if (! config.progressUrl || ! this.selectedBook || ! this.selectedChapter) {
+                return;
+            }
+
+            try {
+                await fetch(config.progressUrl, {
+                    method: 'POST',
+                    headers: {
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': config.csrfToken,
+                    },
+                    body: JSON.stringify({
+                        book_abbr: this.selectedBook.abbr,
+                        chapter: Number(this.selectedChapter),
+                        verse: verse?.number ?? this.selectedVerse?.number ?? null,
+                    }),
+                });
+            } catch {
+                // El progreso se reintentará en la próxima interacción.
             }
         },
 
@@ -107,7 +162,7 @@ document.addEventListener('alpine:init', () => {
             }
         },
 
-        async selectChapter(chapter) {
+        async selectChapter(chapter, options = {}) {
             if (! this.selectedBook) {
                 return;
             }
@@ -133,6 +188,10 @@ document.addEventListener('alpine:init', () => {
 
                 const data = await response.json();
                 this.verses = data.verses ?? [];
+
+                if (! options.skipSave) {
+                    await this.saveProgress();
+                }
             } catch {
                 this.verses = [];
                 this.chapterError = 'No se pudo cargar este capítulo.';
@@ -141,8 +200,12 @@ document.addEventListener('alpine:init', () => {
             }
         },
 
-        openVerse(verse) {
+        openVerse(verse, options = {}) {
             this.selectedVerse = verse;
+
+            if (! options.skipSave) {
+                this.saveProgress(verse);
+            }
 
             this.$nextTick(() => {
                 this.$refs.verseDetail?.scrollIntoView({ behavior: 'smooth', block: 'start' });

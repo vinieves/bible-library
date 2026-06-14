@@ -16,6 +16,11 @@
             x-data="bibleReader({
                 booksUrl: @js($booksUrl),
                 chapterUrl: @js($chapterUrl),
+                progressUrl: @js($progressUrl),
+                csrfToken: @js(csrf_token()),
+                initialBook: @js($initialBook),
+                initialChapter: @js($initialChapter),
+                initialVerse: @js($initialVerse),
             })"
             class="bible-reader space-y-4"
             @click.outside="bookOpen = false"

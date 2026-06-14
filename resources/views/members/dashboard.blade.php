@@ -8,67 +8,51 @@
         <p class="text-base text-bible-cream/55 sm:text-lg">Elija qué desea estudiar hoy</p>
     </header>
 
-    {{-- Progreso --}}
     <section class="dashboard-progress mb-6">
-        <div class="mb-3 flex items-start justify-between gap-4">
-            <div>
-                <p class="text-xs font-medium uppercase tracking-wider text-bible-cream/40">Su progreso</p>
-                <p class="mt-0.5 text-sm text-bible-cream/65">Materiales completados</p>
-            </div>
-            <div class="dashboard-progress-ring">
-                <span class="text-base font-bold text-bible-gold">{{ $progressPercent }}%</span>
-            </div>
-        </div>
+        <p class="text-xs font-medium uppercase tracking-wider text-bible-cream/40">Su progreso</p>
 
-        <x-members.progress-bar
-            :percent="$progressPercent"
-            :show-label="false"
-            class="[&_.progress-bar-track]:h-2"
-        />
+        @if($lastActivityAt)
+            <p class="mt-1.5 text-sm text-bible-cream/65">
+                Última actividad: {{ $lastActivityAt->locale('es')->diffForHumans() }}
+            </p>
+        @else
+            <p class="mt-1.5 text-sm text-bible-cream/65">Aún no tiene actividad registrada.</p>
+        @endif
 
-        <p class="mt-3 text-xs text-bible-cream/50">
-            {{ $studiedCount }} de {{ $totalPublished }} materiales estudiados
-        </p>
+        <a href="{{ route('members.progress') }}"
+           class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-bible-gold transition hover:text-bible-gold/80">
+            Ver historial completo
+            <span aria-hidden="true">→</span>
+        </a>
     </section>
 
-    {{-- Acesso rápido --}}
     <section>
-        <p class="mb-3 text-xs font-medium uppercase tracking-wider text-bible-cream/40">Acceso rápido</p>
-        <div class="space-y-3">
-            @if($recentMaterial)
-                @php
-                    $continueHref = $recentMaterial->hasPdf()
-                        ? route('members.materials.pdf.reader', $recentMaterial)
-                        : route('members.materials.show', $recentMaterial);
-                    $continueSubtitle = $recentMaterial->title;
-                    if ($recentProgress && ! $recentProgress->is_studied && $recentProgress->last_page_read > 0) {
-                        $continueSubtitle = $recentMaterial->title.' · '.$recentProgress->statusLabel($recentMaterial);
-                    }
-                @endphp
-                <x-members.card
-                    :href="$continueHref"
-                    title="Continuar estudiando"
-                    :subtitle="$continueSubtitle"
-                    accent="green"
-                    :material="$recentMaterial"
-                />
-            @endif
+        <p class="mb-3 text-xs font-medium uppercase tracking-wider text-bible-cream/40">Continuar consumiendo</p>
 
-            <x-members.card
-                href="{{ route('members.audio.index') }}"
-                title="Escuchar audios"
-                subtitle="Estudios bíblicos y devocionales para escuchar desde su celular."
-                icon="🎧"
-                accent="gold"
-            />
-
-            <x-members.card
-                href="{{ route('members.bonuses') }}"
-                title="Bonos exclusivos"
-                subtitle="Materiales extra, mapas mentales y recursos especiales para profundizar."
-                icon="🎁"
-                accent="green"
-            />
-        </div>
+        @if(count($continueCards) > 0)
+            <div class="space-y-3">
+                @foreach($continueCards as $card)
+                    <x-members.card
+                        :href="$card['href']"
+                        :title="$card['title']"
+                        :subtitle="$card['subtitle']"
+                        :icon="$card['icon']"
+                        :accent="$card['accent']"
+                        :material="$card['material'] ?? null"
+                    />
+                @endforeach
+            </div>
+        @else
+            <div class="dashboard-continue-empty rounded-2xl px-4 py-5 text-center sm:px-6">
+                <p class="text-sm text-bible-cream/70">
+                    Comience explorando <span class="font-medium text-bible-gold">{{ $suggestedStartLabel }}</span>.
+                </p>
+                <a href="{{ $suggestedStartUrl }}"
+                   class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-bible-gold transition hover:text-bible-gold/80">
+                    Ir a Libros
+                    <span aria-hidden="true">→</span>
+                </a>
+            </div>
+        @endif
     </section>
 @endsection

@@ -28,7 +28,7 @@
                     Su biblioteca bíblica le espera
                 </h2>
                 <p class="mt-4 text-lg leading-relaxed text-bible-cream/70">
-                    Ingrese con el correo electrónico vinculado a su compra para acceder a libros, bonos y estudios exclusivos.
+                    Ingrese con el correo electrónico vinculado a su compra para acceder a libros, videos, audios y estudios exclusivos.
                 </p>
                 <ul class="mt-8 space-y-3 text-sm text-bible-cream/60">
                     <li class="flex items-center gap-3">
