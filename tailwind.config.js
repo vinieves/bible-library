@@ -45,6 +45,17 @@ export default {
                     green: '#1a5c38',
                     'green-light': '#2d7a52',
                 },
+                member: {
+                    paper: '#F2EDE4',
+                    card: '#FBF8F2',
+                    input: '#F6F1E8',
+                    gold: '#B08D4F',
+                    'gold-dark': '#A07E45',
+                    'gold-light': '#C9A86A',
+                    title: '#4A3B2A',
+                    body: '#6B5D4A',
+                    placeholder: '#9B9182',
+                },
             },
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
@@ -53,6 +64,7 @@ export default {
             backgroundImage: {
                 'public-mesh': 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(201, 162, 39, 0.15), transparent), radial-gradient(ellipse 60% 40% at 100% 100%, rgba(26, 92, 56, 0.12), transparent)',
                 'members-divine': 'radial-gradient(120% 90% at 50% -10%, #3d3018 0%, #1a1610 38%, #0f0d09 72%, #0a0907 100%)',
+                'member-paper': 'linear-gradient(180deg, #FBF8F2 0%, #F2EDE4 100%)',
             },
         },
     },

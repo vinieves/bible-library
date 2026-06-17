@@ -8,7 +8,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('scripts')
 </head>
-<body class="members-shell min-h-screen bg-members-divine bg-bible-black pb-24 font-sans text-bible-cream antialiased md:pb-8">
+<body class="members-shell min-h-screen bg-member-paper pb-24 font-sans text-member-body antialiased md:pb-8">
     @php
         $headerStyle = $headerStyle ?? (($showBack ?? false) ? 'back' : 'home');
     @endphp
@@ -22,7 +22,7 @@
 
     @if(session('success'))
         <div class="mx-auto max-w-3xl px-4 sm:px-6 pt-4">
-            <div class="rounded-xl border border-bible-green/40 bg-bible-green/20 px-4 py-3 text-base text-bible-cream sm:text-lg">
+            <div class="rounded-xl border border-member-gold/30 bg-member-gold/10 px-4 py-3 text-base text-member-title sm:text-lg">
                 {{ session('success') }}
             </div>
         </div>
@@ -39,8 +39,8 @@
     <x-members.bottom-nav />
 
     <div class="hidden md:block">
-        <footer class="mx-auto max-w-3xl border-t border-bible-gold/15 px-4 py-6 text-center text-sm text-bible-muted-warm sm:px-6">
-            <a href="mailto:{{ $siteSettings['support_email'] ?? '' }}" class="hover:text-bible-gold">
+        <footer class="mx-auto max-w-3xl border-t border-member-gold/20 px-4 py-6 text-center text-sm text-member-body sm:px-6">
+            <a href="mailto:{{ $siteSettings['support_email'] ?? '' }}" class="hover:text-member-gold">
                 ¿Necesita ayuda? Escríbanos
             </a>
         </footer>
