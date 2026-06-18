@@ -1,3 +1,24 @@
+# =============================================================================
+# Referência Hotmart — Webhook API v2.0.0
+# Documentação oficial dos campos abaixo. O Bible Library consome via:
+#   POST https://mediamrkt.online/api/webhooks/hotmart
+#   Header: X-HOTMART-HOTTOK (validar no Admin → Integrações)
+#
+# Eventos tratados pelo sistema (WhatsApp + regras de acesso):
+#   PURCHASE_APPROVED      → libera plano (produto mapeado) ou funil
+#   PURCHASE_COMPLETE      → notificação
+#   PURCHASE_CANCELED      → notificação
+#   PURCHASE_BILLET_PRINTED
+#   PURCHASE_PROTEST       → reembolso/protesto (regra WhatsApp dedicada)
+#   PURCHASE_REFUNDED
+#   PURCHASE_CHARGEBACK
+#   PURCHASE_EXPIRED
+#   PURCHASE_DELAYED
+#   PURCHASE_OUT_OF_SHOPPING_CART → abandono de carrinho (sem liberar acesso)
+#
+# Ver também: docs/DEPLOY-VPS-EVOLUTION-API.md (WhatsApp via Evolution API)
+# =============================================================================
+
 Parâmetro	Descrição
 hottokstring	Cada conta possui um token único. Ele é a principal garantia de que a requisição está sendo feita pela Hotmart, o que é uma questão de segurança para evitar fraudes e ataques. Este campo será enviado com o nome X-HOTMART-HOTTOK no cabeçalho HTTP de todas as requisições e recomendamos validá-lo antes de tratar os dados recebidos. Se precisar trocar esta chave, entre em contato com nosso suporte.
 idstring	Código único de identificação do evento recebido.

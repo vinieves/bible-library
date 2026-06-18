@@ -569,7 +569,13 @@ Configure na Hotmart quando for usar produção:
 https://mediamrkt.online/api/webhooks/hotmart
 ```
 
-O **hottok** da Hotmart vai no mesmo painel de Integrações.
+O **hottok** da Hotmart vai no painel **Admin → Integrações**.
+
+**Eventos recomendados na Hotmart** (todos suportados pelo Bible Library para WhatsApp/regras):
+
+`PURCHASE_APPROVED`, `PURCHASE_COMPLETE`, `PURCHASE_CANCELED`, `PURCHASE_BILLET_PRINTED`, `PURCHASE_PROTEST`, `PURCHASE_REFUNDED`, `PURCHASE_CHARGEBACK`, `PURCHASE_EXPIRED`, `PURCHASE_DELAYED`, `PURCHASE_OUT_OF_SHOPPING_CART`
+
+Referência completa dos campos do payload: `docs/dochotmart.txt`
 
 ---
 

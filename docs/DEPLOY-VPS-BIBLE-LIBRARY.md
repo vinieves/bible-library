@@ -15,6 +15,9 @@
 - [x] Nginx `.mjs` para leitor de PDF
 - [x] Evolution API em `https://wpp.mediamrkt.online` (v2.3.7)
 - [x] WhatsApp conectado (instância `biblioteca`)
+- [x] Área do cliente `/mi-biblioteca` com leitor bíblico interativo (73 livros)
+- [x] Progresso unificado (Bíblia, vídeos, áudios) + página `/mi-biblioteca/progreso`
+- [x] Tema visual claro (creme/dourado) na área de membros
 
 Para **atualizações futuras**, use a [seção 13](#13-atualizar-o-projeto-depois) (`deploy.sh` + `git pull`).
 
@@ -348,6 +351,10 @@ AWS_BUCKET=
 AWS_USE_PATH_STYLE_ENDPOINT=false
 
 VITE_APP_NAME="${APP_NAME}"
+
+# Leitor bíblico (73 livros católicos com explicações)
+# Caminho absoluto do JSON na VPS. Padrão: raiz do projeto.
+BIBLE_DATA_PATH=/var/www/bible-library/biblia_catolica_73_es_exp_compacto.json
 ```
 
 Salve: `Ctrl+O`, Enter, `Ctrl+X`.
@@ -378,52 +385,88 @@ php artisan db:seed --class=ProductSeeder --force
 
 > **Não** rode `php artisan db:seed` completo em produção — ele cria usuários demo com senha `password`.
 
-### Seeders de conteúdo (livros, bônus e áudios)
+### Seeders de conteúdo (áudios, materiais legados e admin)
 
-**Obrigatório** para os clientes verem materiais em `/mi-biblioteca/libros` e `/mi-biblioteca/bonos`.  
-Esses seeders **não** fazem parte do `DatabaseSeeder` padrão — sem eles o banco fica só com planos/categorias vazias.
+| Seeder | Obrigatório? | Para quê |
+|--------|--------------|----------|
+| `PlanSeeder`, `CategorySeeder`, `SettingSeeder`, `ProductSeeder` | **Sim** | Planos, categorias, produtos Hotmart, configurações |
+| `AudioSeeder` | Recomendado | Faixas de áudio em `/mi-biblioteca/escuchar` (ou cadastre pelo admin) |
+| `LibroSeeder` | Opcional | Materiais PDF legados (`/mi-biblioteca/materiales/{slug}`) — **não** alimenta a aba Libros |
+| `BonusPdfSeeder` | Opcional | Materiais tipo bônus no **admin Filament** apenas (sem rota no cliente) |
+
+> **Libros (`/mi-biblioteca/libros`)** usa o **leitor bíblico interativo** alimentado pelo arquivo JSON `biblia_catolica_73_es_exp_compacto.json` (veja a seção **Arquivo JSON da Bíblia** abaixo).  
+> A rota `/mi-biblioteca/bonos` **não existe mais** na área do cliente (bônus continuam gerenciáveis só no admin).
 
 ```bash
 cd /var/www/bible-library
 
-php artisan db:seed --class=LibroSeeder --force
-php artisan db:seed --class=BonusPdfSeeder --force
 php artisan db:seed --class=AudioSeeder --force
+# Opcional — só se usar PDFs legados ou bônus no admin:
+# php artisan db:seed --class=LibroSeeder --force
+# php artisan db:seed --class=BonusPdfSeeder --force
 ```
 
-Confirme que os registros foram criados:
+Confirme áudios (se rodou o seeder):
 
 ```bash
-php artisan tinker --execute="echo 'Livros: '.App\Models\Material::where('type', App\Enums\MaterialType::Libro)->count().PHP_EOL;"
-php artisan tinker --execute="echo 'Bônus: '.App\Models\Material::where('type', App\Enums\MaterialType::Bonus)->count().PHP_EOL;"
+php artisan tinker --execute="echo 'Áudios: '.App\Models\AudioTrack::count().PHP_EOL;"
 ```
 
-Resultado esperado:
+### Arquivo JSON da Bíblia (obrigatório para Libros)
 
-| Tipo | Quantidade |
-|------|------------|
-| Livros | **7** |
-| Bônus | **5** |
+O leitor em `/mi-biblioteca/libros` **depende** deste arquivo (~9 MB):
+
+```
+/var/www/bible-library/biblia_catolica_73_es_exp_compacto.json
+```
+
+Verifique na VPS:
+
+```bash
+ls -lh /var/www/bible-library/biblia_catolica_73_es_exp_compacto.json
+```
+
+Se o arquivo **não estiver no Git** (tamanho), envie via SCP do PC:
+
+```powershell
+scp "C:\Users\T-GAMER\OneDrive\Área de Trabalho\BIBLE_LIBRARY\biblia_catolica_73_es_exp_compacto.json" root@72.61.222.108:/var/www/bible-library/
+```
+
+Na VPS, ajuste dono e confirme o `.env`:
+
+```bash
+chown www-data:www-data /var/www/bible-library/biblia_catolica_73_es_exp_compacto.json
+chmod 644 /var/www/bible-library/biblia_catolica_73_es_exp_compacto.json
+grep BIBLE_DATA_PATH /var/www/bible-library/.env
+```
+
+Teste a API do leitor (logado ou com sessão de teste):
+
+```bash
+curl -s -o /dev/null -w "%{http_code}" https://mediamrkt.online/mi-biblioteca/libros/api/libros
+```
+
+Deve retornar `200` (ou `302` se redirecionar para login — nesse caso teste logado no navegador).
 
 ### PDFs e capas (via Git)
 
-Os arquivos devem ficar nestas pastas **dentro do projeto**:
+Os arquivos devem ficar nestas pastas **dentro do projeto** (materiais legados e admin):
 
 ```
-storage/app/private/pdfs/bonuses/
-  bonus1-mandamentos.pdf
-  bonus2-milagres.pdf
-  bonus3-historias.pdf
-  bonus4-devocional.pdf
-  bonus5-manual.pdf
+storage/app/private/pdfs/
+  libros/          → PDFs dos materiais LibroSeeder (opcional)
+  bonuses/         → PDFs dos bônus (admin apenas)
 
 storage/app/public/covers/
-  libros/          → el-pentateuco.jpg, los-4-evangelicos.jpg, etc.
-  bonuses/         → img-bonus-1.jpg, img-bonus-2.jpg, etc.
+  libros/          → capas dos materiais PDF
+  bonuses/         → capas dos bônus (admin)
   audios/          → capas dos áudios (opcional)
+
+storage/app/private/videos/   → vídeos enviados pelo admin
+storage/app/private/audios/   → áudios enviados pelo admin
 ```
 
-Os nomes dos PDFs de bônus precisam bater com o `BonusPdfSeeder`. As capas usam o nome base + extensão (`.jpg`, `.png` ou `.webp`).
+Os nomes dos PDFs de bônus precisam bater com o `BonusPdfSeeder` se você usar esse seeder. As capas usam o nome base + extensão (`.jpg`, `.png` ou `.webp`).
 
 **No PC Windows** — copie seus arquivos para essas pastas e envie ao GitHub:
 
@@ -657,7 +700,10 @@ Checklist manual no navegador:
 - [ ] Login em `/login` funciona
 - [ ] Admin em `/admin` funciona
 - [ ] Área de membros `/mi-biblioteca` funciona após login
-- [ ] Upload de PDF no admin funciona
+- [ ] **Libros** (`/mi-biblioteca/libros`) carrega livros e capítulos da Bíblia
+- [ ] **Escuchar** e **Videos** abrem listagem e player
+- [ ] Progresso salva ao ler/ouvir/assistir; `/mi-biblioteca/progreso` lista atividades (URL direta)
+- [ ] Upload de PDF/vídeo/áudio no admin funciona
 - [ ] SSL válido (cadeado verde)
 
 ---
@@ -687,6 +733,8 @@ npm ci
 npm run build
 
 php artisan migrate --force
+
+php artisan optimize:clear
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
@@ -734,10 +782,16 @@ git push origin main
 |--------|-----|
 | Site público | https://mediamrkt.online |
 | Login membros | https://mediamrkt.online/login |
-| Área de membros | https://mediamrkt.online/mi-biblioteca |
+| Área de membros (home) | https://mediamrkt.online/mi-biblioteca |
+| Leitor bíblico (Libros) | https://mediamrkt.online/mi-biblioteca/libros |
+| Áudios | https://mediamrkt.online/mi-biblioteca/escuchar |
+| Vídeos | https://mediamrkt.online/mi-biblioteca/videos |
+| Histórico de progresso | https://mediamrkt.online/mi-biblioteca/progreso |
 | Painel admin | https://mediamrkt.online/admin |
 | Webhook Hotmart | https://mediamrkt.online/api/webhooks/hotmart |
 | Webhook genérico | https://mediamrkt.online/api/webhooks/generic |
+
+> **Nota:** `/mi-biblioteca/bonos` foi removida da área do cliente. Bônus continuam cadastráveis no admin, sem link público para membros.
 
 Configure Hotmart e integrações em: **Admin → Integrações**
 
@@ -792,19 +846,49 @@ php artisan view:clear
 php artisan view:cache
 ```
 
-### Livros ou bônus não aparecem para o cliente
+### Libros: "La Biblia no está disponible" ou API retorna erro
 
-Causa mais comum: seeders de conteúdo não foram executados.
+1. Confirme o JSON na VPS:
+
+```bash
+ls -lh /var/www/bible-library/biblia_catolica_73_es_exp_compacto.json
+grep BIBLE_DATA_PATH /var/www/bible-library/.env
+```
+
+2. Permissão de leitura para `www-data`:
+
+```bash
+chown www-data:www-data /var/www/bible-library/biblia_catolica_73_es_exp_compacto.json
+chmod 644 /var/www/bible-library/biblia_catolica_73_es_exp_compacto.json
+```
+
+3. Limpe cache de config/rota:
+
+```bash
+cd /var/www/bible-library
+php artisan optimize:clear
+php artisan config:cache
+```
+
+4. Teste no navegador (logado): `/mi-biblioteca/libros` deve listar os 73 livros.
+
+### Áudios ou vídeos não aparecem para o cliente
+
+- Cadastre conteúdo no **admin** (Filament) ou rode `AudioSeeder`.
+- O cliente precisa de **plano ativo** (ex.: **Acceso Vitalicio** / slug `completo`).
+- Admin **não** substitui plano na área de membros — atribua em **Usuários → Planos**.
+
+### Materiais PDF legados ou bônus (admin)
+
+Causa comum: seeders opcionais não executados.
 
 ```bash
 cd /var/www/bible-library
 php artisan db:seed --class=LibroSeeder --force
 php artisan db:seed --class=BonusPdfSeeder --force
-php artisan tinker --execute="echo 'Livros: '.App\Models\Material::where('type', App\Enums\MaterialType::Libro)->count().' | Bônus: '.App\Models\Material::where('type', App\Enums\MaterialType::Bonus)->count().PHP_EOL;"
 ```
 
-O cliente também precisa de **pelo menos um plano** atribuído no admin (ex.: **Acceso Vitalicio**).  
-Permissão de admin **não** substitui plano para a área de membros — marque os planos em **Usuários → Planos atribuídos**.
+Bônus **não** têm página na área do cliente; só aparecem no admin Filament.
 
 ### PDF não abre na VPS ("No se pudo cargar el PDF" / erro MIME no console)
 
@@ -866,6 +950,26 @@ php artisan cache:clear
 php artisan config:cache
 supervisorctl restart bible-library-worker:*
 ```
+
+---
+
+## Referência — área do cliente (`/mi-biblioteca`)
+
+| Aba / rota | Conteúdo |
+|------------|----------|
+| `/mi-biblioteca` | Home — "Comience donde lo dejó" (continuar lendo/viendo/escuchando) |
+| `/mi-biblioteca/libros` | Leitor bíblico (73 livros, explicação versículo a versículo) |
+| `/mi-biblioteca/escuchar` | Player de áudios + progresso (`user_audio_progress`) |
+| `/mi-biblioteca/videos` | Player de vídeos + progresso (`user_video_progress`) |
+| `/mi-biblioteca/progreso` | Histórico unificado de atividades (sem link na home; URL direta) |
+| `/mi-biblioteca/materiales/{slug}` | Materiais PDF legados (se existirem no banco) |
+
+**Progresso salvo automaticamente:**
+- Bíblia → tabela `user_bible_progress` + `POST /mi-biblioteca/libros/progreso`
+- Vídeo → `POST /mi-biblioteca/videos/{video}/progress`
+- Áudio → `POST /mi-biblioteca/escuchar/{audioTrack}/progress`
+
+**Migrations recentes relevantes:** `user_bible_progress`, `user_video_progress`, `user_audio_progress`, regras WhatsApp (`whatsapp_message_*`).
 
 ---
 
