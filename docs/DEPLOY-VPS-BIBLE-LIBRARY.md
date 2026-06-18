@@ -710,54 +710,27 @@ Checklist manual no navegador:
 
 ## 13. Atualizar o projeto depois
 
-Salve este script na VPS:
+O script **`deploy.sh`** está na raiz do repositório. Na VPS:
 
 ```bash
-nano /var/www/bible-library/deploy.sh
-```
-
-Conteúdo:
-
-```bash
-#!/bin/bash
-set -e
-
 cd /var/www/bible-library
-
-php artisan down || true
-
-git pull origin main
-
-composer install --no-dev --optimize-autoloader --no-interaction
-npm ci
-npm run build
-
-php artisan migrate --force
-
-php artisan optimize:clear
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-php artisan event:cache
-php artisan filament:optimize
-
-chown -R www-data:www-data storage bootstrap/cache
-chmod -R 775 storage bootstrap/cache
-
-supervisorctl restart bible-library-worker:*
-
-php artisan up
-
-echo "Deploy concluído!"
+chmod +x deploy.sh
+./deploy.sh
 ```
 
-Permissão de execução:
+Se você **já fez** `git pull` manualmente:
 
 ```bash
-chmod +x /var/www/bible-library/deploy.sh
+./deploy.sh --no-pull
 ```
 
-Fluxo completo de atualização:
+Primeira instalação (seeders essenciais + áudios):
+
+```bash
+./deploy.sh --with-seed
+```
+
+O script executa automaticamente: modo manutenção → `git pull` (opcional) → Composer → `npm ci` + build → migrations → caches → permissões → verificação do JSON da Bíblia → restart do Supervisor → `artisan up`.
 
 **No PC** (após alterações locais):
 
