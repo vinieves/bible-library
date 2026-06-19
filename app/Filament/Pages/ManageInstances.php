@@ -28,7 +28,7 @@ class ManageInstances extends Page
 
     protected static ?int $navigationSort = 6;
 
-    /** @var list<EvolutionInstanceSummary> */
+    /** @var list<array{name: string, state: string, instanceId: ?string, profileName: ?string, ownerJid: ?string, stateLabel: string, stateColor: string}> */
     public array $instances = [];
 
     public ?string $activeInstance = null;
@@ -65,9 +65,11 @@ class ManageInstances extends Page
         }
 
         try {
-            $this->instances = $instances->fetchAll();
+            $this->instances = $this->serializeInstances($instances->fetchAll());
             $this->activeInstance = IntegrationSettings::evolutionInstance();
-        } catch (RuntimeException $exception) {
+        } catch (\Throwable $exception) {
+            $this->instances = [];
+
             Notification::make()
                 ->title('Não foi possível listar instâncias')
                 ->body(Str::limit($exception->getMessage(), 240))
@@ -312,5 +314,22 @@ class ManageInstances extends Page
                             ]),
                     ]),
             ]);
+    }
+
+    /**
+     * @param  list<EvolutionInstanceSummary>  $instances
+     * @return list<array{name: string, state: string, instanceId: ?string, profileName: ?string, ownerJid: ?string, stateLabel: string, stateColor: string}>
+     */
+    private function serializeInstances(array $instances): array
+    {
+        return array_map(fn (EvolutionInstanceSummary $instance): array => [
+            'name' => $instance->name,
+            'state' => $instance->state,
+            'instanceId' => $instance->instanceId,
+            'profileName' => $instance->profileName,
+            'ownerJid' => $instance->ownerJid,
+            'stateLabel' => $instance->stateLabel(),
+            'stateColor' => $instance->stateColor(),
+        ], $instances);
     }
 }

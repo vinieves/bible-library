@@ -21,26 +21,25 @@
     @else
         @forelse ($instances as $instance)
             @php
-                /** @var \App\DataTransferObjects\EvolutionInstanceSummary $instance */
-                $isActive = $activeInstance === $instance->name;
-                $isConnected = in_array(strtolower($instance->state), ['open'], true);
-                $needsConnect = in_array(strtolower($instance->state), ['close', 'closed', 'connecting', 'unknown'], true);
+                $isActive = $activeInstance === $instance['name'];
+                $isConnected = in_array(strtolower($instance['state']), ['open'], true);
+                $needsConnect = in_array(strtolower($instance['state']), ['close', 'closed', 'connecting', 'unknown'], true);
             @endphp
 
-            <div wire:key="instance-{{ $instance->name }}" class="mm-instance-card fi-section">
+            <div wire:key="instance-{{ $instance['name'] }}" class="mm-instance-card fi-section">
                 <div class="fi-section-content-ctn">
                     <div class="mm-instance-card__inner fi-section-content">
                         <div class="mm-instance-card__main">
                             <div class="mm-instance-card__title-row">
                                 <h4 class="mm-instance-card__title">
-                                    {{ $instance->name }}
+                                    {{ $instance['name'] }}
                                 </h4>
 
                                 <x-filament::badge
-                                    :color="$instance->stateColor()"
+                                    :color="$instance['stateColor']"
                                     size="sm"
                                 >
-                                    {{ $instance->stateLabel() }}
+                                    {{ $instance['stateLabel'] }}
                                 </x-filament::badge>
 
                                 @if ($isActive)
@@ -51,21 +50,21 @@
                             </div>
 
                             <div class="mm-instance-card__meta">
-                                @if (filled($instance->profileName))
+                                @if (filled($instance['profileName'] ?? null))
                                     <span class="mm-instance-card__meta-item">
-                                        Perfil: {{ $instance->profileName }}
+                                        Perfil: {{ $instance['profileName'] }}
                                     </span>
                                 @endif
 
-                                @if (filled($instance->ownerJid))
+                                @if (filled($instance['ownerJid'] ?? null))
                                     <span class="mm-instance-card__meta-item">
-                                        {{ preg_replace('/@.*/', '', $instance->ownerJid) }}
+                                        {{ preg_replace('/@.*/', '', $instance['ownerJid']) }}
                                     </span>
                                 @endif
 
-                                @if (filled($instance->instanceId))
+                                @if (filled($instance['instanceId'] ?? null))
                                     <span class="mm-instance-card__meta-item mm-instance-card__meta-item--muted">
-                                        ID: {{ \Illuminate\Support\Str::limit($instance->instanceId, 18) }}
+                                        ID: {{ \Illuminate\Support\Str::limit($instance['instanceId'], 18) }}
                                     </span>
                                 @endif
                             </div>
@@ -76,7 +75,7 @@
                                 <x-filament::button
                                     color="primary"
                                     size="xs"
-                                    wire:click="setActiveInstance('{{ $instance->name }}')"
+                                    wire:click="setActiveInstance('{{ $instance['name'] }}')"
                                 >
                                     Usar esta
                                 </x-filament::button>
@@ -87,7 +86,7 @@
                                     color="success"
                                     size="xs"
                                     icon="heroicon-o-qr-code"
-                                    wire:click="connectInstance('{{ $instance->name }}')"
+                                    wire:click="connectInstance('{{ $instance['name'] }}')"
                                 >
                                     Conectar
                                 </x-filament::button>
@@ -98,16 +97,16 @@
                                     color="warning"
                                     icon="heroicon-o-arrow-path"
                                     label="Reiniciar"
-                                    wire:click="restartInstance('{{ $instance->name }}')"
-                                    wire:confirm="Reiniciar a instância {{ $instance->name }}?"
+                                    wire:click="restartInstance('{{ $instance['name'] }}')"
+                                    wire:confirm="Reiniciar a instância {{ $instance['name'] }}?"
                                 />
 
                                 <x-filament::icon-button
                                     color="gray"
                                     icon="heroicon-o-arrow-right-on-rectangle"
                                     label="Desconectar"
-                                    wire:click="logoutInstance('{{ $instance->name }}')"
-                                    wire:confirm="Desconectar WhatsApp da instância {{ $instance->name }}?"
+                                    wire:click="logoutInstance('{{ $instance['name'] }}')"
+                                    wire:confirm="Desconectar WhatsApp da instância {{ $instance['name'] }}?"
                                 />
                             @endif
 
@@ -115,8 +114,8 @@
                                 color="danger"
                                 icon="heroicon-o-trash"
                                 label="Excluir instância"
-                                wire:click="deleteInstance('{{ $instance->name }}')"
-                                wire:confirm="Excluir permanentemente a instância {{ $instance->name }}? Esta ação não pode ser desfeita."
+                                wire:click="deleteInstance('{{ $instance['name'] }}')"
+                                wire:confirm="Excluir permanentemente a instância {{ $instance['name'] }}? Esta ação não pode ser desfeita."
                             />
                         </div>
                     </div>
