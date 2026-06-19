@@ -26,7 +26,7 @@ class WhatsAppFlowExecutionResource extends Resource
 
     protected static ?string $navigationLabel = 'Execuções de Fluxo';
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 7;
 
     protected static ?string $modelLabel = 'execução de fluxo';
 

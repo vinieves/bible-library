@@ -67,11 +67,16 @@ class IntegrationSettings
             ->body(WhatsAppMessageEvent::PurchaseApproved);
     }
 
-    public static function evolutionConfigured(): bool
+    public static function evolutionApiReady(): bool
     {
         return filled(static::evolutionBaseUrl())
-            && filled(static::evolutionInstance())
             && filled(static::evolutionApiKey());
+    }
+
+    public static function evolutionConfigured(): bool
+    {
+        return static::evolutionApiReady()
+            && filled(static::evolutionInstance());
     }
 
     public static function regenerateWebhookSecret(): string
