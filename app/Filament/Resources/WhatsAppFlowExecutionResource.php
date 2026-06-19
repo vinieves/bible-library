@@ -2,12 +2,9 @@
 
 namespace App\Filament\Resources;
 
-use App\Enums\WhatsAppFlowExecutionLogStatus;
 use App\Enums\WhatsAppFlowExecutionStatus;
-use App\Enums\WhatsAppFlowStepType;
 use App\Filament\Resources\WhatsAppFlowExecutionResource\Pages;
 use App\Models\WhatsAppFlowExecution;
-use App\Models\WhatsAppFlowExecutionLog;
 use BackedEnum;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Textarea;
@@ -56,9 +53,10 @@ class WhatsAppFlowExecutionResource extends Resource
             ->components([
                 Section::make('Resumo')
                     ->schema([
-                        TextInput::make('flow.name')
+                        TextInput::make('flow_name')
                             ->label('Fluxo')
-                            ->disabled(),
+                            ->disabled()
+                            ->dehydrated(false),
                         TextInput::make('status')
                             ->label('Status')
                             ->formatStateUsing(fn ($state) => $state instanceof WhatsAppFlowExecutionStatus
@@ -73,15 +71,19 @@ class WhatsAppFlowExecutionResource extends Resource
                             ->disabled(),
                         TextInput::make('progress')
                             ->label('Passos')
-                            ->formatStateUsing(fn (?string $state, WhatsAppFlowExecution $record): string => "{$record->current_step}/{$record->total_steps}")
-                            ->disabled(),
+                            ->disabled()
+                            ->dehydrated(false),
                         TextInput::make('started_at')
                             ->label('Iniciado em')
-                            ->formatStateUsing(fn ($state) => $state?->format('d/m/Y H:i:s') ?? '—')
+                            ->formatStateUsing(fn ($state) => $state instanceof \DateTimeInterface
+                                ? $state->format('d/m/Y H:i:s')
+                                : (filled($state) ? (string) $state : '—'))
                             ->disabled(),
                         TextInput::make('completed_at')
                             ->label('Concluído em')
-                            ->formatStateUsing(fn ($state) => $state?->format('d/m/Y H:i:s') ?? '—')
+                            ->formatStateUsing(fn ($state) => $state instanceof \DateTimeInterface
+                                ? $state->format('d/m/Y H:i:s')
+                                : (filled($state) ? (string) $state : '—'))
                             ->disabled(),
                         Textarea::make('error_message')
                             ->label('Erro geral')
@@ -94,27 +96,9 @@ class WhatsAppFlowExecutionResource extends Resource
                     ->schema([
                         Textarea::make('steps_log')
                             ->label('')
-                            ->formatStateUsing(function (?string $state, WhatsAppFlowExecution $record): string {
-                                $lines = $record->logs
-                                    ->sortBy('step_order')
-                                    ->map(function (WhatsAppFlowExecutionLog $log): string {
-                                        $type = WhatsAppFlowStepType::tryFrom($log->step_type)?->label() ?? $log->step_type;
-                                        $status = $log->status instanceof WhatsAppFlowExecutionLogStatus
-                                            ? $log->status->label()
-                                            : (string) $log->status;
-                                        $http = $log->http_status ? "HTTP {$log->http_status}" : '—';
-                                        $error = $log->error_message ? " | Erro: {$log->error_message}" : '';
-                                        $response = filled($log->evolution_response)
-                                            ? "\n   Resposta: ".json_encode($log->evolution_response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
-                                            : '';
-
-                                        return "#{$log->step_order} {$type} — {$status} ({$http}){$error}{$response}";
-                                    });
-
-                                return $lines->isEmpty() ? 'Nenhum passo registrado.' : $lines->implode("\n\n");
-                            })
                             ->rows(16)
                             ->disabled()
+                            ->dehydrated(false)
                             ->columnSpanFull(),
                     ]),
             ]);
