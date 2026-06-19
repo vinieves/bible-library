@@ -40,4 +40,18 @@ class WhatsAppFlow extends Model
     {
         return $this->hasMany(WhatsAppFlowExecution::class, 'flow_id');
     }
+
+    protected static function booted(): void
+    {
+        static::saving(function (WhatsAppFlow $flow): void {
+            if ($flow->trigger_type !== WhatsAppFlowTriggerType::FirstMessage || ! $flow->is_active) {
+                return;
+            }
+
+            static::query()
+                ->where('trigger_type', WhatsAppFlowTriggerType::FirstMessage)
+                ->when($flow->exists, fn ($query) => $query->whereKeyNot($flow->id))
+                ->update(['is_active' => false]);
+        });
+    }
 }

@@ -45,6 +45,8 @@ class ExecuteWhatsAppFlowJob implements ShouldQueue
         ]);
 
         $steps = $execution->flow->steps;
+        $hadFailure = false;
+        $failureMessages = [];
 
         foreach ($steps as $step) {
             $execution->increment('current_step');
@@ -70,6 +72,9 @@ class ExecuteWhatsAppFlowJob implements ShouldQueue
             ]);
 
             if (! $result['success']) {
+                $hadFailure = true;
+                $failureMessages[] = "Passo {$step->order}: ".($result['error'] ?? 'erro desconhecido');
+
                 Log::warning('WhatsApp Flow passo falhou', [
                     'execution_id' => $execution->id,
                     'step_id' => $step->id,
@@ -79,7 +84,10 @@ class ExecuteWhatsAppFlowJob implements ShouldQueue
         }
 
         $execution->update([
-            'status' => WhatsAppFlowExecutionStatus::Completed,
+            'status' => $hadFailure
+                ? WhatsAppFlowExecutionStatus::Failed
+                : WhatsAppFlowExecutionStatus::Completed,
+            'error_message' => $hadFailure ? implode(' | ', $failureMessages) : null,
             'completed_at' => now(),
         ]);
     }

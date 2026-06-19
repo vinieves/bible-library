@@ -110,12 +110,37 @@ class WhatsAppFlowStepSenderService
      */
     private function sendMedia(WhatsAppFlowStep $step, string $phone, WhatsAppFlowStepType $type): array
     {
+        $mediaUrl = trim((string) ($step->media_url ?? $step->content ?? ''));
+
+        if (blank($mediaUrl)) {
+            return [
+                'success' => false,
+                'http_status' => 0,
+                'response' => null,
+                'error' => 'URL da mídia não informada.',
+            ];
+        }
+
+        $extension = $this->resolveMediaExtension($mediaUrl, $step->file_name);
+
+        if ($type === WhatsAppFlowStepType::Image && $extension === 'svg') {
+            return [
+                'success' => false,
+                'http_status' => 0,
+                'response' => null,
+                'error' => 'WhatsApp não suporta imagens SVG. Use JPG, PNG, GIF ou WEBP.',
+            ];
+        }
+
         $mediatype = match ($type) {
             WhatsAppFlowStepType::Image => 'image',
             WhatsAppFlowStepType::Video => 'video',
             WhatsAppFlowStepType::File => 'document',
             default => 'document',
         };
+
+        $mimetype = $this->resolveMimeType($type, $extension);
+        $fileName = $step->file_name ?: $this->resolveFileName($mediaUrl, $extension, $mediatype);
 
         $response = Http::timeout(30)
             ->withHeaders([
@@ -125,12 +150,58 @@ class WhatsAppFlowStepSenderService
             ->post("{$this->baseUrl}/message/sendMedia/{$this->instance}", [
                 'number' => $phone,
                 'mediatype' => $mediatype,
-                'media' => $step->media_url ?? $step->content,
+                'mimetype' => $mimetype,
+                'media' => $mediaUrl,
                 'caption' => $step->caption ?? '',
-                'fileName' => $step->file_name ?? '',
+                'fileName' => $fileName,
             ]);
 
         return $this->parseResponse($response);
+    }
+
+    private function resolveMediaExtension(string $mediaUrl, ?string $fileName): string
+    {
+        $path = $fileName ?: (parse_url($mediaUrl, PHP_URL_PATH) ?? '');
+
+        return strtolower(pathinfo($path, PATHINFO_EXTENSION));
+    }
+
+    private function resolveMimeType(WhatsAppFlowStepType $type, string $extension): string
+    {
+        return match ($extension) {
+            'jpg', 'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+            'webp' => 'image/webp',
+            'mp4' => 'video/mp4',
+            'webm' => 'video/webm',
+            'pdf' => 'application/pdf',
+            'mp3' => 'audio/mpeg',
+            'ogg' => 'audio/ogg',
+            default => match ($type) {
+                WhatsAppFlowStepType::Image => 'image/jpeg',
+                WhatsAppFlowStepType::Video => 'video/mp4',
+                WhatsAppFlowStepType::File => 'application/pdf',
+                default => 'application/octet-stream',
+            },
+        };
+    }
+
+    private function resolveFileName(string $mediaUrl, string $extension, string $mediatype): string
+    {
+        $basename = basename(parse_url($mediaUrl, PHP_URL_PATH) ?? '');
+
+        if (filled($basename) && str_contains($basename, '.')) {
+            return $basename;
+        }
+
+        $fallbackExtension = $extension ?: match ($mediatype) {
+            'image' => 'jpg',
+            'video' => 'mp4',
+            default => 'bin',
+        };
+
+        return "media.{$fallbackExtension}";
     }
 
     /**

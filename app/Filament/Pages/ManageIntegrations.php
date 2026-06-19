@@ -122,6 +122,14 @@ class ManageIntegrations extends Page
                             ->password()
                             ->revealable()
                             ->helperText('Se deixar em branco ao salvar, o valor anterior é mantido.'),
+                        TextInput::make('evolution_webhook_url')
+                            ->label('URL webhook Evolution (fluxos / primeira mensagem)')
+                            ->default(fn (): string => IntegrationSettings::evolutionWebhookUrl())
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->copyable(copyMessage: 'URL copiada')
+                            ->helperText('Evento MESSAGES_UPSERT. Registre em Fluxos → editar fluxo de primeira mensagem.')
+                            ->columnSpanFull(),
                     ]),
             ]);
     }

@@ -94,6 +94,28 @@ class PhoneNumber
         return strlen($local) >= 12 ? $local : null;
     }
 
+    public static function fromRemoteJid(?string $jid): ?string
+    {
+        if (blank($jid)) {
+            return null;
+        }
+
+        $jid = strtolower(trim($jid));
+
+        if (
+            str_contains($jid, '@g.us')
+            || str_contains($jid, '@broadcast')
+            || str_contains($jid, 'status@')
+            || str_ends_with($jid, '@newsletter')
+        ) {
+            return null;
+        }
+
+        $userPart = explode('@', $jid, 2)[0] ?? '';
+
+        return self::normalize($userPart);
+    }
+
     private static function digitsOnly(string $value): string
     {
         return preg_replace('/\D+/', '', $value) ?? '';

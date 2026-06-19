@@ -32,6 +32,11 @@ class IntegrationSettings
         return url('/api/webhooks/'.$platform->value);
     }
 
+    public static function evolutionWebhookUrl(): string
+    {
+        return url('/api/webhooks/evolution');
+    }
+
     public static function whatsappEnabled(): bool
     {
         return filter_var(Setting::get('whatsapp_enabled', '0'), FILTER_VALIDATE_BOOL);
