@@ -27,6 +27,13 @@ class ProcessEvolutionInboundMessageJob implements ShouldQueue
         $message = EvolutionInboundMessageData::fromPayload($this->payload);
 
         if (! $message) {
+            Log::warning('Webhook Evolution ignorado: evento/payload inválido para primeira mensagem.', [
+                'event' => $this->payload['event'] ?? null,
+                'instance' => $this->payload['instance'] ?? null,
+                'from_me' => data_get($this->payload, 'data.key.fromMe'),
+                'status' => data_get($this->payload, 'data.status'),
+            ]);
+
             return;
         }
 

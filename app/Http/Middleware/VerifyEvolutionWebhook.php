@@ -83,7 +83,7 @@ class VerifyEvolutionWebhook
             return false;
         }
 
-        if ($payloadInstance !== $configuredInstance) {
+        if ($payloadInstance !== $configuredInstance && strcasecmp($payloadInstance, $configuredInstance) !== 0) {
             return false;
         }
 
