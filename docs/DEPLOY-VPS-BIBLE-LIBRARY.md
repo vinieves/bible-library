@@ -193,6 +193,7 @@ Ajuste também o **Nginx** (obrigatório para uploads de vídeo — sem isso ret
 
 ```bash
 # Site da aplicação
+apt install nginx
 grep -n client_max_body_size /etc/nginx/sites-available/bible-library || true
 sed -i 's/client_max_body_size .*/client_max_body_size 2048M;/' /etc/nginx/sites-available/bible-library
 
@@ -223,10 +224,10 @@ composer --version
 ### Node.js 20
 
 ```bash
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-apt install -y nodejs
-node -v
-npm -v
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+    apt install -y nodejs
+    node -v
+    npm -v
 ```
 
 ### MySQL 8
@@ -505,10 +506,10 @@ php artisan filament:optimize
 ### Permissões finais do storage
 
 ```bash
-chown -R www-data:www-data /var/www/bible-library/storage
-chown -R www-data:www-data /var/www/bible-library/bootstrap/cache
-chmod -R 775 /var/www/bible-library/storage
-chmod -R 775 /var/www/bible-library/bootstrap/cache
+    chown -R www-data:www-data /var/www/bible-library/storage
+    chown -R www-data:www-data /var/www/bible-library/bootstrap/cache
+    chmod -R 775 /var/www/bible-library/storage
+    chmod -R 775 /var/www/bible-library/bootstrap/cache
 ```
 
 ---
