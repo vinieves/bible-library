@@ -31,7 +31,9 @@ class ManageInstances extends Page
     /** @var list<array{name: string, state: string, instanceId: ?string, profileName: ?string, ownerJid: ?string, stateLabel: string, stateColor: string}> */
     public array $instances = [];
 
-    public ?string $activeInstance = null;
+    public ?string $messagesInstance = null;
+
+    public ?string $flowsInstance = null;
 
     public ?string $qrInstance = null;
 
@@ -50,7 +52,8 @@ class ManageInstances extends Page
 
     public function mount(EvolutionInstanceService $instances): void
     {
-        $this->activeInstance = IntegrationSettings::evolutionInstance();
+        $this->messagesInstance = IntegrationSettings::evolutionInstanceForMessages();
+        $this->flowsInstance = IntegrationSettings::evolutionInstanceForFlows();
         $this->createData = ['instance_name' => ''];
 
         $this->loadInstances($instances);
@@ -66,7 +69,8 @@ class ManageInstances extends Page
 
         try {
             $this->instances = $this->serializeInstances($instances->fetchAll());
-            $this->activeInstance = IntegrationSettings::evolutionInstance();
+            $this->messagesInstance = IntegrationSettings::evolutionInstanceForMessages();
+            $this->flowsInstance = IntegrationSettings::evolutionInstanceForFlows();
         } catch (\Throwable $exception) {
             $this->instances = [];
 
@@ -124,14 +128,27 @@ class ManageInstances extends Page
         $this->qrPairingCode = null;
     }
 
-    public function setActiveInstance(string $instanceName): void
+    public function setInstanceForMessages(string $instanceName): void
     {
+        Setting::set('evolution_instance_messages', $instanceName);
         Setting::set('evolution_instance', $instanceName);
-        $this->activeInstance = $instanceName;
+        $this->messagesInstance = $instanceName;
 
         Notification::make()
-            ->title('Instância ativa definida')
-            ->body("Mensagens e fluxos usarão: {$instanceName}")
+            ->title('Instância de mensagens definida')
+            ->body("Disparos Hotmart e testes usarão: {$instanceName}")
+            ->success()
+            ->send();
+    }
+
+    public function setInstanceForFlows(string $instanceName): void
+    {
+        Setting::set('evolution_instance_flows', $instanceName);
+        $this->flowsInstance = $instanceName;
+
+        Notification::make()
+            ->title('Instância padrão de fluxos definida')
+            ->body("Fluxos sem instância própria usarão: {$instanceName}")
             ->success()
             ->send();
     }
@@ -181,9 +198,15 @@ class ManageInstances extends Page
         try {
             $instances->delete($instanceName);
 
-            if ($this->activeInstance === $instanceName) {
+            if ($this->messagesInstance === $instanceName) {
+                Setting::set('evolution_instance_messages', '');
                 Setting::set('evolution_instance', '');
-                $this->activeInstance = null;
+                $this->messagesInstance = null;
+            }
+
+            if ($this->flowsInstance === $instanceName) {
+                Setting::set('evolution_instance_flows', '');
+                $this->flowsInstance = null;
             }
 
             if ($this->qrInstance === $instanceName) {
@@ -232,9 +255,15 @@ class ManageInstances extends Page
             $this->createData['instance_name'] = '';
             $this->loadInstances($instances);
 
-            if (blank($this->activeInstance)) {
+            if (blank($this->messagesInstance)) {
+                Setting::set('evolution_instance_messages', $result['instanceName']);
                 Setting::set('evolution_instance', $result['instanceName']);
-                $this->activeInstance = $result['instanceName'];
+                $this->messagesInstance = $result['instanceName'];
+            }
+
+            if (blank($this->flowsInstance)) {
+                Setting::set('evolution_instance_flows', $result['instanceName']);
+                $this->flowsInstance = $result['instanceName'];
             }
 
             Notification::make()
@@ -289,7 +318,8 @@ class ManageInstances extends Page
                                 'apiReady' => IntegrationSettings::evolutionApiReady(),
                                 'configured' => IntegrationSettings::evolutionConfigured(),
                                 'baseUrl' => IntegrationSettings::evolutionBaseUrl(),
-                                'activeInstance' => $this->activeInstance,
+                                'messagesInstance' => $this->messagesInstance,
+                                'flowsInstance' => $this->flowsInstance,
                             ]),
                     ]),
                 Section::make('Instâncias')
@@ -297,7 +327,8 @@ class ManageInstances extends Page
                         View::make('filament.pages.manage-instances-list')
                             ->viewData(fn (): array => [
                                 'instances' => $this->instances,
-                                'activeInstance' => $this->activeInstance,
+                                'messagesInstance' => $this->messagesInstance,
+                                'flowsInstance' => $this->flowsInstance,
                                 'apiReady' => IntegrationSettings::evolutionApiReady(),
                             ]),
                     ]),

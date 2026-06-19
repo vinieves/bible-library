@@ -12,10 +12,10 @@ class EvolutionWebhookRegistrationService
     /**
      * @return array{success: bool, http_status: int, body: array|string|null, message: string}
      */
-    public function registerInstanceWebhook(): array
+    public function registerInstanceWebhook(?string $instanceName = null): array
     {
         $baseUrl = IntegrationSettings::evolutionBaseUrl();
-        $instance = IntegrationSettings::evolutionInstance();
+        $instance = $instanceName ?: IntegrationSettings::evolutionInstanceForFlows();
         $apiKey = IntegrationSettings::evolutionApiKey();
         $webhookUrl = IntegrationSettings::evolutionWebhookUrl();
 
@@ -94,10 +94,10 @@ class EvolutionWebhookRegistrationService
     /**
      * @return array{enabled: bool, url: ?string, events: array<int, string>}|null
      */
-    public function findInstanceWebhook(): ?array
+    public function findInstanceWebhook(?string $instanceName = null): ?array
     {
         $baseUrl = IntegrationSettings::evolutionBaseUrl();
-        $instance = IntegrationSettings::evolutionInstance();
+        $instance = $instanceName ?: IntegrationSettings::evolutionInstanceForFlows();
         $apiKey = IntegrationSettings::evolutionApiKey();
 
         if (! $baseUrl || ! $instance || ! $apiKey) {

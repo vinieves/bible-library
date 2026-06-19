@@ -23,6 +23,8 @@ class SettingSeeder extends Seeder
             ['key' => 'whatsapp_enabled', 'value' => '0', 'type' => 'boolean', 'group' => 'integrations'],
             ['key' => 'evolution_base_url', 'value' => '', 'type' => 'url', 'group' => 'integrations'],
             ['key' => 'evolution_instance', 'value' => '', 'type' => 'text', 'group' => 'integrations'],
+            ['key' => 'evolution_instance_messages', 'value' => '', 'type' => 'text', 'group' => 'integrations'],
+            ['key' => 'evolution_instance_flows', 'value' => '', 'type' => 'text', 'group' => 'integrations'],
             ['key' => 'evolution_api_key', 'value' => '', 'type' => 'encrypted', 'group' => 'integrations'],
             ['key' => 'webhook_secret', 'value' => '', 'type' => 'encrypted', 'group' => 'integrations'],
             ['key' => 'hotmart_hottok', 'value' => '', 'type' => 'encrypted', 'group' => 'integrations'],

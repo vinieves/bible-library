@@ -18,8 +18,14 @@ class WhatsAppFlowService
         string $trigger = 'manual',
         ?int $userId = null,
     ): WhatsAppFlowExecution {
-        if (! IntegrationSettings::evolutionConfigured()) {
+        if (! IntegrationSettings::evolutionApiReady()) {
             throw new RuntimeException('Evolution API não configurada no painel admin.');
+        }
+
+        $instanceName = $flow->resolveInstanceName();
+
+        if (blank($instanceName)) {
+            throw new RuntimeException('Defina a instância WhatsApp deste fluxo ou configure o padrão em Integrações API.');
         }
 
         $normalized = PhoneNumber::normalize($phone);
@@ -38,6 +44,7 @@ class WhatsAppFlowService
             'phone_normalized' => $normalized,
             'user_id' => $userId,
             'trigger' => $trigger,
+            'instance_name' => $instanceName,
             'status' => WhatsAppFlowExecutionStatus::Pending,
             'current_step' => 0,
             'total_steps' => $flow->steps()->count(),

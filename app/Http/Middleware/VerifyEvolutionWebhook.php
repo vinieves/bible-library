@@ -75,18 +75,19 @@ class VerifyEvolutionWebhook
 
     private function isTrustedEvolutionInstancePayload(Request $request): bool
     {
-        $configuredInstance = IntegrationSettings::evolutionInstance();
         $payloadInstance = trim((string) $request->input('instance', ''));
         $event = strtoupper(str_replace('.', '_', (string) $request->input('event', '')));
 
-        if (blank($configuredInstance) || blank($payloadInstance) || blank($event)) {
+        if (blank($payloadInstance) || blank($event)) {
             return false;
         }
 
-        if ($payloadInstance !== $configuredInstance && strcasecmp($payloadInstance, $configuredInstance) !== 0) {
-            return false;
+        foreach (IntegrationSettings::trustedEvolutionInstances() as $trustedInstance) {
+            if (strcasecmp($payloadInstance, $trustedInstance) === 0) {
+                return $request->has('data') || $request->has('date_time') || $request->has('server_url');
+            }
         }
 
-        return $request->has('data') || $request->has('date_time') || $request->has('server_url');
+        return false;
     }
 }

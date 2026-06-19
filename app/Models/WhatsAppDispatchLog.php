@@ -17,6 +17,7 @@ class WhatsAppDispatchLog extends Model
     protected $fillable = [
         'trigger',
         'message_event',
+        'instance_name',
         'status',
         'phone',
         'phone_normalized',

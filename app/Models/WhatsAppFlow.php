@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\WhatsAppFlowStatus;
 use App\Enums\WhatsAppFlowTriggerType;
+use App\Support\IntegrationSettings;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -18,6 +19,7 @@ class WhatsAppFlow extends Model
         'trigger_type',
         'trigger_event',
         'is_active',
+        'instance_name',
         'steps_count',
     ];
 
@@ -39,6 +41,15 @@ class WhatsAppFlow extends Model
     public function executions(): HasMany
     {
         return $this->hasMany(WhatsAppFlowExecution::class, 'flow_id');
+    }
+
+    public function resolveInstanceName(): ?string
+    {
+        if (filled($this->instance_name)) {
+            return (string) $this->instance_name;
+        }
+
+        return IntegrationSettings::evolutionInstanceForFlows();
     }
 
     protected static function booted(): void

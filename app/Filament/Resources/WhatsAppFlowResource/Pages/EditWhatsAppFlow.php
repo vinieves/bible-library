@@ -26,12 +26,24 @@ class EditWhatsAppFlow extends EditRecord
                 ->modalHeading('Registrar webhook MESSAGES_UPSERT')
                 ->modalDescription('Isso configura a Evolution API para enviar mensagens recebidas para o Bible Library. A URL usada é a exibida nas configurações do fluxo.')
                 ->action(function (EvolutionWebhookRegistrationService $registration): void {
-                    $result = $registration->registerInstanceWebhook();
+                    $instanceName = $this->record?->resolveInstanceName();
+
+                    if (blank($instanceName)) {
+                        Notification::make()
+                            ->title('Defina a instância do fluxo')
+                            ->body('Salve o fluxo com a instância WhatsApp antes de registrar o webhook.')
+                            ->warning()
+                            ->send();
+
+                        return;
+                    }
+
+                    $result = $registration->registerInstanceWebhook($instanceName);
 
                     if ($result['success']) {
                         Notification::make()
                             ->title('Webhook registrado')
-                            ->body($result['message'])
+                            ->body("Instância {$instanceName}: {$result['message']}")
                             ->success()
                             ->send();
 

@@ -114,6 +114,7 @@ class SendWelcomeWhatsAppJob implements ShouldBeUnique, ShouldQueue
 
         try {
             $result = $evolutionApi->sendText($phoneNormalized, $message);
+            $instanceName = $result['instance'] ?? null;
 
             $dispatchLog->recordSuccess(
                 trigger: $this->trigger,
@@ -127,6 +128,7 @@ class SendWelcomeWhatsAppJob implements ShouldBeUnique, ShouldQueue
                 evolutionResponse: $result,
                 attempt: $attempt,
                 httpStatus: $result['http_status'] ?? null,
+                instanceName: $instanceName,
             );
 
             Log::info('WhatsApp enviado.', [

@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Enums\WebhookPlatform;
 use App\Enums\WhatsAppMessageEvent;
+use App\Models\WhatsAppFlow;
 use App\Services\WhatsAppMessageTemplateService;
 use App\Models\Setting;
 use Illuminate\Support\Str;
@@ -51,9 +52,42 @@ class IntegrationSettings
 
     public static function evolutionInstance(): ?string
     {
-        $instance = Setting::get('evolution_instance');
+        return static::evolutionInstanceForMessages();
+    }
+
+    public static function evolutionInstanceForMessages(): ?string
+    {
+        $instance = Setting::get('evolution_instance_messages') ?: Setting::get('evolution_instance');
 
         return filled($instance) ? (string) $instance : null;
+    }
+
+    public static function evolutionInstanceForFlows(): ?string
+    {
+        $instance = Setting::get('evolution_instance_flows') ?: Setting::get('evolution_instance');
+
+        return filled($instance) ? (string) $instance : null;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function trustedEvolutionInstances(): array
+    {
+        $fromSettings = array_filter([
+            static::evolutionInstanceForMessages(),
+            static::evolutionInstanceForFlows(),
+            filled(Setting::get('evolution_instance')) ? (string) Setting::get('evolution_instance') : null,
+        ]);
+
+        $fromFlows = WhatsAppFlow::query()
+            ->where('is_active', true)
+            ->whereNotNull('instance_name')
+            ->where('instance_name', '!=', '')
+            ->pluck('instance_name')
+            ->all();
+
+        return array_values(array_unique([...$fromSettings, ...$fromFlows]));
     }
 
     public static function evolutionApiKey(): ?string
@@ -76,7 +110,13 @@ class IntegrationSettings
     public static function evolutionConfigured(): bool
     {
         return static::evolutionApiReady()
-            && filled(static::evolutionInstance());
+            && filled(static::evolutionInstanceForMessages());
+    }
+
+    public static function evolutionConfiguredForFlows(): bool
+    {
+        return static::evolutionApiReady()
+            && filled(static::evolutionInstanceForFlows());
     }
 
     public static function regenerateWebhookSecret(): string

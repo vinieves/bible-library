@@ -23,11 +23,25 @@ class ExecuteWhatsAppFlowJob implements ShouldQueue
 
     public function __construct(private readonly int $executionId) {}
 
-    public function handle(WhatsAppFlowStepSenderService $sender): void
+    public function handle(): void
     {
         $execution = WhatsAppFlowExecution::query()
             ->with(['flow.steps'])
             ->findOrFail($this->executionId);
+
+        $instanceName = $execution->instance_name ?: $execution->flow?->resolveInstanceName();
+
+        if (blank($instanceName)) {
+            $execution->update([
+                'status' => WhatsAppFlowExecutionStatus::Failed,
+                'error_message' => 'Instância WhatsApp não definida para esta execução.',
+                'completed_at' => now(),
+            ]);
+
+            return;
+        }
+
+        $sender = new WhatsAppFlowStepSenderService($instanceName);
 
         if (blank($execution->phone_normalized)) {
             $execution->update([

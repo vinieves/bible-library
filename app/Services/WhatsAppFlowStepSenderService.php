@@ -18,10 +18,10 @@ class WhatsAppFlowStepSenderService
 
     private string $apiKey;
 
-    public function __construct()
+    public function __construct(?string $instanceName = null)
     {
         $baseUrl = IntegrationSettings::evolutionBaseUrl();
-        $instance = IntegrationSettings::evolutionInstance();
+        $instance = $instanceName ?: IntegrationSettings::evolutionInstanceForFlows();
         $apiKey = IntegrationSettings::evolutionApiKey();
 
         if (! $baseUrl || ! $instance || ! $apiKey) {
@@ -31,6 +31,11 @@ class WhatsAppFlowStepSenderService
         $this->baseUrl = rtrim($baseUrl, '/');
         $this->instance = $instance;
         $this->apiKey = $apiKey;
+    }
+
+    public function instanceName(): string
+    {
+        return $this->instance;
     }
 
     /**

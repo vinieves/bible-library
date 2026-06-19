@@ -4,10 +4,12 @@ namespace App\Filament\Pages;
 
 use App\Enums\WebhookPlatform;
 use App\Models\Setting;
+use App\Support\EvolutionInstanceOptions;
 use App\Support\IntegrationSettings;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
@@ -46,7 +48,8 @@ class ManageIntegrations extends Page
             'generic_webhook_url' => IntegrationSettings::webhookUrl(WebhookPlatform::Generic),
             'whatsapp_enabled' => IntegrationSettings::whatsappEnabled(),
             'evolution_base_url' => Setting::get('evolution_base_url'),
-            'evolution_instance' => Setting::get('evolution_instance'),
+            'evolution_instance_messages' => Setting::get('evolution_instance_messages') ?: Setting::get('evolution_instance'),
+            'evolution_instance_flows' => Setting::get('evolution_instance_flows') ?: Setting::get('evolution_instance'),
         ]);
     }
 
@@ -114,9 +117,26 @@ class ManageIntegrations extends Page
                             ->label('URL base Evolution API')
                             ->placeholder('https://wpp.seudominio.com')
                             ->url(),
-                        TextInput::make('evolution_instance')
-                            ->label('Nome da instância')
-                            ->placeholder('biblioteca'),
+                        Select::make('evolution_instance_messages')
+                            ->label('Instância — Mensagens Hotmart')
+                            ->options(fn (): array => EvolutionInstanceOptions::selectOptions(
+                                Setting::get('evolution_instance_messages'),
+                                Setting::get('evolution_instance'),
+                            ))
+                            ->searchable()
+                            ->native(false)
+                            ->placeholder('Selecione a instância')
+                            ->helperText('Usada nos disparos automáticos de venda e no botão Enviar teste em Mensagens.'),
+                        Select::make('evolution_instance_flows')
+                            ->label('Instância padrão — Fluxos')
+                            ->options(fn (): array => EvolutionInstanceOptions::selectOptions(
+                                Setting::get('evolution_instance_flows'),
+                                Setting::get('evolution_instance'),
+                            ))
+                            ->searchable()
+                            ->native(false)
+                            ->placeholder('Selecione a instância')
+                            ->helperText('Padrão para fluxos sem instância própria. Cada fluxo pode sobrescrever em Fluxos.'),
                         TextInput::make('evolution_api_key')
                             ->label('API Key')
                             ->password()
@@ -148,7 +168,9 @@ class ManageIntegrations extends Page
 
         Setting::set('whatsapp_enabled', ! empty($data['whatsapp_enabled']) ? '1' : '0');
         Setting::set('evolution_base_url', $data['evolution_base_url'] ?? '');
-        Setting::set('evolution_instance', $data['evolution_instance'] ?? '');
+        Setting::set('evolution_instance_messages', $data['evolution_instance_messages'] ?? '');
+        Setting::set('evolution_instance_flows', $data['evolution_instance_flows'] ?? '');
+        Setting::set('evolution_instance', $data['evolution_instance_messages'] ?? '');
 
         if (filled($data['evolution_api_key'] ?? null)) {
             Setting::setEncrypted('evolution_api_key', $data['evolution_api_key']);

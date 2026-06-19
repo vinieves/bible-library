@@ -85,6 +85,11 @@ class ManageMessages extends Page
                         ->content(fn (): HtmlString => IntegrationSettings::evolutionConfigured()
                             ? new HtmlString('<span class="text-success-600 dark:text-success-400">Configurada.</span>')
                             : new HtmlString('<span class="text-danger-600 dark:text-danger-400">Não configurada — vá em <strong>Integrações API</strong>.</span>')),
+                    Placeholder::make('messages_instance_status')
+                        ->label('Instância de envio (Mensagens)')
+                        ->content(fn (): HtmlString => filled(IntegrationSettings::evolutionInstanceForMessages())
+                            ? new HtmlString('<span class="text-success-600 dark:text-success-400">'.e(IntegrationSettings::evolutionInstanceForMessages()).'</span> — altere em <strong>Integrações API</strong> ou <strong>Instâncias</strong>.')
+                            : new HtmlString('<span class="text-warning-600 dark:text-warning-400">Não definida — configure em Integrações API ou Instâncias.</span>')),
                     Placeholder::make('whatsapp_global_status')
                         ->label('Disparo automático global')
                         ->content(fn (): HtmlString => IntegrationSettings::whatsappEnabled()

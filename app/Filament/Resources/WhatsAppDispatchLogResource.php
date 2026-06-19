@@ -62,6 +62,9 @@ class WhatsAppDispatchLogResource extends Resource
                                 ? $state->conditionLabel()
                                 : WhatsAppMessageEvent::tryFrom((string) $state)?->conditionLabel() ?? $state)
                             ->disabled(),
+                        TextInput::make('instance_name')
+                            ->label('Instância WhatsApp')
+                            ->disabled(),
                         TextInput::make('trigger')
                             ->label('Canal')
                             ->formatStateUsing(fn ($state) => $state instanceof WhatsAppDispatchTrigger
@@ -152,6 +155,12 @@ class WhatsAppDispatchLogResource extends Resource
                         $record->trigger,
                     ))
                     ->sortable(),
+                TextColumn::make('instance_name')
+                    ->label('Instância')
+                    ->badge()
+                    ->color('gray')
+                    ->placeholder('—')
+                    ->toggleable(),
                 TextColumn::make('status')
                     ->label('Resultado')
                     ->badge()

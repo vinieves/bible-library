@@ -6,6 +6,7 @@ use App\Enums\WhatsAppDispatchStatus;
 use App\Enums\WhatsAppDispatchTrigger;
 use App\Enums\WhatsAppMessageEvent;
 use App\Models\WhatsAppDispatchLog;
+use App\Support\IntegrationSettings;
 use Throwable;
 
 class WhatsAppDispatchLogService
@@ -22,10 +23,12 @@ class WhatsAppDispatchLogService
         array $evolutionResponse,
         int $attempt = 1,
         ?int $httpStatus = null,
+        ?string $instanceName = null,
     ): WhatsAppDispatchLog {
         return $this->create([
             'trigger' => $trigger,
             'message_event' => $messageEvent->value,
+            'instance_name' => $instanceName ?: IntegrationSettings::evolutionInstanceForMessages(),
             'status' => WhatsAppDispatchStatus::Sent,
             'phone' => $phone,
             'phone_normalized' => $phoneNormalized,
@@ -52,10 +55,12 @@ class WhatsAppDispatchLogService
         int $attempt = 1,
         ?int $httpStatus = null,
         ?array $evolutionResponse = null,
+        ?string $instanceName = null,
     ): WhatsAppDispatchLog {
         return $this->create([
             'trigger' => $trigger,
             'message_event' => $messageEvent->value,
+            'instance_name' => $instanceName ?: IntegrationSettings::evolutionInstanceForMessages(),
             'status' => WhatsAppDispatchStatus::Failed,
             'phone' => $phone,
             'phone_normalized' => $phoneNormalized,
@@ -81,6 +86,7 @@ class WhatsAppDispatchLogService
         ?string $message,
         Throwable $exception,
         int $attempt = 1,
+        ?string $instanceName = null,
     ): WhatsAppDispatchLog {
         $httpStatus = $this->extractHttpStatus($exception->getMessage());
 
@@ -96,6 +102,7 @@ class WhatsAppDispatchLogService
             errorMessage: $exception->getMessage(),
             attempt: $attempt,
             httpStatus: $httpStatus,
+            instanceName: $instanceName,
         );
     }
 

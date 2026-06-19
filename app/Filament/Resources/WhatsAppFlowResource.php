@@ -8,6 +8,7 @@ use App\Enums\WhatsAppFlowTriggerType;
 use App\Filament\Resources\WhatsAppFlowResource\Pages;
 use App\Models\WhatsAppFlow;
 use App\Services\WhatsAppFlowService;
+use App\Support\EvolutionInstanceOptions;
 use App\Support\IntegrationSettings;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -120,6 +121,17 @@ class WhatsAppFlowResource extends Resource
                                 ? 'Ative para responder automaticamente a novos contatos do anúncio (Facebook → WhatsApp).'
                                 : 'Somente fluxos ativos são disparados automaticamente')
                             ->default(false),
+                        Select::make('instance_name')
+                            ->label('Instância WhatsApp')
+                            ->options(fn (): array => EvolutionInstanceOptions::selectOptions())
+                            ->searchable()
+                            ->native(false)
+                            ->placeholder(fn (): string => 'Padrão: '.(IntegrationSettings::evolutionInstanceForFlows() ?: 'não definida'))
+                            ->helperText(fn (Get $get): string => $get('trigger_type') === WhatsAppFlowTriggerType::FirstMessage->value
+                                ? 'Número que receberá mensagens e enviará este fluxo. Deve coincidir com o webhook registrado na Evolution.'
+                                : 'Instância que enviará os passos deste fluxo. Vazio usa o padrão de Integrações API.')
+                            ->required(fn (Get $get): bool => (bool) $get('is_active'))
+                            ->columnSpanFull(),
                     ])
                     ->columns(2)
                     ->collapsible(),
@@ -261,6 +273,14 @@ class WhatsAppFlowResource extends Resource
                     ->formatStateUsing(fn ($state) => $state instanceof WhatsAppFlowTriggerType
                         ? $state->label()
                         : WhatsAppFlowTriggerType::tryFrom((string) $state)?->label() ?? $state),
+                TextColumn::make('instance_name')
+                    ->label('Instância')
+                    ->placeholder(fn (WhatsAppFlow $record): string => $record->resolveInstanceName() ?: '—')
+                    ->formatStateUsing(fn (?string $state, WhatsAppFlow $record): string => filled($state)
+                        ? $state
+                        : ($record->resolveInstanceName() ?: '—'))
+                    ->badge()
+                    ->color('gray'),
                 IconColumn::make('is_active')
                     ->label('Ativo')
                     ->boolean(),
@@ -277,7 +297,7 @@ class WhatsAppFlowResource extends Resource
                     ->label('Enviar Teste')
                     ->icon('heroicon-o-paper-airplane')
                     ->color('warning')
-                    ->visible(fn (): bool => IntegrationSettings::evolutionConfigured())
+                    ->visible(fn (): bool => IntegrationSettings::evolutionApiReady())
                     ->schema([
                         TextInput::make('phone')
                             ->label('Número de telefone')

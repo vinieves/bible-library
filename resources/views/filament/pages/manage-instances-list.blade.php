@@ -21,7 +21,8 @@
     @else
         @forelse ($instances as $instance)
             @php
-                $isActive = $activeInstance === $instance['name'];
+                $isMessagesInstance = $messagesInstance === $instance['name'];
+                $isFlowsInstance = $flowsInstance === $instance['name'];
                 $isConnected = in_array(strtolower($instance['state']), ['open'], true);
                 $needsConnect = in_array(strtolower($instance['state']), ['close', 'closed', 'connecting', 'unknown'], true);
             @endphp
@@ -42,9 +43,15 @@
                                     {{ $instance['stateLabel'] }}
                                 </x-filament::badge>
 
-                                @if ($isActive)
+                                @if ($isMessagesInstance)
                                     <x-filament::badge color="info" size="sm">
-                                        Instância ativa
+                                        Mensagens
+                                    </x-filament::badge>
+                                @endif
+
+                                @if ($isFlowsInstance)
+                                    <x-filament::badge color="warning" size="sm">
+                                        Fluxos (padrão)
                                     </x-filament::badge>
                                 @endif
                             </div>
@@ -71,14 +78,26 @@
                         </div>
 
                         <div class="mm-instance-card__controls">
-                            @if (! $isActive && $isConnected)
-                                <x-filament::button
-                                    color="primary"
-                                    size="xs"
-                                    wire:click="setActiveInstance('{{ $instance['name'] }}')"
-                                >
-                                    Usar esta
-                                </x-filament::button>
+                            @if ($isConnected)
+                                @if (! $isMessagesInstance)
+                                    <x-filament::button
+                                        color="primary"
+                                        size="xs"
+                                        wire:click="setInstanceForMessages('{{ $instance['name'] }}')"
+                                    >
+                                        Mensagens
+                                    </x-filament::button>
+                                @endif
+
+                                @if (! $isFlowsInstance)
+                                    <x-filament::button
+                                        color="gray"
+                                        size="xs"
+                                        wire:click="setInstanceForFlows('{{ $instance['name'] }}')"
+                                    >
+                                        Fluxos
+                                    </x-filament::button>
+                                @endif
                             @endif
 
                             @if ($needsConnect)

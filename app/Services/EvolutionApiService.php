@@ -9,17 +9,17 @@ use RuntimeException;
 
 class EvolutionApiService
 {
-    public function sendText(string $phone, string $message): array
+    public function sendText(string $phone, string $message, ?string $instanceName = null): array
     {
         $baseUrl = IntegrationSettings::evolutionBaseUrl();
-        $instance = IntegrationSettings::evolutionInstance();
+        $instance = $instanceName ?: IntegrationSettings::evolutionInstanceForMessages();
         $apiKey = IntegrationSettings::evolutionApiKey();
 
         if (! $baseUrl || ! $instance || ! $apiKey) {
             throw new RuntimeException('Evolution API não configurada no painel admin.');
         }
 
-        $endpoint = "{$baseUrl}/message/sendText/{$instance}";
+        $endpoint = rtrim($baseUrl, '/')."/message/sendText/{$instance}";
 
         $response = Http::timeout(20)
             ->withHeaders([
@@ -34,6 +34,7 @@ class EvolutionApiService
         if (! $response->successful()) {
             Log::error('Evolution API falhou ao enviar mensagem.', [
                 'phone' => $phone,
+                'instance' => $instance,
                 'status' => $response->status(),
                 'body' => $response->body(),
             ]);
@@ -46,6 +47,7 @@ class EvolutionApiService
         return [
             'http_status' => $response->status(),
             'body' => $response->json() ?? [],
+            'instance' => $instance,
         ];
     }
 }

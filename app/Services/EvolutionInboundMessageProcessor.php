@@ -6,7 +6,6 @@ use App\DataTransferObjects\EvolutionInboundMessageData;
 use App\Enums\WhatsAppFlowTriggerType;
 use App\Models\WhatsAppFlow;
 use App\Models\WhatsAppInboundContact;
-use App\Support\IntegrationSettings;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -19,26 +18,12 @@ class EvolutionInboundMessageProcessor
 
     public function process(EvolutionInboundMessageData $message): void
     {
-        $configuredInstance = IntegrationSettings::evolutionInstance();
-
-        if ($configuredInstance && filled($message->instance) && $message->instance !== $configuredInstance) {
-            Log::info('Webhook Evolution ignorado: instância diferente da configurada.', [
-                'received_instance' => $message->instance,
-                'configured_instance' => $configuredInstance,
-            ]);
-
-            return;
-        }
-
-        $flow = WhatsAppFlow::query()
-            ->where('trigger_type', WhatsAppFlowTriggerType::FirstMessage)
-            ->where('is_active', true)
-            ->where('steps_count', '>', 0)
-            ->first();
+        $flow = $this->resolveFlowForInstance($message->instance);
 
         if (! $flow) {
-            Log::info('Primeira mensagem recebida, mas nenhum fluxo ativo configurado.', [
+            Log::info('Primeira mensagem recebida, mas nenhum fluxo ativo para esta instância.', [
                 'phone' => $message->phoneNormalized,
+                'instance' => $message->instance,
             ]);
 
             return;
@@ -76,6 +61,7 @@ class EvolutionInboundMessageProcessor
                 Log::warning('Falha ao enfileirar fluxo de primeira mensagem.', [
                     'phone' => $message->phoneNormalized,
                     'flow_id' => $flow->id,
+                    'instance' => $message->instance,
                     'error' => $exception->getMessage(),
                 ]);
 
@@ -96,8 +82,28 @@ class EvolutionInboundMessageProcessor
             Log::info('Fluxo de primeira mensagem enfileirado.', [
                 'phone' => $message->phoneNormalized,
                 'flow_id' => $flow->id,
+                'instance' => $message->instance,
                 'execution_id' => $executionId,
             ]);
         }
+    }
+
+    private function resolveFlowForInstance(?string $instanceName): ?WhatsAppFlow
+    {
+        if (blank($instanceName)) {
+            return null;
+        }
+
+        $flows = WhatsAppFlow::query()
+            ->where('trigger_type', WhatsAppFlowTriggerType::FirstMessage)
+            ->where('is_active', true)
+            ->where('steps_count', '>', 0)
+            ->get();
+
+        return $flows->first(function (WhatsAppFlow $flow) use ($instanceName): bool {
+            $resolved = $flow->resolveInstanceName();
+
+            return filled($resolved) && strcasecmp($resolved, $instanceName) === 0;
+        });
     }
 }

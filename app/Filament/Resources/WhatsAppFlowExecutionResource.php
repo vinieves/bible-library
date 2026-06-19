@@ -69,6 +69,9 @@ class WhatsAppFlowExecutionResource extends Resource
                         TextInput::make('trigger')
                             ->label('Gatilho')
                             ->disabled(),
+                        TextInput::make('instance_name')
+                            ->label('Instância WhatsApp')
+                            ->disabled(),
                         TextInput::make('progress')
                             ->label('Passos')
                             ->disabled()
@@ -130,6 +133,11 @@ class WhatsAppFlowExecutionResource extends Resource
                 TextColumn::make('trigger')
                     ->label('Gatilho')
                     ->badge(),
+                TextColumn::make('instance_name')
+                    ->label('Instância')
+                    ->badge()
+                    ->color('gray')
+                    ->placeholder('—'),
                 TextColumn::make('started_at')
                     ->label('Iniciado')
                     ->dateTime('d/m/Y H:i')

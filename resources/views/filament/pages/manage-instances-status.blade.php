@@ -27,27 +27,27 @@
         </div>
 
         <div class="mm-instances-status__item">
-            <span class="mm-instances-status__label">Instância ativa (envios)</span>
-            @if (filled($activeInstance))
+            <span class="mm-instances-status__label">Instância — Mensagens Hotmart</span>
+            @if (filled($messagesInstance))
                 <span class="mm-instances-status__value text-success-600 dark:text-success-400">
-                    {{ $activeInstance }}
+                    {{ $messagesInstance }}
                 </span>
             @else
                 <span class="mm-instances-status__value text-warning-600 dark:text-warning-400">
-                    Nenhuma — defina uma instância conectada abaixo.
+                    Não definida — configure abaixo ou em Integrações API.
                 </span>
             @endif
         </div>
 
         <div class="mm-instances-status__item">
-            <span class="mm-instances-status__label">Pronto para envios</span>
-            @if ($configured)
+            <span class="mm-instances-status__label">Instância padrão — Fluxos</span>
+            @if (filled($flowsInstance))
                 <span class="mm-instances-status__value text-success-600 dark:text-success-400">
-                    Sim — mensagens e fluxos usarão {{ $activeInstance }}.
+                    {{ $flowsInstance }}
                 </span>
             @else
                 <span class="mm-instances-status__value text-warning-600 dark:text-warning-400">
-                    Configure URL, API Key e defina uma instância ativa.
+                    Não definida — configure abaixo ou em Integrações API.
                 </span>
             @endif
         </div>
