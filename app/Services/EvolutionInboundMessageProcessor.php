@@ -54,6 +54,11 @@ class EvolutionInboundMessageProcessor
                 ->first();
 
             if ($existing) {
+                Log::info('Primeira mensagem ignorada: contato já registrado.', [
+                    'phone' => $message->phoneNormalized,
+                    'first_message_at' => $existing->first_message_at?->toIso8601String(),
+                ]);
+
                 return;
             }
 
