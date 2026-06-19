@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WhatsAppFlowStep extends Model
 {
+    protected $table = 'whatsapp_flow_steps';
+
     protected $fillable = [
         'flow_id',
         'order',

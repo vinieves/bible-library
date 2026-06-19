@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class WhatsAppFlow extends Model
 {
+    protected $table = 'whatsapp_flows';
+
     protected $fillable = [
         'name',
         'description',

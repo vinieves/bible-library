@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WhatsAppFlowExecutionLog extends Model
 {
+    protected $table = 'whatsapp_flow_execution_logs';
+
     protected $fillable = [
         'execution_id',
         'step_id',
