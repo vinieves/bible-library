@@ -1,36 +1,53 @@
-/* Pipeline horizontal de passos do fluxo WhatsApp */
+/* Pipeline horizontal — estilo mockup */
 
 .flow-builder-section.fi-section {
     overflow: visible;
 }
 
 .flow-builder-section > .fi-section-header {
-    margin-bottom: 0.5rem;
+    display: none;
 }
 
 .flow-builder-empty-hint {
-    margin: 0 0 0.75rem;
-    padding: 0.55rem 0.75rem;
-    border: 1px dashed rgb(63 63 70);
-    border-radius: 0.5rem;
-    font-size: 0.74rem;
-    line-height: 1.4;
-    color: rgb(161 161 170);
-    background: rgb(24 24 27 / 0.45);
+    display: none;
+}
+
+.flow-pipeline-title {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin: 0 0 0.85rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: rgb(250 250 250);
+}
+
+.flow-pipeline-title__bar {
+    display: inline-block;
+    width: 3px;
+    height: 1.15rem;
+    border-radius: 2px;
+    background: rgb(245 158 11);
+    flex-shrink: 0;
 }
 
 .flow-steps-repeater.fi-fo-repeater {
-    --flow-card-width: 16.5rem;
-    --flow-connector: 2.35rem;
+    --flow-card-width: 17.5rem;
+    --flow-gap: 2.5rem;
     counter-reset: flow-step;
     display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    gap: 0.5rem 0;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+    padding-bottom: 0.35rem;
+    scrollbar-width: thin;
 }
 
-.flow-steps-repeater.fi-fo-repeater > .fi-fo-field-wrp-label {
-    display: none;
+.flow-steps-repeater.fi-fo-repeater > .fi-fo-field-wrp-label,
+.flow-steps-repeater .fi-fo-field-wrp-label {
+    display: none !important;
 }
 
 .flow-steps-repeater .fi-fo-repeater-actions {
@@ -40,14 +57,14 @@
 .flow-steps-repeater .fi-fo-repeater-items {
     display: flex;
     flex-direction: row;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    gap: 0 var(--flow-connector);
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0 var(--flow-gap);
     margin: 0;
-    padding: 0.35rem 0;
+    padding: 0.65rem 0 0.35rem;
     list-style: none;
-    min-width: 0;
-    flex: 1 1 auto;
+    min-width: min-content;
+    flex: 0 0 auto;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item {
@@ -55,35 +72,51 @@
     position: relative;
     flex: 0 0 auto;
     margin: 0 !important;
-    border: 1px solid rgb(255 255 255 / 0.08);
-    border-radius: 0.625rem;
-    background: rgb(30 36 51);
-    box-shadow: 0 1px 0 rgb(255 255 255 / 0.03) inset;
+    border: 1px solid rgb(255 255 255 / 0.07);
+    border-radius: 0.75rem;
+    background: rgb(28 32 44);
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.18);
     overflow: visible;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Numeração — canto superior esquerdo do card */
+/* Número — canto superior esquerdo (sobre o card) */
 .flow-steps-repeater .fi-fo-repeater-item::before {
     content: counter(flow-step);
     position: absolute;
-    top: 0.35rem;
-    left: 0.4rem;
-    z-index: 4;
+    top: -0.45rem;
+    left: -0.45rem;
+    z-index: 5;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 1.25rem;
-    height: 1.25rem;
-    padding: 0 0.25rem;
-    border-radius: 0.4rem;
-    background: rgb(24 24 27);
-    border: 1px solid rgb(63 63 70);
-    color: rgb(212 212 216);
-    font-size: 0.62rem;
+    min-width: 1.35rem;
+    height: 1.35rem;
+    padding: 0 0.2rem;
+    border-radius: 0.35rem;
+    background: rgb(12 12 14);
+    border: 1px solid rgb(55 55 60);
+    color: rgb(228 228 231);
+    font-size: 0.65rem;
     font-weight: 700;
     line-height: 1;
     pointer-events: none;
+    box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
+}
+
+/* Seta → entre cards */
+.flow-steps-repeater .fi-fo-repeater-item.fi-collapsed:not(:last-child)::after {
+    content: '→';
+    position: absolute;
+    top: 50%;
+    right: calc(var(--flow-gap) * -0.5);
+    transform: translate(50%, -50%);
+    font-size: 1.2rem;
+    line-height: 1;
+    color: rgb(251 191 36 / 0.9);
+    font-weight: 400;
+    pointer-events: none;
+    z-index: 4;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item.fi-collapsed {
@@ -93,70 +126,33 @@
 }
 
 .flow-steps-repeater .fi-fo-repeater-item.fi-collapsed:hover {
-    border-color: rgb(245 158 11 / 0.45);
-    box-shadow: 0 0 0 2px rgb(245 158 11 / 0.12);
+    border-color: rgb(245 158 11 / 0.35);
+    box-shadow: 0 4px 16px rgb(0 0 0 / 0.22);
 }
 
-/* Expandido: linha inteira abaixo da fila horizontal */
 .flow-steps-repeater .fi-fo-repeater-item:not(.fi-collapsed) {
-    flex: 1 0 100% !important;
+    position: relative;
+    flex: 0 0 100% !important;
     width: 100% !important;
     min-width: 100% !important;
     max-width: 100% !important;
     order: 99;
-    margin-top: 0.65rem !important;
-    border-color: rgb(245 158 11 / 0.55);
-    box-shadow: 0 0 0 2px rgb(245 158 11 / 0.14);
+    margin-top: 0.75rem !important;
+    border-color: rgb(245 158 11 / 0.45);
+    box-shadow: 0 0 0 2px rgb(245 158 11 / 0.12);
 }
 
-/* Conector horizontal → entre cards recolhidos */
-.flow-steps-repeater .fi-fo-repeater-item.fi-collapsed:not(:last-child) .fi-fo-repeater-item-header::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    right: calc(var(--flow-connector) * -1 + 0.35rem);
-    width: calc(var(--flow-connector) - 0.85rem);
-    height: 2px;
-    transform: translateY(-50%);
-    background: linear-gradient(
-        90deg,
-        rgb(245 158 11 / 0.15),
-        rgb(245 158 11 / 0.55) 35%,
-        rgb(245 158 11 / 0.55) 65%,
-        rgb(245 158 11 / 0.15)
-    );
-    border-radius: 1px;
-    pointer-events: none;
-    z-index: 1;
-}
-
-.flow-steps-repeater .fi-fo-repeater-item.fi-collapsed:not(:last-child) .fi-fo-repeater-item-header::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    right: calc(var(--flow-connector) * -1 + 0.15rem);
-    transform: translateY(-50%);
-    width: 0;
-    height: 0;
-    border-top: 5px solid transparent;
-    border-bottom: 5px solid transparent;
-    border-left: 7px solid rgb(245 158 11 / 0.65);
-    pointer-events: none;
-    z-index: 2;
-}
-
-.flow-steps-repeater .fi-fo-repeater-item:not(.fi-collapsed) .fi-fo-repeater-item-header::before,
-.flow-steps-repeater .fi-fo-repeater-item:not(.fi-collapsed) .fi-fo-repeater-item-header::after {
+.flow-steps-repeater .fi-fo-repeater-item:not(.fi-collapsed)::after {
     display: none;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-header {
     position: relative;
     display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    min-height: 4.5rem;
-    padding: 1.45rem 0.55rem 0.55rem 0.45rem !important;
+    align-items: stretch;
+    gap: 0.25rem;
+    min-height: 5.75rem;
+    padding: 0.85rem 0.5rem 0.65rem 0.35rem !important;
     border: 0 !important;
     background: transparent !important;
     cursor: pointer;
@@ -166,7 +162,7 @@
 
 .flow-steps-repeater .fi-fo-repeater-item:not(.fi-collapsed) .fi-fo-repeater-item-header {
     min-height: 0;
-    padding: 1.35rem 0.65rem 0.5rem !important;
+    padding: 1rem 0.65rem 0.55rem !important;
     border-bottom: 1px solid rgb(255 255 255 / 0.06) !important;
     cursor: default;
 }
@@ -174,21 +170,23 @@
 .flow-steps-repeater .fi-fo-repeater-item-header-start-actions {
     display: flex;
     align-items: center;
+    align-self: center;
     padding: 0;
     margin: 0;
     list-style: none;
-    opacity: 0.4;
+    opacity: 0.35;
     transition: opacity 0.15s ease;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item:hover .fi-fo-repeater-item-header-start-actions,
 .flow-steps-repeater .fi-fo-repeater-item:not(.fi-collapsed) .fi-fo-repeater-item-header-start-actions {
-    opacity: 0.85;
+    opacity: 0.75;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-header-start-actions .fi-icon-btn {
-    width: 1.35rem;
-    height: 1.35rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    color: rgb(161 161 170);
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-header-label {
@@ -196,63 +194,77 @@
     min-width: 0;
     margin: 0;
     padding: 0;
-    font-size: 0.8rem !important;
-    font-weight: 500 !important;
-    line-height: 1.3 !important;
-    color: rgb(226 232 240) !important;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-header-label::before {
     display: none;
 }
 
+/* Card interno — layout mockup */
 .flow-step-card {
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    align-items: stretch;
+    gap: 0.45rem;
+    width: 100%;
     min-width: 0;
+    padding-top: 0.15rem;
 }
 
 .flow-step-card__accent {
-    width: 0.18rem;
-    align-self: stretch;
+    width: 0.2rem;
     flex-shrink: 0;
     border-radius: 9999px;
-    background: var(--step-color, rgb(113 113 122));
+    background: var(--step-color, rgb(59 130 246));
+    align-self: stretch;
 }
 
-.flow-step-card__body {
+.flow-step-card__inner {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 0.1rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
     min-width: 0;
-    flex: 1;
+    text-align: center;
 }
 
-.flow-step-card__head {
+.flow-step-card__type-row {
     display: flex;
-    align-items: center;
-    gap: 0.35rem;
+    justify-content: center;
+    width: 100%;
 }
 
 .flow-step-card__type {
     display: inline-flex;
     align-items: center;
-    padding: 0.06rem 0.4rem;
+    gap: 0.3rem;
+    padding: 0.12rem 0.55rem;
     border-radius: 9999px;
-    font-size: 0.66rem;
+    font-size: 0.68rem;
     font-weight: 600;
     line-height: 1.2;
-    color: var(--step-color, rgb(212 212 216));
-    background: color-mix(in srgb, var(--step-color, rgb(113 113 122)) 14%, transparent);
-    border: 1px solid color-mix(in srgb, var(--step-color, rgb(113 113 122)) 22%, transparent);
+    color: var(--step-color, rgb(96 165 250));
+    background: color-mix(in srgb, var(--step-color, rgb(59 130 246)) 16%, transparent);
+    border: 1px solid color-mix(in srgb, var(--step-color, rgb(59 130 246)) 28%, transparent);
+}
+
+.flow-step-card__type-icon {
+    width: 0.8rem;
+    height: 0.8rem;
+    flex-shrink: 0;
 }
 
 .flow-step-card__preview {
     margin: 0;
-    font-size: 0.72rem;
+    width: 100%;
+    font-size: 0.78rem;
+    font-weight: 500;
     line-height: 1.35;
-    color: rgb(203 213 225);
+    color: rgb(241 245 249);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -261,34 +273,45 @@
 .flow-step-card__chips {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.2rem;
-    margin-top: 0.1rem;
+    justify-content: center;
+    gap: 0.25rem;
+    width: 100%;
 }
 
 .flow-step-card__chip {
     display: inline-flex;
     align-items: center;
-    padding: 0.05rem 0.32rem;
-    border-radius: 0.3rem;
-    background: rgb(24 24 27);
+    gap: 0.25rem;
+    padding: 0.12rem 0.45rem;
+    border-radius: 9999px;
+    background: rgb(18 18 20);
     border: 1px solid rgb(63 63 70);
-    font-size: 0.6rem;
-    line-height: 1.25;
-    color: rgb(113 113 122);
+    font-size: 0.62rem;
+    line-height: 1.2;
+    color: rgb(161 161 170);
 }
 
-/* Mais espaço entre lixeira e seta expandir */
+.flow-step-card__chip-icon {
+    width: 0.7rem;
+    height: 0.7rem;
+    flex-shrink: 0;
+    opacity: 0.75;
+}
+
+/* Ações — lixeira separada da seta */
 .flow-steps-repeater .fi-fo-repeater-item-header-end-actions {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    gap: 0.15rem;
-    padding: 0;
-    margin: 0 0 0 0.2rem;
+    gap: 0.35rem;
+    padding: 0 0 0 0.15rem;
+    margin: 0;
     list-style: none;
     border: 0;
     opacity: 0.45;
     transition: opacity 0.15s ease;
+    align-self: center;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-header-end-actions > li {
@@ -296,14 +319,10 @@
     align-items: center;
 }
 
-.flow-steps-repeater .fi-fo-repeater-item-header-end-actions > li:not(.fi-fo-repeater-item-header-collapsible-actions) {
-    margin-right: 0.15rem;
-}
-
 .flow-steps-repeater .fi-fo-repeater-item-header-collapsible-actions {
-    margin-left: 0.55rem !important;
-    padding-left: 0.55rem !important;
-    border-left: 1px solid rgb(255 255 255 / 0.1);
+    margin-top: 0.15rem;
+    padding-top: 0.35rem;
+    border-top: 1px solid rgb(255 255 255 / 0.08);
 }
 
 .flow-steps-repeater .fi-fo-repeater-item:hover .fi-fo-repeater-item-header-end-actions,
@@ -312,8 +331,8 @@
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-header-end-actions .fi-icon-btn {
-    width: 1.45rem;
-    height: 1.45rem;
+    width: 1.4rem;
+    height: 1.4rem;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item.fi-collapsed .fi-fo-repeater-item-header-collapse-action {
@@ -326,7 +345,7 @@
 
 .flow-steps-repeater .fi-fo-repeater-item-content {
     border-top: 0;
-    background: rgb(24 24 27);
+    background: rgb(22 26 36);
     padding: 0 0.85rem 0.85rem !important;
 }
 
@@ -337,25 +356,38 @@
 .flow-steps-repeater .fi-fo-repeater-add {
     flex: 0 0 auto;
     align-self: center;
-    margin: 0 0 0 0.25rem;
+    margin: 0 0 0 0.5rem;
+    padding-top: 0.35rem;
 }
 
 .flow-steps-repeater .fi-fo-repeater-add .fi-btn {
     width: var(--flow-card-width);
-    min-height: 4.5rem;
-    border: 1px dashed rgb(245 158 11 / 0.4) !important;
-    border-radius: 0.625rem !important;
-    background: rgb(245 158 11 / 0.08) !important;
+    min-height: 5.75rem;
+    border: 1px dashed rgb(245 158 11 / 0.45) !important;
+    border-radius: 0.75rem !important;
+    background: rgb(245 158 11 / 0.06) !important;
     color: rgb(251 191 36) !important;
     box-shadow: none !important;
-    font-size: 0.78rem !important;
+    font-size: 0.8rem !important;
+    font-weight: 500 !important;
     transition: all 0.2s ease;
 }
 
 .flow-steps-repeater .fi-fo-repeater-add .fi-btn:hover {
-    border-color: rgb(245 158 11 / 0.65) !important;
-    background: rgb(245 158 11 / 0.16) !important;
+    border-color: rgb(245 158 11 / 0.7) !important;
+    background: rgb(245 158 11 / 0.14) !important;
     color: rgb(253 224 71) !important;
+}
+
+/* Quebra linha quando item expande */
+.flow-steps-repeater.fi-fo-repeater:has(.fi-fo-repeater-item:not(.fi-collapsed)) {
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+
+.flow-steps-repeater.fi-fo-repeater:has(.fi-fo-repeater-item:not(.fi-collapsed)) .fi-fo-repeater-items {
+    flex: 1 1 100%;
+    width: 100%;
 }
 
 @media (max-width: 1024px) {
@@ -363,26 +395,11 @@
     .flow-builder-section.fi-section {
         grid-column: 1 / -1;
     }
-
-    .flow-steps-repeater .fi-fo-repeater-items {
-        overflow-x: auto;
-        flex-wrap: nowrap;
-        padding-bottom: 0.5rem;
-        scrollbar-width: thin;
-    }
-
-    .flow-steps-repeater .fi-fo-repeater-item:not(.fi-collapsed) {
-        flex: 0 0 100% !important;
-    }
 }
 
 @media (max-width: 640px) {
     .flow-steps-repeater.fi-fo-repeater {
-        --flow-card-width: 14rem;
-        --flow-connector: 1.75rem;
-    }
-
-    .flow-steps-repeater .fi-fo-repeater-add .fi-btn {
-        min-height: 3.5rem;
+        --flow-card-width: 15rem;
+        --flow-gap: 2rem;
     }
 }

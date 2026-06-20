@@ -122,21 +122,26 @@ class WhatsAppFlowResource extends Resource
                     ->collapsible(),
 
                 Section::make('Passos do Fluxo')
-                    ->description('Pipeline horizontal — clique para editar. Apenas um passo aberto por vez.')
+                    ->description('')
                     ->extraAttributes(['class' => 'flow-builder-section'])
                     ->columnSpan(['default' => 1, 'lg' => 8])
                     ->schema([
                         View::make('filament.resources.whatsapp-flow.builder-styles')
                             ->columnSpanFull(),
 
-                        Placeholder::make('flow_builder_hint')
+                        Placeholder::make('steps_pipeline_title')
                             ->hiddenLabel()
-                            ->content('Sequência da esquerda para a direita. Arraste pelo ícone ⋮⋮ para reordenar.')
-                            ->extraAttributes(['class' => 'flow-builder-empty-hint'])
+                            ->content(new HtmlString(
+                                '<div class="flow-pipeline-title">'.
+                                '<span class="flow-pipeline-title__bar" aria-hidden="true"></span>'.
+                                '<span>Passos</span>'.
+                                '</div>'
+                            ))
                             ->columnSpanFull(),
 
                         Repeater::make('steps')
                             ->label('')
+                            ->hiddenLabel()
                             ->relationship('steps')
                             ->orderColumn('order')
                             ->reorderableWithDragAndDrop()
