@@ -81,11 +81,14 @@ class FlowStepPreview
 
         return new HtmlString(
             '<div class="flow-step-card" style="--step-color: '.$accent.'">'.
-            '<div class="flow-step-card__head">'.
+            '<span class="flow-step-card__accent" aria-hidden="true"></span>'.
+            '<span class="flow-step-card__body">'.
+            '<span class="flow-step-card__head">'.
             '<span class="flow-step-card__type">'.$label.'</span>'.
-            '</div>'.
+            '</span>'.
             '<p class="flow-step-card__preview">'.$preview.'</p>'.
             $chipsHtml.
+            '</span>'.
             '</div>'
         );
     }

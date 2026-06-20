@@ -9,10 +9,28 @@ use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Support\Facades\FilamentView;
+use Filament\View\PanelsRenderHook;
 
 class EditWhatsAppFlow extends EditRecord
 {
     protected static string $resource = WhatsAppFlowResource::class;
+
+    private static bool $flowAccordionHookRegistered = false;
+
+    public function mount(int | string $record): void
+    {
+        parent::mount($record);
+
+        if (! self::$flowAccordionHookRegistered) {
+            FilamentView::registerRenderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): string => view('filament.components.flow-accordion')->render(),
+            );
+
+            self::$flowAccordionHookRegistered = true;
+        }
+    }
 
     public function getMaxContentWidth(): ?string
     {

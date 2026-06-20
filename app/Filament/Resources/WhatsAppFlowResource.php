@@ -24,10 +24,12 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Alignment;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -141,7 +143,7 @@ class WhatsAppFlowResource extends Resource
                     ->collapsible(),
 
                 Section::make('Passos do Fluxo')
-                    ->description('Arraste os cards para reordenar. Clique para editar cada passo.')
+                    ->description('Arraste para reordenar. Clique em um passo para editar — apenas um aberto por vez.')
                     ->extraAttributes(['class' => 'flow-builder-section'])
                     ->columnSpan(['default' => 1, 'lg' => 8])
                     ->schema([
@@ -150,7 +152,7 @@ class WhatsAppFlowResource extends Resource
 
                         Placeholder::make('flow_builder_hint')
                             ->hiddenLabel()
-                            ->content('Sequência da esquerda para a direita — clique no card para editar.')
+                            ->content('Cada passo é enviado em sequência ao contato.')
                             ->extraAttributes(['class' => 'flow-builder-empty-hint'])
                             ->columnSpanFull(),
 
@@ -161,106 +163,122 @@ class WhatsAppFlowResource extends Resource
                             ->reorderableWithDragAndDrop()
                             ->collapsible()
                             ->collapsed()
-                            ->cloneable()
-                            ->addActionLabel('Adicionar passo')
+                            ->cloneable(false)
+                            ->addActionLabel('+ Adicionar passo')
+                            ->addActionAlignment(Alignment::Start)
+                            ->collapseAllAction(fn (Action $action) => $action->hidden())
+                            ->expandAllAction(fn (Action $action) => $action->hidden())
                             ->truncateItemLabel(false)
-                            ->extraAttributes(['class' => 'flow-builder'])
-                            ->schema([
-                                Select::make('type')
-                                    ->label('Tipo')
-                                    ->options(collect(WhatsAppFlowStepType::cases())->mapWithKeys(
-                                        fn (WhatsAppFlowStepType $case) => [$case->value => $case->label()]
-                                    ))
-                                    ->default(WhatsAppFlowStepType::Text->value)
-                                    ->required()
-                                    ->native(false)
-                                    ->live()
-                                    ->columnSpanFull(),
-
-                                RichEditor::make('content')
-                                    ->label('Mensagem')
-                                    ->toolbarButtons(['bold', 'italic', 'strike', 'bulletList', 'orderedList'])
-                                    ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Text->value)
-                                    ->required(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Text->value)
-                                    ->columnSpanFull()
-                                    ->helperText('Placeholders: {nome}, {email}, {telefone}, {producto}, {link_acceso}'),
-
-                                Placeholder::make('delay_info')
-                                    ->label('Intervalo')
-                                    ->content('Este passo apenas aguarda antes de continuar para o próximo card.')
-                                    ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Delay->value)
-                                    ->columnSpanFull(),
-
-                                TextInput::make('media_url')
-                                    ->label('URL da mídia')
-                                    ->url()
-                                    ->placeholder('https://exemplo.com/arquivo.jpg')
-                                    ->visible(fn (Get $get): bool => in_array($get('type'), [
-                                        WhatsAppFlowStepType::Image->value,
-                                        WhatsAppFlowStepType::Video->value,
-                                        WhatsAppFlowStepType::Audio->value,
-                                        WhatsAppFlowStepType::File->value,
-                                    ], true))
-                                    ->required(fn (Get $get): bool => in_array($get('type'), [
-                                        WhatsAppFlowStepType::Image->value,
-                                        WhatsAppFlowStepType::Video->value,
-                                        WhatsAppFlowStepType::Audio->value,
-                                        WhatsAppFlowStepType::File->value,
-                                    ], true))
-                                    ->columnSpanFull()
-                                    ->helperText('URL pública (JPG, PNG, GIF, WEBP — SVG não funciona no WhatsApp)'),
-
-                                TextInput::make('caption')
-                                    ->label('Legenda')
-                                    ->maxLength(1000)
-                                    ->visible(fn (Get $get): bool => in_array($get('type'), [
-                                        WhatsAppFlowStepType::Image->value,
-                                        WhatsAppFlowStepType::Video->value,
-                                        WhatsAppFlowStepType::File->value,
-                                    ], true))
-                                    ->dehydrated(fn (Get $get): bool => in_array($get('type'), [
-                                        WhatsAppFlowStepType::Image->value,
-                                        WhatsAppFlowStepType::Video->value,
-                                        WhatsAppFlowStepType::File->value,
-                                    ], true)),
-
-                                TextInput::make('file_name')
-                                    ->label('Nome do arquivo')
-                                    ->placeholder('documento.pdf')
-                                    ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::File->value),
-
-                                TextInput::make('delay_seconds')
-                                    ->label('Espera antes (seg)')
-                                    ->numeric()
-                                    ->default(0)
-                                    ->minValue(0)
-                                    ->maxValue(3600)
-                                    ->suffix('s')
-                                    ->visible(fn (Get $get): bool => in_array($get('type'), [
-                                        WhatsAppFlowStepType::Text->value,
-                                        WhatsAppFlowStepType::Image->value,
-                                        WhatsAppFlowStepType::Video->value,
-                                        WhatsAppFlowStepType::Audio->value,
-                                        WhatsAppFlowStepType::File->value,
-                                        WhatsAppFlowStepType::Delay->value,
-                                    ], true))
-                                    ->helperText('Pausa antes de executar este passo'),
-
-                                TextInput::make('typing_delay')
-                                    ->label('Digitando (seg)')
-                                    ->numeric()
-                                    ->default(3)
-                                    ->minValue(0)
-                                    ->maxValue(60)
-                                    ->suffix('s')
-                                    ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Text->value)
-                                    ->helperText('Simula “digitando…” no WhatsApp'),
-                            ])
-                            ->columns(2)
+                            ->extraAttributes(['class' => 'flow-steps-repeater'])
+                            ->schema(static::stepSchema())
                             ->itemLabel(fn (array $state): HtmlString => FlowStepPreview::itemLabel($state)),
                     ])
                     ->hiddenOn('create'),
             ]);
+    }
+
+    /**
+     * @return array<int, \Filament\Forms\Components\Field>
+     */
+    public static function stepSchema(): array
+    {
+        return [
+            Select::make('type')
+                ->label('Tipo')
+                ->options(collect(WhatsAppFlowStepType::cases())->mapWithKeys(
+                    fn (WhatsAppFlowStepType $case) => [$case->value => $case->label()]
+                ))
+                ->default(WhatsAppFlowStepType::Text->value)
+                ->required()
+                ->native(false)
+                ->live()
+                ->columnSpanFull(),
+
+            RichEditor::make('content')
+                ->label('Mensagem')
+                ->toolbarButtons(['bold', 'italic', 'strike'])
+                ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Text->value)
+                ->required(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Text->value)
+                ->columnSpanFull()
+                ->helperText('Placeholders: {nome}, {email}, {telefone}, {producto}, {link_acceso}'),
+
+            Placeholder::make('delay_info')
+                ->label('Intervalo')
+                ->content('Este passo pausa o fluxo pelo tempo configurado abaixo antes de continuar.')
+                ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Delay->value)
+                ->columnSpanFull(),
+
+            TextInput::make('media_url')
+                ->label('URL da mídia')
+                ->url()
+                ->placeholder('https://exemplo.com/arquivo.jpg')
+                ->visible(fn (Get $get): bool => in_array($get('type'), [
+                    WhatsAppFlowStepType::Image->value,
+                    WhatsAppFlowStepType::Video->value,
+                    WhatsAppFlowStepType::Audio->value,
+                    WhatsAppFlowStepType::File->value,
+                ], true))
+                ->required(fn (Get $get): bool => in_array($get('type'), [
+                    WhatsAppFlowStepType::Image->value,
+                    WhatsAppFlowStepType::Video->value,
+                    WhatsAppFlowStepType::Audio->value,
+                    WhatsAppFlowStepType::File->value,
+                ], true))
+                ->columnSpanFull()
+                ->helperText('URL pública (JPG, PNG, GIF, WEBP — SVG não funciona no WhatsApp)'),
+
+            Grid::make(2)
+                ->schema([
+                    TextInput::make('caption')
+                        ->label('Legenda')
+                        ->maxLength(1000)
+                        ->visible(fn (Get $get): bool => in_array($get('type'), [
+                            WhatsAppFlowStepType::Image->value,
+                            WhatsAppFlowStepType::Video->value,
+                            WhatsAppFlowStepType::File->value,
+                        ], true))
+                        ->dehydrated(fn (Get $get): bool => in_array($get('type'), [
+                            WhatsAppFlowStepType::Image->value,
+                            WhatsAppFlowStepType::Video->value,
+                            WhatsAppFlowStepType::File->value,
+                        ], true)),
+
+                    TextInput::make('file_name')
+                        ->label('Nome do arquivo')
+                        ->placeholder('documento.pdf')
+                        ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::File->value),
+                ]),
+
+            Grid::make(2)
+                ->schema([
+                    TextInput::make('delay_seconds')
+                        ->label('Espera antes (seg)')
+                        ->numeric()
+                        ->default(0)
+                        ->minValue(0)
+                        ->maxValue(3600)
+                        ->suffix('s')
+                        ->visible(fn (Get $get): bool => in_array($get('type'), [
+                            WhatsAppFlowStepType::Text->value,
+                            WhatsAppFlowStepType::Image->value,
+                            WhatsAppFlowStepType::Video->value,
+                            WhatsAppFlowStepType::Audio->value,
+                            WhatsAppFlowStepType::File->value,
+                            WhatsAppFlowStepType::Delay->value,
+                        ], true))
+                        ->helperText('Pausa antes de executar este passo'),
+
+                    TextInput::make('typing_delay')
+                        ->label('Digitando (seg)')
+                        ->numeric()
+                        ->default(3)
+                        ->minValue(0)
+                        ->maxValue(60)
+                        ->suffix('s')
+                        ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Text->value)
+                        ->helperText('Simula "digitando..." no WhatsApp'),
+                ]),
+        ];
     }
 
     public static function table(Table $table): Table
