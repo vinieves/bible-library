@@ -70,6 +70,36 @@
         return arrow;
     }
 
+    function refreshFileUploads(root) {
+        document.dispatchEvent(new Event('visibilitychange'));
+
+        var scope = root || document;
+
+        scope.querySelectorAll('.fi-fo-file-upload').forEach(function (el) {
+            window.dispatchEvent(new Event('resize'));
+
+            if (!window.Alpine || typeof Alpine.$data !== 'function') {
+                return;
+            }
+
+            try {
+                var data = Alpine.$data(el);
+
+                if (data && typeof data.init === 'function' && !data.pond) {
+                    data.init();
+                }
+            } catch (error) {
+                // Alpine ainda não montou o componente lazy-loaded.
+            }
+        });
+    }
+
+    function refreshExpandedStepUploads(repeater) {
+        repeater.querySelectorAll('.fi-fo-repeater-item:not(.fi-collapsed)').forEach(function (item) {
+            refreshFileUploads(item);
+        });
+    }
+
     function syncFlowArrows(repeater) {
         var list = repeater.querySelector('.fi-fo-repeater-items');
 
@@ -116,6 +146,10 @@
 
                 if (clickedItem.classList.contains('fi-collapsed')) {
                     collapseOtherSteps(clickedItem, repeater);
+
+                    window.setTimeout(function () {
+                        refreshFileUploads(clickedItem);
+                    }, 120);
                 }
             }, true);
 
@@ -142,11 +176,13 @@
                     }
 
                     collapseOtherSteps(clickedItem, repeater);
-                }, 0);
+                    refreshFileUploads(clickedItem);
+                }, 120);
             });
         }
 
         syncFlowArrows(repeater);
+        refreshExpandedStepUploads(repeater);
     }
 
     function initFlowAccordion() {
@@ -163,7 +199,13 @@
 
     document.addEventListener('livewire:init', function () {
         Livewire.hook('morph.updated', function () {
-            window.setTimeout(initFlowAccordion, 0);
+            window.setTimeout(function () {
+                initFlowAccordion();
+
+                document.querySelectorAll('.flow-steps-repeater.fi-fo-repeater').forEach(function (repeater) {
+                    refreshExpandedStepUploads(repeater);
+                });
+            }, 150);
         });
     });
 })();

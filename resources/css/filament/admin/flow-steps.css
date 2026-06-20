@@ -323,17 +323,8 @@
     display: none;
 }
 
-/* ── Conteúdo expandido ──────────────────────────────────── */
-.flow-steps-repeater .fi-fo-repeater-item-content {
-    display: none;
-}
-
-.flow-steps-repeater .fi-fo-repeater-item.fi-collapsed .fi-fo-repeater-item-content {
-    display: none !important;
-}
-
+/* ── Conteúdo expandido (visibilidade via x-show do Filament) ─ */
 .flow-steps-repeater .fi-fo-repeater-item:not(.fi-collapsed) .fi-fo-repeater-item-content {
-    display: block !important;
     width: 100%;
     max-width: 100%;
     padding: 0 10px 10px !important;
@@ -428,18 +419,39 @@
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-content .fi-fo-file-upload {
-    font-size: 11px !important;
+    width: 100%;
+    min-height: 4.75rem;
+    margin-top: 4px;
+}
+
+.flow-steps-repeater .fi-fo-repeater-item-content .fi-fo-file-upload .fi-fo-file-upload-input-ctn {
+    display: block !important;
+    width: 100%;
+    min-height: 4.75rem;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-content .fi-fo-file-upload .filepond--root {
-    max-height: 120px;
-    font-size: 11px;
+    display: block !important;
+    min-height: 4.75rem;
+    margin-bottom: 0;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-content .fi-fo-file-upload .filepond--drop-label {
-    min-height: 72px;
-    font-size: 11px;
-    color: rgb(255 255 255 / 0.45);
+    min-height: 4.75rem;
+    border: 1px dashed rgb(255 255 255 / 0.18);
+    border-radius: 8px;
+    background: rgb(0 0 0 / 0.22);
+    color: rgb(255 255 255 / 0.6);
+    cursor: pointer;
+}
+
+.flow-steps-repeater .fi-fo-repeater-item-content .fi-fo-file-upload .filepond--drop-label label {
+    cursor: pointer;
+}
+
+.flow-steps-repeater .fi-fo-repeater-item-content .fi-fo-file-upload .filepond--label-action {
+    color: rgb(251 191 36 / 0.95);
+    text-decoration: underline;
 }
 
 /* ── Setas verticais entre cards ─────────────────────────── */
