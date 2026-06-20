@@ -9,7 +9,6 @@ enum WhatsAppFlowStepType: string
     case Video = 'video';
     case Audio = 'audio';
     case File = 'file';
-    case Buttons = 'buttons';
     case Delay = 'delay';
 
     public function label(): string
@@ -20,7 +19,6 @@ enum WhatsAppFlowStepType: string
             self::Video => 'Vídeo',
             self::Audio => 'Áudio',
             self::File => 'Arquivo',
-            self::Buttons => 'Botões',
             self::Delay => 'Intervalo',
         };
     }
@@ -33,7 +31,6 @@ enum WhatsAppFlowStepType: string
             self::Video => 'heroicon-o-video-camera',
             self::Audio => 'heroicon-o-microphone',
             self::File => 'heroicon-o-document',
-            self::Buttons => 'heroicon-o-cursor-arrow-rays',
             self::Delay => 'heroicon-o-clock',
         };
     }
@@ -46,7 +43,6 @@ enum WhatsAppFlowStepType: string
             self::Video => '#a855f7',
             self::Audio => '#f97316',
             self::File => '#6366f1',
-            self::Buttons => '#ec4899',
             self::Delay => '#14b8a6',
         };
     }

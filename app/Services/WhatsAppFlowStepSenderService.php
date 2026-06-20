@@ -8,7 +8,6 @@ use App\Support\IntegrationSettings;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use RuntimeException;
 
 class WhatsAppFlowStepSenderService
@@ -45,14 +44,16 @@ class WhatsAppFlowStepSenderService
     public function send(WhatsAppFlowStep $step, string $phoneNormalized): array
     {
         try {
-            $type = $step->resolvedType();
+            $type = $step->type instanceof WhatsAppFlowStepType
+                ? $step->type
+                : WhatsAppFlowStepType::tryFrom((string) $step->type);
 
             if (! $type) {
                 return [
                     'success' => false,
                     'http_status' => 0,
                     'response' => null,
-                    'error' => "Tipo de passo desconhecido: {$step->rawType()}",
+                    'error' => "Tipo de passo desconhecido: {$step->type}",
                 ];
             }
 
@@ -70,7 +71,6 @@ class WhatsAppFlowStepSenderService
 
             return match ($type) {
                 WhatsAppFlowStepType::Text => $this->sendText($step, $phoneNormalized),
-                WhatsAppFlowStepType::Buttons => $this->sendButtons($step, $phoneNormalized),
                 WhatsAppFlowStepType::Image,
                 WhatsAppFlowStepType::Video,
                 WhatsAppFlowStepType::File => $this->sendMedia($step, $phoneNormalized, $type),
@@ -89,99 +89,6 @@ class WhatsAppFlowStepSenderService
                 'error' => $exception->getMessage(),
             ];
         }
-    }
-
-    /**
-     * @return array{success: bool, http_status: int, response: array|null, error: string|null}
-     */
-    private function sendButtons(WhatsAppFlowStep $step, string $phone): array
-    {
-        $text = WhatsAppFlowStep::normalizeContentValue($step->content) ?? '';
-        $footer = trim((string) ($step->caption ?? ''));
-        $buttons = $this->normalizeButtons($step->buttons ?? []);
-
-        if (blank($text)) {
-            return [
-                'success' => false,
-                'http_status' => 0,
-                'response' => null,
-                'error' => 'Texto da mensagem não informado.',
-            ];
-        }
-
-        if ($buttons === []) {
-            return [
-                'success' => false,
-                'http_status' => 0,
-                'response' => null,
-                'error' => 'Adicione pelo menos 1 botão (máximo 3).',
-            ];
-        }
-
-        $title = Str::limit($text, 60, '…');
-        $payload = [
-            'number' => $phone,
-            'title' => $title,
-            'description' => $text,
-            'footer' => $footer,
-            'buttons' => array_map(fn (array $button): array => [
-                'type' => 'reply',
-                'displayText' => $button['displayText'],
-                'id' => $button['id'],
-            ], $buttons),
-        ];
-
-        $response = Http::timeout(20)
-            ->withHeaders([
-                'apikey' => $this->apiKey,
-                'Content-Type' => 'application/json',
-            ])
-            ->post("{$this->baseUrl}/message/sendButtons/{$this->instance}", $payload);
-
-        return $this->parseResponse($response);
-    }
-
-    /**
-     * @param  array<int, array<string, mixed>>|null  $buttons
-     * @return list<array<string, mixed>>
-     */
-    private function normalizeButtons(?array $buttons): array
-    {
-        if (! is_array($buttons)) {
-            return [];
-        }
-
-        $normalized = [];
-
-        foreach ($buttons as $index => $button) {
-            if (! is_array($button)) {
-                continue;
-            }
-
-            $label = trim((string) ($button['label'] ?? $button['displayText'] ?? ''));
-
-            if (blank($label)) {
-                continue;
-            }
-
-            $id = trim((string) ($button['button_key'] ?? $button['id'] ?? $button['buttonId'] ?? ''));
-
-            if (blank($id)) {
-                $id = 'btn_'.Str::slug($label, '_').'_'.($index + 1);
-            }
-
-            $normalized[] = [
-                'type' => 'reply',
-                'displayText' => Str::limit($label, 20, ''),
-                'id' => Str::limit($id, 50, ''),
-            ];
-
-            if (count($normalized) >= 3) {
-                break;
-            }
-        }
-
-        return $normalized;
     }
 
     /**
