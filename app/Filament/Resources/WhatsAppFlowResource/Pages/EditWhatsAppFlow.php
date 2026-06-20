@@ -14,6 +14,11 @@ class EditWhatsAppFlow extends EditRecord
 {
     protected static string $resource = WhatsAppFlowResource::class;
 
+    public function getMaxContentWidth(): ?string
+    {
+        return 'full';
+    }
+
     protected function getHeaderActions(): array
     {
         return [
