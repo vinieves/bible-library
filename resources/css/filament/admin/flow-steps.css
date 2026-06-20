@@ -309,24 +309,30 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0 0 0 0.15rem;
+    gap: 0.65rem;
+    padding: 0 0.2rem 0 0.25rem;
     margin: 0;
     list-style: none;
     border: 0;
     opacity: 0.45;
     transition: opacity 0.15s ease;
     align-self: center;
+    min-width: 1.75rem;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-header-end-actions > li {
     display: flex;
     align-items: center;
+    justify-content: center;
+}
+
+.flow-steps-repeater .fi-fo-repeater-item-header-end-actions > li:not(.fi-fo-repeater-item-header-collapsible-actions) {
+    margin-bottom: 0.1rem;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-header-collapsible-actions {
-    margin-top: 0.15rem;
-    padding-top: 0.35rem;
+    margin-top: 0.25rem;
+    padding-top: 0.55rem;
     border-top: 1px solid rgb(255 255 255 / 0.08);
 }
 
