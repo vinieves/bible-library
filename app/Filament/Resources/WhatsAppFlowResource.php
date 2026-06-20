@@ -166,6 +166,43 @@ class WhatsAppFlowResource extends Resource
                                     ->columnSpanFull()
                                     ->helperText('Placeholders: {nome}, {email}, {telefone}, {producto}, {link_acceso}'),
 
+                                Textarea::make('content')
+                                    ->label('Texto da mensagem')
+                                    ->rows(4)
+                                    ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Buttons->value)
+                                    ->required(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Buttons->value)
+                                    ->columnSpanFull()
+                                    ->helperText('Texto principal exibido acima dos botões.'),
+
+                                TextInput::make('caption')
+                                    ->label('Rodapé (footer)')
+                                    ->maxLength(500)
+                                    ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Buttons->value)
+                                    ->columnSpanFull(),
+
+                                Repeater::make('buttons')
+                                    ->label('Botões interativos')
+                                    ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Buttons->value)
+                                    ->required(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Buttons->value)
+                                    ->minItems(1)
+                                    ->maxItems(3)
+                                    ->defaultItems(1)
+                                    ->addActionLabel('+ Adicionar botão')
+                                    ->schema([
+                                        TextInput::make('label')
+                                            ->label('Texto do botão')
+                                            ->required()
+                                            ->maxLength(20)
+                                            ->helperText('Máximo 20 caracteres (limite WhatsApp).'),
+                                        TextInput::make('id')
+                                            ->label('ID interno')
+                                            ->maxLength(50)
+                                            ->helperText('Opcional. Identifica o clique (ex: btn_sim).'),
+                                    ])
+                                    ->columns(2)
+                                    ->columnSpanFull()
+                                    ->helperText('WhatsApp permite no máximo 3 botões do tipo resposta rápida.'),
+
                                 Placeholder::make('delay_info')
                                     ->label('Intervalo de espera')
                                     ->content('Este passo apenas aguarda o tempo configurado antes de prosseguir.')
@@ -232,6 +269,12 @@ class WhatsAppFlowResource extends Resource
 
                                 if (($state['type'] ?? '') === WhatsAppFlowStepType::Text->value && ! empty($state['content'])) {
                                     $preview = ' — '.Str::limit(strip_tags((string) $state['content']), 40);
+                                } elseif (($state['type'] ?? '') === WhatsAppFlowStepType::Buttons->value) {
+                                    $buttonCount = is_array($state['buttons'] ?? null) ? count($state['buttons']) : 0;
+                                    $preview = ' — '.($buttonCount > 0 ? "{$buttonCount} botão(ões)" : 'sem botões');
+                                    if (! empty($state['content'])) {
+                                        $preview .= ', '.Str::limit(strip_tags((string) $state['content']), 30);
+                                    }
                                 } elseif (! empty($state['media_url'])) {
                                     $preview = ' — '.Str::limit((string) $state['media_url'], 40);
                                 } elseif (($state['type'] ?? '') === WhatsAppFlowStepType::Delay->value) {

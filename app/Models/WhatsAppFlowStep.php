@@ -18,6 +18,7 @@ class WhatsAppFlowStep extends Model
         'caption',
         'file_name',
         'media_url',
+        'buttons',
         'delay_seconds',
         'typing_delay',
     ];
@@ -27,6 +28,7 @@ class WhatsAppFlowStep extends Model
         return [
             'order' => 'integer',
             'type' => WhatsAppFlowStepType::class,
+            'buttons' => 'array',
             'delay_seconds' => 'integer',
             'typing_delay' => 'integer',
         ];
