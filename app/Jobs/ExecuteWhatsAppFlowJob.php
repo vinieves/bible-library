@@ -67,9 +67,7 @@ class ExecuteWhatsAppFlowJob implements ShouldQueue
 
             $result = $sender->send($step, $execution->phone_normalized);
 
-            $stepType = $step->type instanceof WhatsAppFlowStepType
-                ? $step->type->value
-                : (string) $step->type;
+            $stepType = $step->rawType() ?: ($step->resolvedType()?->value ?? 'unknown');
 
             WhatsAppFlowExecutionLog::query()->create([
                 'execution_id' => $execution->id,

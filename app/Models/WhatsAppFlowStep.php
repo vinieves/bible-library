@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\WhatsAppFlowStepType;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -28,11 +29,32 @@ class WhatsAppFlowStep extends Model
     {
         return [
             'order' => 'integer',
-            'type' => WhatsAppFlowStepType::class,
             'buttons' => 'array',
             'delay_seconds' => 'integer',
             'typing_delay' => 'integer',
         ];
+    }
+
+    protected function type(): Attribute
+    {
+        return Attribute::make(
+            get: fn (?string $value): ?WhatsAppFlowStepType => filled($value)
+                ? WhatsAppFlowStepType::tryFrom($value)
+                : null,
+            set: fn (WhatsAppFlowStepType|string|null $value): ?string => $value instanceof WhatsAppFlowStepType
+                ? $value->value
+                : (filled($value) ? (string) $value : null),
+        );
+    }
+
+    public function rawType(): string
+    {
+        return (string) ($this->attributes['type'] ?? '');
+    }
+
+    public function resolvedType(): ?WhatsAppFlowStepType
+    {
+        return WhatsAppFlowStepType::tryFrom($this->rawType());
     }
 
     public function flow(): BelongsTo
@@ -42,7 +64,7 @@ class WhatsAppFlowStep extends Model
 
     public function getButtonsMessageAttribute(): ?string
     {
-        if ($this->type !== WhatsAppFlowStepType::Buttons) {
+        if ($this->resolvedType() !== WhatsAppFlowStepType::Buttons) {
             return null;
         }
 
@@ -84,9 +106,7 @@ class WhatsAppFlowStep extends Model
     protected static function booted(): void
     {
         static::saving(function (WhatsAppFlowStep $step): void {
-            $type = $step->type instanceof WhatsAppFlowStepType
-                ? $step->type
-                : WhatsAppFlowStepType::tryFrom((string) $step->type);
+            $type = $step->resolvedType();
 
             if ($type === WhatsAppFlowStepType::Buttons) {
                 $message = $step->attributes['buttons_message'] ?? null;

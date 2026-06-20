@@ -45,16 +45,14 @@ class WhatsAppFlowStepSenderService
     public function send(WhatsAppFlowStep $step, string $phoneNormalized): array
     {
         try {
-            $type = $step->type instanceof WhatsAppFlowStepType
-                ? $step->type
-                : WhatsAppFlowStepType::tryFrom((string) $step->type);
+            $type = $step->resolvedType();
 
             if (! $type) {
                 return [
                     'success' => false,
                     'http_status' => 0,
                     'response' => null,
-                    'error' => "Tipo de passo desconhecido: {$step->type}",
+                    'error' => "Tipo de passo desconhecido: {$step->rawType()}",
                 ];
             }
 
@@ -123,12 +121,14 @@ class WhatsAppFlowStepSenderService
         $title = Str::limit($text, 60, '…');
         $payload = [
             'number' => $phone,
-            'text' => $text,
-            'footerText' => $footer,
             'title' => $title,
             'description' => $text,
             'footer' => $footer,
-            'buttons' => $buttons,
+            'buttons' => array_map(fn (array $button): array => [
+                'type' => 'reply',
+                'displayText' => $button['displayText'],
+                'id' => $button['id'],
+            ], $buttons),
         ];
 
         $response = Http::timeout(20)
@@ -174,10 +174,6 @@ class WhatsAppFlowStepSenderService
                 'type' => 'reply',
                 'displayText' => Str::limit($label, 20, ''),
                 'id' => Str::limit($id, 50, ''),
-                'buttonId' => Str::limit($id, 50, ''),
-                'buttonText' => [
-                    'displayText' => Str::limit($label, 20, ''),
-                ],
             ];
 
             if (count($normalized) >= 3) {
