@@ -97,28 +97,7 @@ class WhatsAppFlowResource extends Resource
                                 'PURCHASE_OUT_OF_SHOPPING_CART' => 'Abandonou carrinho',
                             ])
                             ->visible(fn (Get $get): bool => $get('trigger_type') === WhatsAppFlowTriggerType::Webhook->value),
-                        Placeholder::make('first_message_help')
-                            ->label('Webhook Evolution (primeira mensagem)')
-                            ->content(function (): HtmlString {
-                                $url = IntegrationSettings::evolutionWebhookUrl();
-                                $evolutionOk = IntegrationSettings::evolutionConfigured();
-
-                                $status = $evolutionOk
-                                    ? '<span class="text-success-600 dark:text-success-400">Evolution configurada.</span>'
-                                    : '<span class="text-danger-600 dark:text-danger-400">Configure a Evolution em Integrações API.</span>';
-
-                                return new HtmlString(
-                                    '<div class="space-y-2 text-sm text-gray-600 dark:text-gray-300">'.
-                                    '<p>'.$status.'</p>'.
-                                    '<p>Quando um <strong>contato novo</strong> enviar a <strong>primeira mensagem</strong> no WhatsApp, este fluxo será disparado <strong>uma única vez</strong> por número.</p>'.
-                                    '<p><strong>URL do webhook:</strong><br><code class="text-xs break-all">'.$url.'</code></p>'.
-                                    '<p><strong>Evento:</strong> <code>MESSAGES_UPSERT</code></p>'.
-                                    '<p><strong>Autenticação:</strong> a Evolution envia o campo <code>apikey</code> no payload (mesma chave do painel).</p>'.
-                                    '<p>Após salvar, use o botão <strong>Registrar webhook na Evolution</strong> no topo desta página.</p>'.
-                                    '<p class="text-warning-600 dark:text-warning-400">Apenas <strong>um</strong> fluxo de primeira mensagem pode ficar ativo por vez.</p>'.
-                                    '</div>'
-                                );
-                            })
+                        View::make('filament.resources.whatsapp-flow.first-message-webhook-help')
                             ->visible(fn (Get $get): bool => $get('trigger_type') === WhatsAppFlowTriggerType::FirstMessage->value)
                             ->columnSpanFull(),
                         Toggle::make('is_active')
@@ -143,7 +122,7 @@ class WhatsAppFlowResource extends Resource
                     ->collapsible(),
 
                 Section::make('Passos do Fluxo')
-                    ->description('Arraste para reordenar. Clique em um passo para editar — apenas um aberto por vez.')
+                    ->description('Pipeline de passos — clique para editar. Apenas um aberto por vez.')
                     ->extraAttributes(['class' => 'flow-builder-section'])
                     ->columnSpan(['default' => 1, 'lg' => 8])
                     ->schema([
@@ -152,7 +131,7 @@ class WhatsAppFlowResource extends Resource
 
                         Placeholder::make('flow_builder_hint')
                             ->hiddenLabel()
-                            ->content('Cada passo é enviado em sequência ao contato.')
+                            ->content('Arraste pelo ícone ⋮⋮ para reordenar. Cada seta indica a sequência de envio.')
                             ->extraAttributes(['class' => 'flow-builder-empty-hint'])
                             ->columnSpanFull(),
 
