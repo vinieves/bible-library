@@ -1,18 +1,55 @@
 @once
 <script>
 (function () {
+    function findRepeaterItemAlpineData(item) {
+        if (!window.Alpine || typeof Alpine.$data !== 'function') {
+            return null;
+        }
+
+        var candidates = [item].concat(Array.from(item.querySelectorAll('[x-data]')));
+
+        for (var i = 0; i < candidates.length; i++) {
+            var data = Alpine.$data(candidates[i]);
+
+            if (data && Object.prototype.hasOwnProperty.call(data, 'isCollapsed')) {
+                return data;
+            }
+        }
+
+        return null;
+    }
+
+    function setItemCollapsed(item, collapsed) {
+        var data = findRepeaterItemAlpineData(item);
+
+        if (data) {
+            data.isCollapsed = collapsed;
+
+            return true;
+        }
+
+        var selector = collapsed
+            ? '.fi-fo-repeater-item-header-collapse-action button, .fi-fo-repeater-item-header-collapse-action'
+            : '.fi-fo-repeater-item-header-expand-action button, .fi-fo-repeater-item-header-expand-action';
+        var action = item.querySelector(selector);
+
+        if (action) {
+            action.click();
+
+            return true;
+        }
+
+        return false;
+    }
+
     function collapseOtherSteps(clickedItem, repeater) {
         repeater.querySelectorAll('.fi-fo-repeater-item').forEach(function (item) {
             if (item === clickedItem) {
                 return;
             }
 
-            if (window.Alpine && typeof Alpine.$data === 'function') {
-                var data = Alpine.$data(item);
-
-                if (data && Object.prototype.hasOwnProperty.call(data, 'isCollapsed')) {
-                    data.isCollapsed = true;
-                }
+            if (!item.classList.contains('fi-collapsed')) {
+                setItemCollapsed(item, true);
             }
         });
     }
@@ -48,13 +85,35 @@
                 return;
             }
 
+            if (clickedItem.classList.contains('fi-collapsed')) {
+                collapseOtherSteps(clickedItem, repeater);
+            }
+        }, true);
+
+        repeater.addEventListener('click', function (event) {
+            if (shouldIgnoreToggleClick(event.target)) {
+                return;
+            }
+
+            var header = event.target.closest('.fi-fo-repeater-item-header, .fi-fo-repeater-item-header-collapsible-actions');
+
+            if (!header) {
+                return;
+            }
+
+            var clickedItem = header.closest('.fi-fo-repeater-item');
+
+            if (!clickedItem) {
+                return;
+            }
+
             window.setTimeout(function () {
                 if (clickedItem.classList.contains('fi-collapsed')) {
                     return;
                 }
 
                 collapseOtherSteps(clickedItem, repeater);
-            }, 50);
+            }, 0);
         });
     }
 

@@ -38,11 +38,10 @@
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
-    align-items: center;
+    align-items: flex-start;
     gap: 0;
-    overflow-x: auto;
+    width: 100%;
     padding-bottom: 0.35rem;
-    scrollbar-width: thin;
 }
 
 .flow-steps-repeater.fi-fo-repeater > .fi-fo-field-wrp-label,
@@ -58,19 +57,31 @@
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
-    align-items: center;
+    align-items: flex-start;
+    align-content: flex-start;
     gap: 0 var(--flow-gap);
     margin: 0;
     padding: 0.65rem 0 0.35rem;
     list-style: none;
-    min-width: min-content;
-    flex: 0 0 auto;
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+
+.flow-steps-repeater .fi-fo-repeater-items:has(.fi-fo-repeater-item:not(.fi-collapsed)) {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    gap: 0.75rem var(--flow-gap);
 }
 
 .flow-steps-repeater .fi-fo-repeater-item {
     counter-increment: flow-step;
     position: relative;
     flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
     margin: 0 !important;
     border: 1px solid rgb(255 255 255 / 0.07);
     border-radius: 0.75rem;
@@ -119,10 +130,16 @@
     z-index: 4;
 }
 
+.flow-steps-repeater .fi-fo-repeater-items:has(.fi-fo-repeater-item:not(.fi-collapsed)) .fi-fo-repeater-item.fi-collapsed::after {
+    display: none;
+}
+
 .flow-steps-repeater .fi-fo-repeater-item.fi-collapsed {
+    flex: 0 0 var(--flow-card-width) !important;
     width: var(--flow-card-width) !important;
     min-width: var(--flow-card-width) !important;
     max-width: var(--flow-card-width) !important;
+    order: 0;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item.fi-collapsed:hover {
@@ -132,12 +149,12 @@
 
 .flow-steps-repeater .fi-fo-repeater-item:not(.fi-collapsed) {
     position: relative;
-    flex: 0 0 100% !important;
+    flex: 1 1 100% !important;
     width: 100% !important;
     min-width: 100% !important;
     max-width: 100% !important;
-    order: 99;
-    margin-top: 0.75rem !important;
+    order: 999;
+    margin-top: 0.25rem !important;
     border-color: rgb(245 158 11 / 0.45);
     box-shadow: 0 0 0 2px rgb(245 158 11 / 0.12);
 }
@@ -344,6 +361,8 @@
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-content {
+    flex: 1 1 auto;
+    width: 100%;
     border-top: 0;
     background: rgb(22 26 36);
     padding: 0 0.85rem 0.85rem !important;
@@ -353,11 +372,15 @@
     display: none !important;
 }
 
+.flow-steps-repeater .fi-fo-repeater-item:not(.fi-collapsed) .fi-fo-repeater-item-content {
+    display: block !important;
+}
+
 .flow-steps-repeater .fi-fo-repeater-add {
     flex: 0 0 auto;
-    align-self: center;
-    margin: 0 0 0 0.5rem;
-    padding-top: 0.35rem;
+    align-self: flex-start;
+    margin: 0.65rem 0 0 0.5rem;
+    padding-top: 0;
 }
 
 .flow-steps-repeater .fi-fo-repeater-add .fi-btn {
@@ -377,17 +400,6 @@
     border-color: rgb(245 158 11 / 0.7) !important;
     background: rgb(245 158 11 / 0.14) !important;
     color: rgb(253 224 71) !important;
-}
-
-/* Quebra linha quando item expande */
-.flow-steps-repeater.fi-fo-repeater:has(.fi-fo-repeater-item:not(.fi-collapsed)) {
-    flex-wrap: wrap;
-    align-items: flex-start;
-}
-
-.flow-steps-repeater.fi-fo-repeater:has(.fi-fo-repeater-item:not(.fi-collapsed)) .fi-fo-repeater-items {
-    flex: 1 1 100%;
-    width: 100%;
 }
 
 @media (max-width: 1024px) {
