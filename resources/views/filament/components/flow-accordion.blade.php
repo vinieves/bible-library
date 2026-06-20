@@ -54,6 +54,53 @@
         });
     }
 
+    function adjustExpandPanel(repeater) {
+        var ul = repeater.querySelector('.fi-fo-repeater-items');
+
+        if (!ul) {
+            return;
+        }
+
+        var expanded = ul.querySelector('.fi-fo-repeater-item:not(.fi-collapsed)');
+
+        if (!expanded) {
+            ul.style.paddingBottom = '';
+            ul.style.removeProperty('--flow-panel-top');
+            ul.style.removeProperty('--flow-panel-left');
+            ul.style.removeProperty('--flow-panel-width');
+
+            return;
+        }
+
+        var content = expanded.querySelector('.fi-fo-repeater-item-content');
+
+        if (!content) {
+            ul.style.paddingBottom = '';
+            ul.style.removeProperty('--flow-panel-left');
+            ul.style.removeProperty('--flow-panel-width');
+
+            return;
+        }
+
+        var trackBottom = 0;
+
+        ul.querySelectorAll('.fi-fo-repeater-item .fi-fo-repeater-item-header').forEach(function (header) {
+            var bottom = header.offsetTop + header.offsetHeight;
+
+            if (bottom > trackBottom) {
+                trackBottom = bottom;
+            }
+        });
+
+        ul.style.setProperty('--flow-panel-top', (trackBottom + 12) + 'px');
+        ul.style.setProperty('--flow-panel-left', (-expanded.offsetLeft) + 'px');
+        ul.style.setProperty('--flow-panel-width', repeater.clientWidth + 'px');
+
+        window.requestAnimationFrame(function () {
+            ul.style.paddingBottom = (content.offsetHeight + 24) + 'px';
+        });
+    }
+
     function shouldIgnoreToggleClick(target) {
         return Boolean(
             target.closest('.fi-fo-repeater-item-header-start-actions')
@@ -61,12 +108,55 @@
         );
     }
 
+    function schedulePanelAdjust(repeater) {
+        window.setTimeout(function () {
+            adjustExpandPanel(repeater);
+        }, 0);
+
+        window.setTimeout(function () {
+            adjustExpandPanel(repeater);
+        }, 120);
+    }
+
+    function watchRepeater(repeater) {
+        var ul = repeater.querySelector('.fi-fo-repeater-items');
+
+        if (!ul || ul.dataset.flowPanelWatch === '1') {
+            return;
+        }
+
+        ul.dataset.flowPanelWatch = '1';
+
+        new MutationObserver(function () {
+            schedulePanelAdjust(repeater);
+        }).observe(ul, {
+            attributes: true,
+            subtree: true,
+            attributeFilter: ['class', 'style'],
+            childList: true,
+        });
+
+        if (typeof ResizeObserver !== 'undefined') {
+            new ResizeObserver(function () {
+                adjustExpandPanel(repeater);
+            }).observe(ul);
+        }
+
+        ul.addEventListener('scroll', function () {
+            adjustExpandPanel(repeater);
+        }, { passive: true });
+    }
+
     function bindFlowAccordion(repeater) {
         if (repeater.dataset.flowAccordionBound === '1') {
+            schedulePanelAdjust(repeater);
+
             return;
         }
 
         repeater.dataset.flowAccordionBound = '1';
+
+        watchRepeater(repeater);
 
         repeater.addEventListener('click', function (event) {
             if (shouldIgnoreToggleClick(event.target)) {
@@ -88,6 +178,8 @@
             if (clickedItem.classList.contains('fi-collapsed')) {
                 collapseOtherSteps(clickedItem, repeater);
             }
+
+            schedulePanelAdjust(repeater);
         }, true);
 
         repeater.addEventListener('click', function (event) {
@@ -109,12 +201,17 @@
 
             window.setTimeout(function () {
                 if (clickedItem.classList.contains('fi-collapsed')) {
+                    adjustExpandPanel(repeater);
+
                     return;
                 }
 
                 collapseOtherSteps(clickedItem, repeater);
+                schedulePanelAdjust(repeater);
             }, 0);
         });
+
+        schedulePanelAdjust(repeater);
     }
 
     function initFlowAccordion() {
@@ -128,6 +225,10 @@
     }
 
     document.addEventListener('livewire:navigated', initFlowAccordion);
+
+    window.addEventListener('resize', function () {
+        document.querySelectorAll('.flow-steps-repeater.fi-fo-repeater').forEach(adjustExpandPanel);
+    });
 
     document.addEventListener('livewire:init', function () {
         Livewire.hook('morph.updated', function () {
