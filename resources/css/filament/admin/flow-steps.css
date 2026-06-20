@@ -407,6 +407,13 @@
     order: 1;
 }
 
+@media (max-width: 1024px) {
+    .flow-builder-config.fi-section,
+    .flow-builder-section.fi-section {
+        grid-column: 1 / -1;
+    }
+}
+
 @media (max-width: 640px) {
     .flow-steps-repeater.fi-fo-repeater {
         --flow-card-width: 15rem;
