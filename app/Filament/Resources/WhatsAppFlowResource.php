@@ -162,6 +162,7 @@ class WhatsAppFlowResource extends Resource
                                     ->label('Conteúdo da Mensagem')
                                     ->toolbarButtons(['bold', 'italic', 'strike', 'bulletList', 'orderedList'])
                                     ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Text->value)
+                                    ->dehydrated(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Text->value)
                                     ->required(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Text->value)
                                     ->columnSpanFull()
                                     ->helperText('Placeholders: {nome}, {email}, {telefone}, {producto}, {link_acceso}'),
@@ -170,6 +171,7 @@ class WhatsAppFlowResource extends Resource
                                     ->label('Texto da mensagem')
                                     ->rows(4)
                                     ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Buttons->value)
+                                    ->dehydrated(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Buttons->value)
                                     ->required(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Buttons->value)
                                     ->columnSpanFull()
                                     ->helperText('Texto principal exibido acima dos botões.'),
@@ -183,6 +185,7 @@ class WhatsAppFlowResource extends Resource
                                 Repeater::make('buttons')
                                     ->label('Botões interativos')
                                     ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Buttons->value)
+                                    ->dehydrated(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Buttons->value)
                                     ->required(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Buttons->value)
                                     ->minItems(1)
                                     ->maxItems(3)
@@ -194,11 +197,14 @@ class WhatsAppFlowResource extends Resource
                                             ->required()
                                             ->maxLength(20)
                                             ->helperText('Máximo 20 caracteres (limite WhatsApp).'),
-                                        TextInput::make('id')
+                                        TextInput::make('button_key')
                                             ->label('ID interno')
                                             ->maxLength(50)
                                             ->helperText('Opcional. Identifica o clique (ex: btn_sim).'),
                                     ])
+                                    ->itemLabel(fn (array $state): ?string => filled($state['label'] ?? null)
+                                        ? (string) $state['label']
+                                        : 'Botão')
                                     ->columns(2)
                                     ->columnSpanFull()
                                     ->helperText('WhatsApp permite no máximo 3 botões do tipo resposta rápida.'),
@@ -266,14 +272,20 @@ class WhatsAppFlowResource extends Resource
                                 $type = WhatsAppFlowStepType::tryFrom($state['type'] ?? '');
                                 $label = $type?->label() ?? 'Passo';
                                 $preview = '';
+                                $content = $state['content'] ?? '';
 
-                                if (($state['type'] ?? '') === WhatsAppFlowStepType::Text->value && ! empty($state['content'])) {
-                                    $preview = ' — '.Str::limit(strip_tags((string) $state['content']), 40);
+                                if (is_array($content)) {
+                                    $content = collect($content)->filter(fn ($value) => filled($value))->first() ?? '';
+                                }
+
+                                if (($state['type'] ?? '') === WhatsAppFlowStepType::Text->value && filled($content)) {
+                                    $preview = ' — '.Str::limit(strip_tags((string) $content), 40);
                                 } elseif (($state['type'] ?? '') === WhatsAppFlowStepType::Buttons->value) {
                                     $buttonCount = is_array($state['buttons'] ?? null) ? count($state['buttons']) : 0;
                                     $preview = ' — '.($buttonCount > 0 ? "{$buttonCount} botão(ões)" : 'sem botões');
-                                    if (! empty($state['content'])) {
-                                        $preview .= ', '.Str::limit(strip_tags((string) $state['content']), 30);
+
+                                    if (filled($content)) {
+                                        $preview .= ', '.Str::limit(strip_tags((string) $content), 30);
                                     }
                                 } elseif (! empty($state['media_url'])) {
                                     $preview = ' — '.Str::limit((string) $state['media_url'], 40);

@@ -164,7 +164,7 @@ class WhatsAppFlowStepSenderService
                 continue;
             }
 
-            $id = trim((string) ($button['id'] ?? $button['buttonId'] ?? ''));
+            $id = trim((string) ($button['button_key'] ?? $button['id'] ?? $button['buttonId'] ?? ''));
 
             if (blank($id)) {
                 $id = 'btn_'.Str::slug($label, '_').'_'.($index + 1);
@@ -354,8 +354,12 @@ class WhatsAppFlowStepSenderService
         ];
     }
 
-    private function plainTextContent(?string $content): string
+    private function plainTextContent(mixed $content): string
     {
+        if (is_array($content)) {
+            $content = collect($content)->filter(fn ($value) => filled($value))->first() ?? '';
+        }
+
         if (blank($content)) {
             return '';
         }
