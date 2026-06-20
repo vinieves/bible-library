@@ -183,12 +183,29 @@ class WhatsAppFlowResource extends Resource
                 ->columnSpanFull(),
 
             RichEditor::make('content')
-                ->label('Mensagem')
+                ->label('Texto 1')
                 ->toolbarButtons(['bold', 'italic', 'strike'])
                 ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Text->value)
                 ->required(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Text->value)
-                ->columnSpanFull()
-                ->helperText('Placeholders: {nome}, {email}, {telefone}, {producto}, {link_acceso}'),
+                ->columnSpanFull(),
+
+            RichEditor::make('content_variation_2')
+                ->label('Texto 2')
+                ->toolbarButtons(['bold', 'italic', 'strike'])
+                ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Text->value)
+                ->columnSpanFull(),
+
+            RichEditor::make('content_variation_3')
+                ->label('Texto 3')
+                ->toolbarButtons(['bold', 'italic', 'strike'])
+                ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Text->value)
+                ->columnSpanFull(),
+
+            Placeholder::make('text_variations_help')
+                ->hiddenLabel()
+                ->content('Textos 2 e 3 são opcionais. A cada novo cliente, o envio alterna entre as variações preenchidas (ex.: 1→A, 2→B, 3→A…).')
+                ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Text->value)
+                ->columnSpanFull(),
 
             Placeholder::make('delay_info')
                 ->label('Intervalo de espera')

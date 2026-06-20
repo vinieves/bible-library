@@ -103,7 +103,7 @@ class WhatsAppFlowStepSenderService
             ])
             ->post("{$this->baseUrl}/message/sendText/{$this->instance}", [
                 'number' => $phone,
-                'text' => $this->plainTextContent($step->content),
+                'text' => $this->plainTextContent($step->resolveNextTextContent()),
                 'delay' => max(0, ($step->typing_delay ?? 3)) * 1000,
             ]);
 

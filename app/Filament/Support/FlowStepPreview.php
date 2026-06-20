@@ -59,6 +59,16 @@ class FlowStepPreview
             if ($typing > 0) {
                 $chips[] = "Digitando {$typing}s";
             }
+
+            $variationCount = count(array_filter([
+                $state['content'] ?? null,
+                $state['content_variation_2'] ?? null,
+                $state['content_variation_3'] ?? null,
+            ], fn (mixed $value): bool => filled($value)));
+
+            if ($variationCount > 1) {
+                $chips[] = "{$variationCount} textos";
+            }
         }
 
         if ($type === WhatsAppFlowStepType::Delay) {
