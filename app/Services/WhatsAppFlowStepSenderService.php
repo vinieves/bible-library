@@ -230,7 +230,7 @@ class WhatsAppFlowStepSenderService
                 'apikey' => $this->apiKey,
                 'Content-Type' => 'application/json',
             ])
-            ->post("{$this->baseUrl}/message/sendAudio/{$this->instance}", [
+            ->post("{$this->baseUrl}/message/sendWhatsAppAudio/{$this->instance}", [
                 'number' => $phone,
                 'audio' => $audioUrl,
                 'encoding' => true,
