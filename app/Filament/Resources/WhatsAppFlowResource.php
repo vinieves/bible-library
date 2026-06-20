@@ -60,7 +60,7 @@ class WhatsAppFlowResource extends Resource
             ->components([
                 Section::make('Configurações do Fluxo')
                     ->extraAttributes(['class' => 'flow-builder-config'])
-                    ->columnSpan(['default' => 1, 'lg' => 4])
+                    ->columnSpanFull()
                     ->schema([
                         TextInput::make('name')
                             ->label('Nome do Fluxo')
@@ -124,7 +124,7 @@ class WhatsAppFlowResource extends Resource
                 Section::make('Passos do Fluxo')
                     ->description('')
                     ->extraAttributes(['class' => 'flow-builder-section'])
-                    ->columnSpan(['default' => 1, 'lg' => 8])
+                    ->columnSpanFull()
                     ->schema([
                         View::make('filament.resources.whatsapp-flow.builder-styles')
                             ->columnSpanFull(),

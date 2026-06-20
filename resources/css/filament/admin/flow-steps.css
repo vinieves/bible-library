@@ -1,4 +1,4 @@
-/* Pipeline horizontal — cards em fila, editor abre em painel abaixo */
+/* Pipeline horizontal — cards em fila, editor abre embaixo (fluxo normal) */
 
 .flow-builder-section.fi-section {
     overflow: visible;
@@ -34,11 +34,10 @@
 .flow-steps-repeater.fi-fo-repeater {
     --flow-card-width: 17.5rem;
     --flow-gap: 2.5rem;
-    --flow-track-height: 6.5rem;
     counter-reset: flow-step;
     display: flex;
     flex-direction: row;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     align-items: flex-start;
     gap: 0;
     width: 100%;
@@ -53,9 +52,7 @@
     display: none;
 }
 
-/* Trilha horizontal — sempre uma linha, scroll se precisar */
 .flow-steps-repeater .fi-fo-repeater-items {
-    position: relative;
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
@@ -66,10 +63,16 @@
     list-style: none;
     flex: 1 1 auto;
     min-width: 0;
-    width: 100%;
     overflow-x: auto;
     overflow-y: visible;
     scrollbar-width: thin;
+}
+
+.flow-steps-repeater .fi-fo-repeater-items:has(.fi-fo-repeater-item:not(.fi-collapsed)) {
+    flex-wrap: wrap;
+    flex: 1 1 100%;
+    overflow-x: visible;
+    gap: 0.75rem var(--flow-gap);
 }
 
 .flow-steps-repeater .fi-fo-repeater-item {
@@ -124,12 +127,22 @@
     z-index: 4;
 }
 
+.flow-steps-repeater .fi-fo-repeater-items:has(.fi-fo-repeater-item:not(.fi-collapsed)) .fi-fo-repeater-item.fi-collapsed::after {
+    display: none;
+}
+
 .flow-steps-repeater .fi-fo-repeater-item.fi-collapsed:hover {
     border-color: rgb(245 158 11 / 0.35);
     box-shadow: 0 4px 16px rgb(0 0 0 / 0.22);
 }
 
 .flow-steps-repeater .fi-fo-repeater-item:not(.fi-collapsed) {
+    flex: 0 0 100% !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    order: 999;
+    margin-top: 0.5rem !important;
     border-color: rgb(245 158 11 / 0.45);
     box-shadow: 0 0 0 2px rgb(245 158 11 / 0.12);
     z-index: 3;
@@ -154,6 +167,7 @@
 }
 
 .flow-steps-repeater .fi-fo-repeater-item:not(.fi-collapsed) .fi-fo-repeater-item-header {
+    max-width: var(--flow-card-width);
     min-height: 5.75rem;
     padding: 0.85rem 0.5rem 0.65rem 0.35rem !important;
     border-bottom: 0 !important;
@@ -334,7 +348,6 @@
     display: none;
 }
 
-/* Painel do editor — largura total, abaixo da fila de cards */
 .flow-steps-repeater .fi-fo-repeater-item-content {
     display: none;
 }
@@ -344,20 +357,15 @@
 }
 
 .flow-steps-repeater .fi-fo-repeater-item:not(.fi-collapsed) .fi-fo-repeater-item-content {
-    position: absolute;
-    left: var(--flow-panel-left, 0);
-    width: var(--flow-panel-width, 100%);
-    min-width: var(--flow-panel-width, 100%);
-    max-width: var(--flow-panel-width, 100%);
-    top: var(--flow-panel-top, calc(0.65rem + 5.75rem + 0.75rem));
-    z-index: 10;
     display: block !important;
-    box-sizing: border-box;
-    border: 1px solid rgb(245 158 11 / 0.35);
+    width: 100%;
+    max-width: 100%;
+    margin-top: 0.75rem;
+    border: 1px solid rgb(245 158 11 / 0.25);
     border-radius: 0.75rem;
     background: rgb(22 26 36);
     padding: 1rem 1.25rem 1.25rem !important;
-    box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+    box-sizing: border-box;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item:not(.fi-collapsed) .fi-fo-repeater-item-content .fi-fo-component-ctn,
@@ -391,11 +399,12 @@
     color: rgb(253 224 71) !important;
 }
 
-@media (max-width: 1024px) {
-    .flow-builder-config.fi-section,
-    .flow-builder-section.fi-section {
-        grid-column: 1 / -1;
-    }
+.flow-steps-repeater.fi-fo-repeater:has(.fi-fo-repeater-item:not(.fi-collapsed)) {
+    flex-wrap: wrap;
+}
+
+.flow-steps-repeater.fi-fo-repeater:has(.fi-fo-repeater-item:not(.fi-collapsed)) .fi-fo-repeater-add {
+    order: 1;
 }
 
 @media (max-width: 640px) {
