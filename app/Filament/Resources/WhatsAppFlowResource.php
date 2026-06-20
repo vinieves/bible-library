@@ -7,6 +7,7 @@ use App\Enums\WhatsAppFlowStepType;
 use App\Enums\WhatsAppFlowTriggerType;
 use App\Filament\Resources\WhatsAppFlowResource\Pages;
 use App\Models\WhatsAppFlow;
+use App\Models\WhatsAppFlowStep;
 use App\Services\WhatsAppFlowService;
 use App\Support\EvolutionInstanceOptions;
 use App\Support\IntegrationSettings;
@@ -25,6 +26,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -156,6 +158,16 @@ class WhatsAppFlowResource extends Resource
                                     ->default(WhatsAppFlowStepType::Text->value)
                                     ->required()
                                     ->live()
+                                    ->afterStateUpdated(function (?string $state, Set $set): void {
+                                        if ($state === WhatsAppFlowStepType::Buttons->value) {
+                                            $set('content', null);
+                                        }
+
+                                        if ($state !== WhatsAppFlowStepType::Buttons->value) {
+                                            $set('buttons_message', null);
+                                            $set('buttons', null);
+                                        }
+                                    })
                                     ->columnSpanFull(),
 
                                 RichEditor::make('content')
@@ -167,7 +179,7 @@ class WhatsAppFlowResource extends Resource
                                     ->columnSpanFull()
                                     ->helperText('Placeholders: {nome}, {email}, {telefone}, {producto}, {link_acceso}'),
 
-                                Textarea::make('content')
+                                Textarea::make('buttons_message')
                                     ->label('Texto da mensagem')
                                     ->rows(4)
                                     ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Buttons->value)
@@ -180,6 +192,7 @@ class WhatsAppFlowResource extends Resource
                                     ->label('Rodapé (footer)')
                                     ->maxLength(500)
                                     ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Buttons->value)
+                                    ->dehydrated(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Buttons->value)
                                     ->columnSpanFull(),
 
                                 Repeater::make('buttons')
@@ -241,6 +254,11 @@ class WhatsAppFlowResource extends Resource
                                         WhatsAppFlowStepType::Image->value,
                                         WhatsAppFlowStepType::Video->value,
                                         WhatsAppFlowStepType::File->value,
+                                    ], true))
+                                    ->dehydrated(fn (Get $get): bool => in_array($get('type'), [
+                                        WhatsAppFlowStepType::Image->value,
+                                        WhatsAppFlowStepType::Video->value,
+                                        WhatsAppFlowStepType::File->value,
                                     ], true)),
 
                                 TextInput::make('file_name')
@@ -272,10 +290,10 @@ class WhatsAppFlowResource extends Resource
                                 $type = WhatsAppFlowStepType::tryFrom($state['type'] ?? '');
                                 $label = $type?->label() ?? 'Passo';
                                 $preview = '';
-                                $content = $state['content'] ?? '';
+                                $content = $state['content'] ?? $state['buttons_message'] ?? '';
 
                                 if (is_array($content)) {
-                                    $content = collect($content)->filter(fn ($value) => filled($value))->first() ?? '';
+                                    $content = WhatsAppFlowStep::normalizeContentValue($content) ?? '';
                                 }
 
                                 if (($state['type'] ?? '') === WhatsAppFlowStepType::Text->value && filled($content)) {

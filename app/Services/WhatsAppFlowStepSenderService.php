@@ -98,7 +98,7 @@ class WhatsAppFlowStepSenderService
      */
     private function sendButtons(WhatsAppFlowStep $step, string $phone): array
     {
-        $text = $this->plainTextContent($step->content);
+        $text = WhatsAppFlowStep::normalizeContentValue($step->content) ?? '';
         $footer = trim((string) ($step->caption ?? ''));
         $buttons = $this->normalizeButtons($step->buttons ?? []);
 
