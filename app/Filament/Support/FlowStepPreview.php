@@ -13,32 +13,35 @@ class FlowStepPreview
         $type = WhatsAppFlowStepType::tryFrom($state['type'] ?? '');
 
         if ($type === WhatsAppFlowStepType::Text && filled($state['content'] ?? null)) {
-            return Str::limit(strip_tags((string) $state['content']), 48);
+            return Str::limit(strip_tags((string) $state['content']), 56);
         }
 
         if ($type === WhatsAppFlowStepType::Delay) {
             $seconds = (int) ($state['delay_seconds'] ?? 0);
 
-            return $seconds > 0 ? "Aguarda {$seconds}s" : 'Sem espera';
+            return $seconds > 0 ? "Aguarda {$seconds}s" : 'Intervalo sem espera';
         }
 
         if (filled($state['media_url'] ?? null)) {
-            return Str::limit((string) $state['media_url'], 48);
+            return Str::limit((string) $state['media_url'], 56);
         }
 
-        return 'Configure este passo';
+        return 'Clique para configurar';
     }
 
-    public static function metaText(array $state): ?string
+    /**
+     * @return list<string>
+     */
+    public static function metaChips(array $state): array
     {
         $type = WhatsAppFlowStepType::tryFrom($state['type'] ?? '');
-        $parts = [];
+        $chips = [];
 
         if ($type !== WhatsAppFlowStepType::Delay) {
             $delay = (int) ($state['delay_seconds'] ?? 0);
 
             if ($delay > 0) {
-                $parts[] = "Espera {$delay}s";
+                $chips[] = "Espera {$delay}s";
             }
         }
 
@@ -46,11 +49,19 @@ class FlowStepPreview
             $typing = (int) ($state['typing_delay'] ?? 0);
 
             if ($typing > 0) {
-                $parts[] = "Digitando {$typing}s";
+                $chips[] = "Digitando {$typing}s";
             }
         }
 
-        return $parts === [] ? null : implode(' · ', $parts);
+        if ($type === WhatsAppFlowStepType::Delay) {
+            $seconds = (int) ($state['delay_seconds'] ?? 0);
+
+            if ($seconds > 0) {
+                $chips[] = "{$seconds}s";
+            }
+        }
+
+        return $chips;
     }
 
     public static function itemLabel(array $state): HtmlString
@@ -58,21 +69,23 @@ class FlowStepPreview
         $type = WhatsAppFlowStepType::tryFrom($state['type'] ?? '');
         $label = e($type?->label() ?? 'Passo');
         $preview = e(self::previewText($state));
-        $meta = self::metaText($state);
         $accent = e($type?->color() ?? '#71717a');
+        $chips = self::metaChips($state);
 
-        $metaHtml = filled($meta)
-            ? '<span class="flow-step-card__meta">'.e($meta).'</span>'
-            : '';
+        $chipsHtml = $chips === []
+            ? ''
+            : '<div class="flow-step-card__chips">'.collect($chips)
+                ->map(fn (string $chip): string => '<span class="flow-step-card__chip">'.e($chip).'</span>')
+                ->implode('')
+                .'</div>';
 
         return new HtmlString(
-            '<div class="flow-step-card__label" style="--flow-step-accent: '.$accent.'">'.
-            '<span class="flow-step-card__accent" aria-hidden="true"></span>'.
-            '<span class="flow-step-card__body">'.
+            '<div class="flow-step-card" style="--step-color: '.$accent.'">'.
+            '<div class="flow-step-card__head">'.
             '<span class="flow-step-card__type">'.$label.'</span>'.
-            '<span class="flow-step-card__preview">'.$preview.'</span>'.
-            $metaHtml.
-            '</span>'.
+            '</div>'.
+            '<p class="flow-step-card__preview">'.$preview.'</p>'.
+            $chipsHtml.
             '</div>'
         );
     }

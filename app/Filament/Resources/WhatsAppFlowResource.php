@@ -150,7 +150,7 @@ class WhatsAppFlowResource extends Resource
 
                         Placeholder::make('flow_builder_hint')
                             ->hiddenLabel()
-                            ->content('Monte a sequência da esquerda para a direita. Cada card representa uma mensagem ou ação enviada ao contato.')
+                            ->content('Sequência da esquerda para a direita — clique no card para editar.')
                             ->extraAttributes(['class' => 'flow-builder-empty-hint'])
                             ->columnSpanFull(),
 
@@ -162,7 +162,8 @@ class WhatsAppFlowResource extends Resource
                             ->collapsible()
                             ->collapsed()
                             ->cloneable()
-                            ->addActionLabel('+ Adicionar passo')
+                            ->addActionLabel('Adicionar passo')
+                            ->truncateItemLabel(false)
                             ->extraAttributes(['class' => 'flow-builder'])
                             ->schema([
                                 Select::make('type')
