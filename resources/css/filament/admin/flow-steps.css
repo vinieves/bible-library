@@ -1,4 +1,4 @@
-/* Pipeline compacto de passos do fluxo WhatsApp */
+/* Pipeline horizontal de passos do fluxo WhatsApp */
 
 .flow-builder-section.fi-section {
     overflow: visible;
@@ -20,9 +20,13 @@
 }
 
 .flow-steps-repeater.fi-fo-repeater {
-    --flow-card-width: 17.5rem;
-    --flow-arrow: rgb(245 158 11);
+    --flow-card-width: 16.5rem;
+    --flow-connector: 2.35rem;
     counter-reset: flow-step;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.5rem 0;
 }
 
 .flow-steps-repeater.fi-fo-repeater > .fi-fo-field-wrp-label {
@@ -35,24 +39,51 @@
 
 .flow-steps-repeater .fi-fo-repeater-items {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     align-items: flex-start;
-    gap: 0;
+    gap: 0 var(--flow-connector);
     margin: 0;
-    padding: 0;
+    padding: 0.35rem 0;
     list-style: none;
+    min-width: 0;
+    flex: 1 1 auto;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item {
     counter-increment: flow-step;
     position: relative;
-    margin: 0 0 1.75rem !important;
+    flex: 0 0 auto;
+    margin: 0 !important;
     border: 1px solid rgb(255 255 255 / 0.08);
     border-radius: 0.625rem;
     background: rgb(30 36 51);
     box-shadow: 0 1px 0 rgb(255 255 255 / 0.03) inset;
     overflow: visible;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, width 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Numeração — canto superior esquerdo do card */
+.flow-steps-repeater .fi-fo-repeater-item::before {
+    content: counter(flow-step);
+    position: absolute;
+    top: 0.35rem;
+    left: 0.4rem;
+    z-index: 4;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    padding: 0 0.25rem;
+    border-radius: 0.4rem;
+    background: rgb(24 24 27);
+    border: 1px solid rgb(63 63 70);
+    color: rgb(212 212 216);
+    font-size: 0.62rem;
+    font-weight: 700;
+    line-height: 1;
+    pointer-events: none;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item.fi-collapsed {
@@ -66,53 +97,76 @@
     box-shadow: 0 0 0 2px rgb(245 158 11 / 0.12);
 }
 
+/* Expandido: linha inteira abaixo da fila horizontal */
 .flow-steps-repeater .fi-fo-repeater-item:not(.fi-collapsed) {
+    flex: 1 0 100% !important;
     width: 100% !important;
     min-width: 100% !important;
     max-width: 100% !important;
-    margin-bottom: 0.75rem !important;
+    order: 99;
+    margin-top: 0.65rem !important;
     border-color: rgb(245 158 11 / 0.55);
     box-shadow: 0 0 0 2px rgb(245 158 11 / 0.14);
 }
 
-.flow-steps-repeater .fi-fo-repeater-item.fi-collapsed:not(:last-child)::after {
-    content: '';
-    display: block;
-    width: 2px;
-    height: 1.15rem;
-    margin: 0.4rem auto 0;
-    background: linear-gradient(to bottom, rgb(245 158 11 / 0.55), rgb(245 158 11 / 0.15));
-}
-
-.flow-steps-repeater .fi-fo-repeater-item.fi-collapsed:not(:last-child)::before {
+/* Conector horizontal → entre cards recolhidos */
+.flow-steps-repeater .fi-fo-repeater-item.fi-collapsed:not(:last-child) .fi-fo-repeater-item-header::after {
     content: '';
     position: absolute;
-    bottom: -0.65rem;
-    left: calc(50% - 6px);
+    top: 50%;
+    right: calc(var(--flow-connector) * -1 + 0.35rem);
+    width: calc(var(--flow-connector) - 0.85rem);
+    height: 2px;
+    transform: translateY(-50%);
+    background: linear-gradient(
+        90deg,
+        rgb(245 158 11 / 0.15),
+        rgb(245 158 11 / 0.55) 35%,
+        rgb(245 158 11 / 0.55) 65%,
+        rgb(245 158 11 / 0.15)
+    );
+    border-radius: 1px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.flow-steps-repeater .fi-fo-repeater-item.fi-collapsed:not(:last-child) .fi-fo-repeater-item-header::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: calc(var(--flow-connector) * -1 + 0.15rem);
+    transform: translateY(-50%);
     width: 0;
     height: 0;
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-top: 7px solid rgb(245 158 11 / 0.45);
-    z-index: 2;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 7px solid rgb(245 158 11 / 0.65);
     pointer-events: none;
+    z-index: 2;
+}
+
+.flow-steps-repeater .fi-fo-repeater-item:not(.fi-collapsed) .fi-fo-repeater-item-header::before,
+.flow-steps-repeater .fi-fo-repeater-item:not(.fi-collapsed) .fi-fo-repeater-item-header::after {
+    display: none;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-header {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 0.35rem;
-    min-height: 4.25rem;
-    padding: 0.55rem 0.65rem !important;
+    min-height: 4.5rem;
+    padding: 1.45rem 0.55rem 0.55rem 0.45rem !important;
     border: 0 !important;
     background: transparent !important;
     cursor: pointer;
     user-select: none;
+    overflow: visible;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item:not(.fi-collapsed) .fi-fo-repeater-item-header {
     min-height: 0;
-    padding-bottom: 0.45rem !important;
+    padding: 1.35rem 0.65rem 0.5rem !important;
     border-bottom: 1px solid rgb(255 255 255 / 0.06) !important;
     cursor: default;
 }
@@ -133,8 +187,8 @@
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-header-start-actions .fi-icon-btn {
-    width: 1.4rem;
-    height: 1.4rem;
+    width: 1.35rem;
+    height: 1.35rem;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-header-label {
@@ -149,25 +203,13 @@
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-header-label::before {
-    content: counter(flow-step);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 1.2rem;
-    height: 1.2rem;
-    margin-right: 0.4rem;
-    border-radius: 0.35rem;
-    background: rgb(24 24 27);
-    color: rgb(161 161 170);
-    font-size: 0.62rem;
-    font-weight: 700;
-    vertical-align: middle;
+    display: none;
 }
 
 .flow-step-card {
     display: flex;
     align-items: center;
-    gap: 0.55rem;
+    gap: 0.5rem;
     min-width: 0;
 }
 
@@ -182,7 +224,7 @@
 .flow-step-card__body {
     display: flex;
     flex-direction: column;
-    gap: 0.12rem;
+    gap: 0.1rem;
     min-width: 0;
     flex: 1;
 }
@@ -220,7 +262,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.2rem;
-    margin-top: 0.12rem;
+    margin-top: 0.1rem;
 }
 
 .flow-step-card__chip {
@@ -235,17 +277,33 @@
     color: rgb(113 113 122);
 }
 
+/* Mais espaço entre lixeira e seta expandir */
 .flow-steps-repeater .fi-fo-repeater-item-header-end-actions {
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 0;
+    gap: 0.15rem;
     padding: 0;
-    margin: 0 0 0 0.25rem;
+    margin: 0 0 0 0.2rem;
     list-style: none;
     border: 0;
-    opacity: 0.4;
+    opacity: 0.45;
     transition: opacity 0.15s ease;
+}
+
+.flow-steps-repeater .fi-fo-repeater-item-header-end-actions > li {
+    display: flex;
+    align-items: center;
+}
+
+.flow-steps-repeater .fi-fo-repeater-item-header-end-actions > li:not(.fi-fo-repeater-item-header-collapsible-actions) {
+    margin-right: 0.15rem;
+}
+
+.flow-steps-repeater .fi-fo-repeater-item-header-collapsible-actions {
+    margin-left: 0.55rem !important;
+    padding-left: 0.55rem !important;
+    border-left: 1px solid rgb(255 255 255 / 0.1);
 }
 
 .flow-steps-repeater .fi-fo-repeater-item:hover .fi-fo-repeater-item-header-end-actions,
@@ -277,15 +335,16 @@
 }
 
 .flow-steps-repeater .fi-fo-repeater-add {
-    margin-top: 0.15rem;
-    margin-left: 0;
+    flex: 0 0 auto;
+    align-self: center;
+    margin: 0 0 0 0.25rem;
 }
 
 .flow-steps-repeater .fi-fo-repeater-add .fi-btn {
     width: var(--flow-card-width);
-    min-height: 2.75rem;
+    min-height: 4.5rem;
     border: 1px dashed rgb(245 158 11 / 0.4) !important;
-    border-radius: 0.5rem !important;
+    border-radius: 0.625rem !important;
     background: rgb(245 158 11 / 0.08) !important;
     color: rgb(251 191 36) !important;
     box-shadow: none !important;
@@ -304,31 +363,26 @@
     .flow-builder-section.fi-section {
         grid-column: 1 / -1;
     }
+
+    .flow-steps-repeater .fi-fo-repeater-items {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 0.5rem;
+        scrollbar-width: thin;
+    }
+
+    .flow-steps-repeater .fi-fo-repeater-item:not(.fi-collapsed) {
+        flex: 0 0 100% !important;
+    }
 }
 
 @media (max-width: 640px) {
     .flow-steps-repeater.fi-fo-repeater {
-        --flow-card-width: 100%;
-    }
-
-    .flow-steps-repeater .fi-fo-repeater-item.fi-collapsed {
-        width: 100% !important;
-        min-width: 100% !important;
-        max-width: 100% !important;
+        --flow-card-width: 14rem;
+        --flow-connector: 1.75rem;
     }
 
     .flow-steps-repeater .fi-fo-repeater-add .fi-btn {
-        width: 100%;
-    }
-
-    .flow-step-card {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .flow-step-card__accent {
-        width: 100%;
-        height: 0.18rem;
-        align-self: auto;
+        min-height: 3.5rem;
     }
 }

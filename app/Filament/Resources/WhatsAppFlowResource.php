@@ -122,7 +122,7 @@ class WhatsAppFlowResource extends Resource
                     ->collapsible(),
 
                 Section::make('Passos do Fluxo')
-                    ->description('Pipeline de passos — clique para editar. Apenas um aberto por vez.')
+                    ->description('Pipeline horizontal — clique para editar. Apenas um passo aberto por vez.')
                     ->extraAttributes(['class' => 'flow-builder-section'])
                     ->columnSpan(['default' => 1, 'lg' => 8])
                     ->schema([
@@ -131,7 +131,7 @@ class WhatsAppFlowResource extends Resource
 
                         Placeholder::make('flow_builder_hint')
                             ->hiddenLabel()
-                            ->content('Arraste pelo ícone ⋮⋮ para reordenar. Cada seta indica a sequência de envio.')
+                            ->content('Sequência da esquerda para a direita. Arraste pelo ícone ⋮⋮ para reordenar.')
                             ->extraAttributes(['class' => 'flow-builder-empty-hint'])
                             ->columnSpanFull(),
 
