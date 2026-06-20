@@ -32,6 +32,7 @@
 /* Repeater root */
 .flow-steps-repeater.fi-fo-repeater {
     --flow-card-width: 280px;
+    --flow-expanded-width: 280px;
     counter-reset: flow-step;
     display: flex;
     flex-direction: column;
@@ -79,9 +80,9 @@
 }
 
 .flow-steps-repeater .fi-fo-repeater-item:not(.fi-collapsed) {
-    width: 100% !important;
-    min-width: 100% !important;
-    max-width: 100% !important;
+    width: var(--flow-expanded-width) !important;
+    min-width: var(--flow-expanded-width) !important;
+    max-width: var(--flow-expanded-width) !important;
     border-color: rgb(99 102 241 / 0.55) !important;
     box-shadow: 0 0 0 3px rgb(99 102 241 / 0.1) !important;
     z-index: 2;
@@ -124,9 +125,10 @@
 }
 
 .flow-steps-repeater .fi-fo-repeater-item:not(.fi-collapsed) .fi-fo-repeater-item-header {
-    max-width: var(--flow-card-width);
+    max-width: 100%;
     cursor: default;
     border-bottom: 0 !important;
+    padding: 8px 10px 8px 12px !important;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-header-label {
@@ -334,7 +336,7 @@
     display: block !important;
     width: 100%;
     max-width: 100%;
-    padding: 0 14px 14px !important;
+    padding: 0 10px 10px !important;
     margin-top: 0 !important;
     border-top: 1px solid rgb(255 255 255 / 0.06) !important;
     background: transparent !important;
@@ -343,19 +345,19 @@
 
 .flow-steps-repeater .fi-fo-repeater-item-content .fi-fo-field-wrp-label {
     display: block !important;
-    font-size: 11px !important;
+    font-size: 10px !important;
     color: rgb(255 255 255 / 0.45) !important;
     font-weight: 500 !important;
     text-transform: none !important;
-    margin-bottom: 3px !important;
+    margin-bottom: 2px !important;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-content .fi-fo-field-wrp-helper-text,
 .flow-steps-repeater .fi-fo-repeater-item-content .fi-hint {
-    font-size: 10px !important;
+    font-size: 9px !important;
     color: rgb(255 255 255 / 0.3) !important;
-    margin-top: 3px !important;
-    line-height: 1.4 !important;
+    margin-top: 2px !important;
+    line-height: 1.35 !important;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-content input[type="number"],
@@ -363,9 +365,9 @@
 .flow-steps-repeater .fi-fo-repeater-item-content input[type="url"] {
     background: rgb(0 0 0 / 0.25) !important;
     border-color: rgb(255 255 255 / 0.1) !important;
-    font-size: 12px !important;
-    min-height: 34px !important;
-    padding: 0 10px !important;
+    font-size: 11px !important;
+    min-height: 30px !important;
+    padding: 0 8px !important;
     color: #e2e8f0 !important;
 }
 
@@ -378,17 +380,17 @@
 .flow-steps-repeater .fi-fo-repeater-item-content .fi-select-input {
     background: rgb(0 0 0 / 0.25) !important;
     border-color: rgb(255 255 255 / 0.1) !important;
-    font-size: 12px !important;
-    min-height: 34px !important;
+    font-size: 11px !important;
+    min-height: 30px !important;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-content .fi-fo-rich-editor .ProseMirror,
 .flow-steps-repeater .fi-fo-repeater-item-content .tiptap {
-    min-height: 60px !important;
-    max-height: 120px !important;
+    min-height: 48px !important;
+    max-height: 88px !important;
     overflow-y: auto !important;
-    font-size: 12px !important;
-    padding: 8px 10px !important;
+    font-size: 11px !important;
+    padding: 6px 8px !important;
     background: rgb(0 0 0 / 0.25) !important;
     color: #e2e8f0 !important;
 }
@@ -397,23 +399,23 @@
 .flow-steps-repeater .fi-fo-repeater-item-content [class*="rich-editor-toolbar"] {
     background: rgb(0 0 0 / 0.2) !important;
     border-bottom: 1px solid rgb(255 255 255 / 0.08) !important;
-    padding: 4px 6px !important;
+    padding: 2px 4px !important;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-content > .fi-fo-component-ctn,
 .flow-steps-repeater .fi-fo-repeater-item-content > .fi-sc {
-    margin-top: 10px !important;
+    margin-top: 8px !important;
     width: 100%;
     max-width: 100%;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-content > .fi-fo-component-ctn:first-child,
 .flow-steps-repeater .fi-fo-repeater-item-content > .fi-sc:first-child {
-    margin-top: 12px !important;
+    margin-top: 10px !important;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-content .fi-fo-grid {
-    gap: 10px !important;
+    gap: 8px !important;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-content .fi-fo-placeholder {
@@ -488,6 +490,7 @@
 @media (max-width: 640px) {
     .flow-steps-repeater.fi-fo-repeater {
         --flow-card-width: 100%;
+        --flow-expanded-width: 100%;
     }
 
     .flow-arrow {
