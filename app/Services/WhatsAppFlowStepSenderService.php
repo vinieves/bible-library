@@ -115,18 +115,18 @@ class WhatsAppFlowStepSenderService
      */
     private function sendMedia(WhatsAppFlowStep $step, string $phone, WhatsAppFlowStepType $type): array
     {
-        $mediaUrl = trim((string) ($step->media_url ?? $step->content ?? ''));
+        $mediaUrl = $step->resolveMediaPublicUrl();
 
         if (blank($mediaUrl)) {
             return [
                 'success' => false,
                 'http_status' => 0,
                 'response' => null,
-                'error' => 'URL da mídia não informada.',
+                'error' => 'Arquivo de mídia não informado.',
             ];
         }
 
-        $extension = $this->resolveMediaExtension($mediaUrl, $step->file_name);
+        $extension = $this->resolveMediaExtension($mediaUrl, $step->file_name, $step->media_path);
 
         if ($type === WhatsAppFlowStepType::Image && $extension === 'svg') {
             return [
@@ -164,9 +164,9 @@ class WhatsAppFlowStepSenderService
         return $this->parseResponse($response);
     }
 
-    private function resolveMediaExtension(string $mediaUrl, ?string $fileName): string
+    private function resolveMediaExtension(string $mediaUrl, ?string $fileName, ?string $mediaPath = null): string
     {
-        $path = $fileName ?: (parse_url($mediaUrl, PHP_URL_PATH) ?? '');
+        $path = $fileName ?: $mediaPath ?: (parse_url($mediaUrl, PHP_URL_PATH) ?? '');
 
         return strtolower(pathinfo($path, PATHINFO_EXTENSION));
     }
@@ -214,6 +214,17 @@ class WhatsAppFlowStepSenderService
      */
     private function sendAudio(WhatsAppFlowStep $step, string $phone): array
     {
+        $audioUrl = $step->resolveMediaPublicUrl();
+
+        if (blank($audioUrl)) {
+            return [
+                'success' => false,
+                'http_status' => 0,
+                'response' => null,
+                'error' => 'Arquivo de áudio não informado.',
+            ];
+        }
+
         $response = Http::timeout(30)
             ->withHeaders([
                 'apikey' => $this->apiKey,
@@ -221,7 +232,7 @@ class WhatsAppFlowStepSenderService
             ])
             ->post("{$this->baseUrl}/message/sendAudio/{$this->instance}", [
                 'number' => $phone,
-                'audio' => $step->media_url ?? $step->content,
+                'audio' => $audioUrl,
                 'encoding' => true,
             ]);
 

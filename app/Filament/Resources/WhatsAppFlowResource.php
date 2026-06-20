@@ -11,10 +11,12 @@ use App\Models\WhatsAppFlow;
 use App\Services\WhatsAppFlowService;
 use App\Support\EvolutionInstanceOptions;
 use App\Support\IntegrationSettings;
+use App\Support\WhatsAppFlowStepMedia;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
@@ -195,23 +197,41 @@ class WhatsAppFlowResource extends Resource
                 ->columnSpanFull(),
 
             TextInput::make('media_url')
-                ->label('URL da mídia')
-                ->url()
-                ->placeholder('https://exemplo.com/arquivo.jpg')
-                ->visible(fn (Get $get): bool => in_array($get('type'), [
-                    WhatsAppFlowStepType::Image->value,
-                    WhatsAppFlowStepType::Video->value,
-                    WhatsAppFlowStepType::Audio->value,
-                    WhatsAppFlowStepType::File->value,
-                ], true))
-                ->required(fn (Get $get): bool => in_array($get('type'), [
-                    WhatsAppFlowStepType::Image->value,
-                    WhatsAppFlowStepType::Video->value,
-                    WhatsAppFlowStepType::Audio->value,
-                    WhatsAppFlowStepType::File->value,
-                ], true))
+                ->hidden()
+                ->dehydrated(),
+
+            FileUpload::make('media_path')
+                ->label(fn (Get $get): string => match (WhatsAppFlowStepType::tryFrom($get('type') ?? '')) {
+                    WhatsAppFlowStepType::Image => 'Imagem',
+                    WhatsAppFlowStepType::Video => 'Vídeo',
+                    WhatsAppFlowStepType::Audio => 'Áudio',
+                    WhatsAppFlowStepType::File => 'Arquivo',
+                    default => 'Arquivo',
+                })
+                ->disk('public')
+                ->visibility('public')
+                ->directory(fn ($livewire): string => WhatsAppFlowStepMedia::uploadDirectory(
+                    method_exists($livewire, 'getRecord') ? $livewire->getRecord()?->getKey() : null
+                ))
+                ->acceptedFileTypes(fn (Get $get): array => WhatsAppFlowStepMedia::acceptedMimeTypes($get('type')))
+                ->maxSize(fn (Get $get): int => WhatsAppFlowStepMedia::maxUploadSizeKb($get('type')))
+                ->image(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Image->value)
+                ->imagePreviewHeight('80')
+                ->openable()
+                ->downloadable()
+                ->storeFileNamesIn('file_name')
+                ->visible(fn (Get $get): bool => static::isMediaStepType($get('type')))
+                ->required(fn (Get $get): bool => static::isMediaStepType($get('type'))
+                    && blank($get('media_path'))
+                    && blank($get('media_url')))
                 ->columnSpanFull()
-                ->helperText('URL pública acessível da mídia'),
+                ->helperText(fn (Get $get): string => match (WhatsAppFlowStepType::tryFrom($get('type') ?? '')) {
+                    WhatsAppFlowStepType::Image => 'JPG, PNG, GIF ou WEBP — até 5 MB.',
+                    WhatsAppFlowStepType::Video => 'MP4 ou WEBM — até 16 MB.',
+                    WhatsAppFlowStepType::Audio => 'MP3 ou OGG — até 16 MB.',
+                    WhatsAppFlowStepType::File => 'PDF, DOC, DOCX, XLS, XLSX, ZIP ou TXT — até 20 MB.',
+                    default => 'Formato compatível com WhatsApp / Evolution API.',
+                }),
 
             Grid::make(2)
                 ->schema([
@@ -270,6 +290,16 @@ class WhatsAppFlowResource extends Resource
                         ->helperText('Simula "digitando..." no WhatsApp'),
                 ]),
         ];
+    }
+
+    public static function isMediaStepType(mixed $type): bool
+    {
+        return in_array($type, [
+            WhatsAppFlowStepType::Image->value,
+            WhatsAppFlowStepType::Video->value,
+            WhatsAppFlowStepType::Audio->value,
+            WhatsAppFlowStepType::File->value,
+        ], true);
     }
 
     public static function table(Table $table): Table

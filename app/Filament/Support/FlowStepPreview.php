@@ -3,6 +3,7 @@
 namespace App\Filament\Support;
 
 use App\Enums\WhatsAppFlowStepType;
+use App\Support\WhatsAppFlowStepMedia;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 
@@ -22,8 +23,15 @@ class FlowStepPreview
             return $seconds > 0 ? "Aguarda {$seconds}s" : 'Intervalo';
         }
 
-        if (filled($state['media_url'] ?? null)) {
-            return Str::limit((string) $state['media_url'], 40);
+        if (filled($state['media_path'] ?? null) || filled($state['media_url'] ?? null)) {
+            return Str::limit(
+                WhatsAppFlowStepMedia::displayName(
+                    $state['media_path'] ?? null,
+                    $state['media_url'] ?? null,
+                    $state['file_name'] ?? null,
+                ),
+                40
+            );
         }
 
         return 'Clique para editar';

@@ -427,6 +427,21 @@
     color: rgb(255 255 255 / 0.35) !important;
 }
 
+.flow-steps-repeater .fi-fo-repeater-item-content .fi-fo-file-upload {
+    font-size: 11px !important;
+}
+
+.flow-steps-repeater .fi-fo-repeater-item-content .fi-fo-file-upload .filepond--root {
+    max-height: 120px;
+    font-size: 11px;
+}
+
+.flow-steps-repeater .fi-fo-repeater-item-content .fi-fo-file-upload .filepond--drop-label {
+    min-height: 72px;
+    font-size: 11px;
+    color: rgb(255 255 255 / 0.45);
+}
+
 /* ── Setas verticais entre cards ─────────────────────────── */
 .flow-arrow {
     display: flex;

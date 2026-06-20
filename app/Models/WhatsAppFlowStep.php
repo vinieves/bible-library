@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\WhatsAppFlowStepType;
+use App\Support\WhatsAppFlowStepMedia;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -18,6 +19,7 @@ class WhatsAppFlowStep extends Model
         'caption',
         'file_name',
         'media_url',
+        'media_path',
         'delay_seconds',
         'typing_delay',
     ];
@@ -35,5 +37,10 @@ class WhatsAppFlowStep extends Model
     public function flow(): BelongsTo
     {
         return $this->belongsTo(WhatsAppFlow::class, 'flow_id');
+    }
+
+    public function resolveMediaPublicUrl(): ?string
+    {
+        return WhatsAppFlowStepMedia::publicUrl($this->media_path, $this->media_url);
     }
 }
