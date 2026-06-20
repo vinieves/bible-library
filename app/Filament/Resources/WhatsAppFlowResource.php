@@ -30,6 +30,7 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Alignment;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -145,6 +146,7 @@ class WhatsAppFlowResource extends Resource
                             ->relationship('steps')
                             ->orderColumn('order')
                             ->reorderableWithDragAndDrop()
+                            ->reorderAction(fn (Action $action) => $action->icon(Heroicon::Bars2))
                             ->collapsible()
                             ->collapsed()
                             ->cloneable(false)
