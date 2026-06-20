@@ -61,60 +61,92 @@
         );
     }
 
-    function bindFlowAccordion(repeater) {
-        if (repeater.dataset.flowAccordionBound === '1') {
+    function createFlowArrow() {
+        var arrow = document.createElement('div');
+        arrow.className = 'flow-arrow';
+        arrow.setAttribute('aria-hidden', 'true');
+        arrow.innerHTML = '<div class="flow-arrow__line"></div><div class="flow-arrow__head"></div>';
+
+        return arrow;
+    }
+
+    function syncFlowArrows(repeater) {
+        var list = repeater.querySelector('.fi-fo-repeater-items');
+
+        if (!list) {
             return;
         }
 
-        repeater.dataset.flowAccordionBound = '1';
+        list.querySelectorAll('.flow-arrow').forEach(function (arrow) {
+            arrow.remove();
+        });
 
-        repeater.addEventListener('click', function (event) {
-            if (shouldIgnoreToggleClick(event.target)) {
+        var items = list.querySelectorAll('.fi-fo-repeater-item');
+
+        items.forEach(function (item, index) {
+            if (index >= items.length - 1) {
                 return;
             }
 
-            var header = event.target.closest('.fi-fo-repeater-item-header, .fi-fo-repeater-item-header-collapsible-actions');
+            var arrow = createFlowArrow();
+            item.insertAdjacentElement('afterend', arrow);
+        });
+    }
 
-            if (!header) {
-                return;
-            }
+    function bindFlowAccordion(repeater) {
+        if (repeater.dataset.flowAccordionBound !== '1') {
+            repeater.dataset.flowAccordionBound = '1';
 
-            var clickedItem = header.closest('.fi-fo-repeater-item');
-
-            if (!clickedItem) {
-                return;
-            }
-
-            if (clickedItem.classList.contains('fi-collapsed')) {
-                collapseOtherSteps(clickedItem, repeater);
-            }
-        }, true);
-
-        repeater.addEventListener('click', function (event) {
-            if (shouldIgnoreToggleClick(event.target)) {
-                return;
-            }
-
-            var header = event.target.closest('.fi-fo-repeater-item-header, .fi-fo-repeater-item-header-collapsible-actions');
-
-            if (!header) {
-                return;
-            }
-
-            var clickedItem = header.closest('.fi-fo-repeater-item');
-
-            if (!clickedItem) {
-                return;
-            }
-
-            window.setTimeout(function () {
-                if (clickedItem.classList.contains('fi-collapsed')) {
+            repeater.addEventListener('click', function (event) {
+                if (shouldIgnoreToggleClick(event.target)) {
                     return;
                 }
 
-                collapseOtherSteps(clickedItem, repeater);
-            }, 0);
-        });
+                var header = event.target.closest('.fi-fo-repeater-item-header, .fi-fo-repeater-item-header-collapsible-actions');
+
+                if (!header) {
+                    return;
+                }
+
+                var clickedItem = header.closest('.fi-fo-repeater-item');
+
+                if (!clickedItem) {
+                    return;
+                }
+
+                if (clickedItem.classList.contains('fi-collapsed')) {
+                    collapseOtherSteps(clickedItem, repeater);
+                }
+            }, true);
+
+            repeater.addEventListener('click', function (event) {
+                if (shouldIgnoreToggleClick(event.target)) {
+                    return;
+                }
+
+                var header = event.target.closest('.fi-fo-repeater-item-header, .fi-fo-repeater-item-header-collapsible-actions');
+
+                if (!header) {
+                    return;
+                }
+
+                var clickedItem = header.closest('.fi-fo-repeater-item');
+
+                if (!clickedItem) {
+                    return;
+                }
+
+                window.setTimeout(function () {
+                    if (clickedItem.classList.contains('fi-collapsed')) {
+                        return;
+                    }
+
+                    collapseOtherSteps(clickedItem, repeater);
+                }, 0);
+            });
+        }
+
+        syncFlowArrows(repeater);
     }
 
     function initFlowAccordion() {

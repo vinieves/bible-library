@@ -189,7 +189,7 @@ class WhatsAppFlowResource extends Resource
                 ->helperText('Placeholders: {nome}, {email}, {telefone}, {producto}, {link_acceso}'),
 
             Placeholder::make('delay_info')
-                ->label('Intervalo')
+                ->label('Intervalo de espera')
                 ->content('Este passo pausa o fluxo pelo tempo configurado abaixo antes de continuar.')
                 ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Delay->value)
                 ->columnSpanFull(),
@@ -211,7 +211,7 @@ class WhatsAppFlowResource extends Resource
                     WhatsAppFlowStepType::File->value,
                 ], true))
                 ->columnSpanFull()
-                ->helperText('URL pública (JPG, PNG, GIF, WEBP — SVG não funciona no WhatsApp)'),
+                ->helperText('URL pública acessível da mídia'),
 
             Grid::make(2)
                 ->schema([
@@ -233,7 +233,12 @@ class WhatsAppFlowResource extends Resource
                         ->label('Nome do arquivo')
                         ->placeholder('documento.pdf')
                         ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::File->value),
-                ]),
+                ])
+                ->visible(fn (Get $get): bool => in_array($get('type'), [
+                    WhatsAppFlowStepType::Image->value,
+                    WhatsAppFlowStepType::Video->value,
+                    WhatsAppFlowStepType::File->value,
+                ], true)),
 
             Grid::make(2)
                 ->schema([
