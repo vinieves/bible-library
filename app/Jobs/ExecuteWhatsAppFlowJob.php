@@ -21,7 +21,10 @@ class ExecuteWhatsAppFlowJob implements ShouldQueue
 
     public int $timeout = 600;
 
-    public function __construct(private readonly int $executionId) {}
+    public function __construct(
+        private readonly int $executionId,
+        private readonly ?int $resumeAfterStepOrder = null,
+    ) {}
 
     public function handle(): void
     {
@@ -51,8 +54,21 @@ class ExecuteWhatsAppFlowJob implements ShouldQueue
             return;
         }
 
-        $resuming = $execution->status === WhatsAppFlowExecutionStatus::Waiting;
-        $resumeAfterOrder = $resuming ? (int) $execution->current_step : null;
+        $resumeAfterOrder = $this->resumeAfterStepOrder;
+
+        if ($resumeAfterOrder === null && $execution->status === WhatsAppFlowExecutionStatus::Waiting) {
+            $resumeAfterOrder = (int) $execution->current_step;
+        }
+
+        if ($resumeAfterOrder === null && $execution->status !== WhatsAppFlowExecutionStatus::Pending) {
+            Log::info('ExecuteWhatsAppFlowJob ignorado: execução já em andamento ou finalizada.', [
+                'execution_id' => $execution->id,
+                'status' => $execution->status?->value ?? $execution->status,
+                'current_step' => $execution->current_step,
+            ]);
+
+            return;
+        }
 
         $execution->update([
             'status' => WhatsAppFlowExecutionStatus::Running,

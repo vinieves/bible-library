@@ -15,20 +15,67 @@ readonly class EvolutionInboundMessageData
         public array $rawPayload,
     ) {}
 
-    public static function fromPayload(array $payload): ?self
+    /**
+     * @return list<self>
+     */
+    public static function collectFromPayload(array $payload): array
     {
-        $event = strtoupper(str_replace('.', '_', (string) ($payload['event'] ?? '')));
+        $event = self::normalizeEvent($payload['event'] ?? '');
 
         if ($event !== 'MESSAGES_UPSERT') {
-            return null;
+            return [];
         }
 
-        $data = $payload['data'] ?? [];
+        $instance = (string) ($payload['instance'] ?? '');
+        $messages = [];
+
+        foreach (self::extractDataItems($payload) as $item) {
+            $parsed = self::fromDataItem($payload, $item, $instance, $event);
+
+            if ($parsed) {
+                $messages[] = $parsed;
+            }
+        }
+
+        return $messages;
+    }
+
+    public static function fromPayload(array $payload): ?self
+    {
+        return self::collectFromPayload($payload)[0] ?? null;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private static function extractDataItems(array $payload): array
+    {
+        $data = $payload['data'] ?? null;
 
         if (! is_array($data)) {
-            return null;
+            return [];
         }
 
+        if (array_is_list($data)) {
+            return array_values(array_filter(
+                $data,
+                fn (mixed $item): bool => is_array($item) && isset($item['key']),
+            ));
+        }
+
+        if (isset($data['key']) || isset($data['message'])) {
+            return [$data];
+        }
+
+        return [];
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $data
+     */
+    private static function fromDataItem(array $payload, array $data, string $instance, string $event): ?self
+    {
         $key = $data['key'] ?? [];
 
         if (! is_array($key)) {
@@ -44,6 +91,12 @@ readonly class EvolutionInboundMessageData
         $phone = \App\Services\Webhooks\PhoneNumber::fromRemoteJid($remoteJid);
 
         if (! $phone) {
+            $phone = \App\Services\Webhooks\PhoneNumber::fromRemoteJid(
+                (string) ($key['remoteJid'] ?? '')
+            );
+        }
+
+        if (! $phone) {
             return null;
         }
 
@@ -53,7 +106,7 @@ readonly class EvolutionInboundMessageData
 
         return new self(
             event: $event,
-            instance: (string) ($payload['instance'] ?? ''),
+            instance: $instance,
             remoteJid: $remoteJid,
             phoneNormalized: $phone,
             fromMe: false,
@@ -63,6 +116,14 @@ readonly class EvolutionInboundMessageData
         );
     }
 
+    private static function normalizeEvent(mixed $event): string
+    {
+        return strtoupper(str_replace(['.', '-'], '_', (string) $event));
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
     private static function isProtocolOnlyMessage(array $data): bool
     {
         $message = $data['message'] ?? [];
@@ -83,7 +144,8 @@ readonly class EvolutionInboundMessageData
             || filled($message['documentMessage'] ?? null)
             || filled($message['stickerMessage'] ?? null)
             || filled($message['buttonsResponseMessage'] ?? null)
-            || filled($message['listResponseMessage'] ?? null);
+            || filled($message['listResponseMessage'] ?? null)
+            || filled($message['templateButtonReplyMessage'] ?? null);
 
         return ! $hasContent;
     }

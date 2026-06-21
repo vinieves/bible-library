@@ -30,7 +30,7 @@ class EvolutionInboundMessageProcessor
         $flow = $this->resolveFlowForInstance($message->instance);
 
         if (! $flow) {
-            Log::info('Primeira mensagem recebida, mas nenhum fluxo ativo para esta instância.', [
+            Log::info('Mensagem recebida sem fluxo de primeira mensagem para retomar ou disparar.', [
                 'phone' => $message->phoneNormalized,
                 'instance' => $message->instance,
             ]);
@@ -99,44 +99,60 @@ class EvolutionInboundMessageProcessor
 
     private function tryResumeWaitingExecution(EvolutionInboundMessageData $message): bool
     {
-        $execution = WhatsAppFlowExecution::query()
-            ->where('phone_normalized', $message->phoneNormalized)
-            ->where('status', WhatsAppFlowExecutionStatus::Waiting)
-            ->when(
-                filled($message->instance),
-                fn ($query) => $query->where('instance_name', $message->instance),
-            )
-            ->latest('id')
-            ->first();
+        $dispatched = false;
 
-        if (! $execution) {
-            return false;
-        }
+        DB::transaction(function () use ($message, &$dispatched): void {
+            $query = WhatsAppFlowExecution::query()
+                ->where('phone_normalized', $message->phoneNormalized)
+                ->where('status', WhatsAppFlowExecutionStatus::Waiting)
+                ->lockForUpdate();
 
-        WhatsAppFlowExecutionLog::query()
-            ->where('execution_id', $execution->id)
-            ->where('step_id', $execution->waiting_step_id)
-            ->where('status', WhatsAppFlowExecutionLogStatus::Waiting)
-            ->latest('id')
-            ->limit(1)
-            ->update([
-                'status' => WhatsAppFlowExecutionLogStatus::Received,
-                'evolution_response' => [
-                    'inbound_message_id' => $message->messageId,
-                    'remote_jid' => $message->remoteJid,
-                ],
+            if (filled($message->instance)) {
+                $query->whereRaw('LOWER(instance_name) = ?', [strtolower(trim($message->instance))]);
+            }
+
+            $execution = $query->latest('id')->first();
+
+            if (! $execution) {
+                return;
+            }
+
+            WhatsAppFlowExecutionLog::query()
+                ->where('execution_id', $execution->id)
+                ->where('step_id', $execution->waiting_step_id)
+                ->where('status', WhatsAppFlowExecutionLogStatus::Waiting)
+                ->latest('id')
+                ->limit(1)
+                ->update([
+                    'status' => WhatsAppFlowExecutionLogStatus::Received,
+                    'evolution_response' => [
+                        'inbound_message_id' => $message->messageId,
+                        'remote_jid' => $message->remoteJid,
+                    ],
+                ]);
+
+            $resumeAfterStepOrder = (int) $execution->current_step;
+
+            $execution->update([
+                'status' => WhatsAppFlowExecutionStatus::Running,
+                'waiting_step_id' => null,
+                'waiting_since' => null,
             ]);
 
-        ExecuteWhatsAppFlowJob::dispatch($execution->id);
+            ExecuteWhatsAppFlowJob::dispatch($execution->id, $resumeAfterStepOrder);
 
-        Log::info('Fluxo retomado após resposta do contato.', [
-            'execution_id' => $execution->id,
-            'phone' => $message->phoneNormalized,
-            'instance' => $message->instance,
-            'inbound_message_id' => $message->messageId,
-        ]);
+            $dispatched = true;
+        });
 
-        return true;
+        if ($dispatched) {
+            Log::info('Fluxo retomado após resposta do contato.', [
+                'phone' => $message->phoneNormalized,
+                'instance' => $message->instance,
+                'inbound_message_id' => $message->messageId,
+            ]);
+        }
+
+        return $dispatched;
     }
 
     private function resolveFlowForInstance(?string $instanceName): ?WhatsAppFlow

@@ -12,6 +12,10 @@ Route::middleware(['throttle:webhooks'])
         Route::post('evolution', EvolutionWebhookController::class)
             ->middleware(VerifyEvolutionWebhook::class);
 
+        Route::post('evolution/{eventSlug}', EvolutionWebhookController::class)
+            ->middleware(VerifyEvolutionWebhook::class)
+            ->where('eventSlug', '[a-z0-9-]+');
+
         Route::post('{platform}', PurchaseWebhookController::class)
             ->middleware(VerifyWebhookSecret::class)
             ->where('platform', 'hotmart|generic');
