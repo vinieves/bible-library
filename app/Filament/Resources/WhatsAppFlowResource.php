@@ -235,6 +235,7 @@ class WhatsAppFlowResource extends Resource
                     method_exists($livewire, 'getRecord') ? $livewire->getRecord()?->getKey() : null
                 ))
                 ->acceptedFileTypes(fn (Get $get): array => WhatsAppFlowStepMedia::acceptedMimeTypes($get('type')))
+                ->mimeTypeMap(fn (Get $get): array => WhatsAppFlowStepMedia::mimeTypeMap($get('type')))
                 ->maxSize(fn (Get $get): int => WhatsAppFlowStepMedia::maxUploadSizeKb($get('type')))
                 ->openable()
                 ->downloadable()
@@ -248,7 +249,7 @@ class WhatsAppFlowResource extends Resource
                 ->helperText(fn (Get $get): string => match (WhatsAppFlowStepType::tryFrom($get('type') ?? '')) {
                     WhatsAppFlowStepType::Image => 'JPG, PNG, GIF ou WEBP — até 5 MB.',
                     WhatsAppFlowStepType::Video => 'MP4 ou WEBM — até 16 MB.',
-                    WhatsAppFlowStepType::Audio => 'MP3 ou OGG — até 16 MB.',
+                    WhatsAppFlowStepType::Audio => 'MP3, MPEG, OGG ou M4A — até 16 MB.',
                     WhatsAppFlowStepType::File => 'PDF, DOC, DOCX, XLS, XLSX, ZIP ou TXT — até 20 MB.',
                     default => 'Formato compatível com WhatsApp / Evolution API.',
                 }),

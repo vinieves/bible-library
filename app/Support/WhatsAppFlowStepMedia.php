@@ -31,9 +31,18 @@ class WhatsAppFlowStepMedia
             WhatsAppFlowStepType::Audio => [
                 'audio/mpeg',
                 'audio/mp3',
+                'audio/mpeg3',
+                'audio/mpga',
+                'audio/x-mpeg',
+                'audio/x-mpeg-3',
+                'audio/x-mp3',
                 'audio/ogg',
                 'audio/opus',
                 'audio/webm',
+                'audio/mp4',
+                'audio/x-m4a',
+                'audio/aac',
+                'video/mpeg',
             ],
             WhatsAppFlowStepType::File => [
                 'application/pdf',
@@ -43,6 +52,32 @@ class WhatsAppFlowStepMedia
                 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                 'application/zip',
                 'text/plain',
+            ],
+            default => [],
+        };
+    }
+
+    /**
+     * Mapeia extensões → MIME para validação no upload (FilePond / Filament).
+     *
+     * @return array<string, string>
+     */
+    public static function mimeTypeMap(WhatsAppFlowStepType|string|null $type): array
+    {
+        $type = $type instanceof WhatsAppFlowStepType
+            ? $type
+            : WhatsAppFlowStepType::tryFrom((string) $type);
+
+        return match ($type) {
+            WhatsAppFlowStepType::Audio => [
+                'mp3' => 'audio/mpeg',
+                'mpeg' => 'audio/mpeg',
+                'mpga' => 'audio/mpeg',
+                'ogg' => 'audio/ogg',
+                'opus' => 'audio/opus',
+                'm4a' => 'audio/mp4',
+                'aac' => 'audio/aac',
+                'webm' => 'audio/webm',
             ],
             default => [],
         };
