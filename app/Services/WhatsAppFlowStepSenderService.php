@@ -235,16 +235,25 @@ class WhatsAppFlowStepSenderService
             ];
         }
 
-        $response = Http::timeout(30)
+        $recordingDelaySeconds = max(0, (int) ($step->recording_delay ?? 0));
+        $requestTimeout = max(30, $recordingDelaySeconds + 20);
+
+        $payload = [
+            'number' => $phone,
+            'audio' => $audioUrl,
+            'encoding' => true,
+        ];
+
+        if ($recordingDelaySeconds > 0) {
+            $payload['delay'] = $recordingDelaySeconds * 1000;
+        }
+
+        $response = Http::timeout($requestTimeout)
             ->withHeaders([
                 'apikey' => $this->apiKey,
                 'Content-Type' => 'application/json',
             ])
-            ->post("{$this->baseUrl}/message/sendWhatsAppAudio/{$this->instance}", [
-                'number' => $phone,
-                'audio' => $audioUrl,
-                'encoding' => true,
-            ]);
+            ->post("{$this->baseUrl}/message/sendWhatsAppAudio/{$this->instance}", $payload);
 
         return $this->parseResponse($response);
     }

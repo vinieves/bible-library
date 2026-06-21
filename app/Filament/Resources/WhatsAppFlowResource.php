@@ -327,6 +327,16 @@ class WhatsAppFlowResource extends Resource
                         ->suffix('s')
                         ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Text->value)
                         ->helperText('Simula "digitando..." no WhatsApp'),
+
+                    TextInput::make('recording_delay')
+                        ->label('Gravando (seg)')
+                        ->numeric()
+                        ->default(3)
+                        ->minValue(0)
+                        ->maxValue(120)
+                        ->suffix('s')
+                        ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Audio->value)
+                        ->helperText('Simula "gravando áudio..." no WhatsApp antes de enviar'),
                 ]),
         ];
     }

@@ -75,6 +75,14 @@ class FlowStepPreview
             }
         }
 
+        if ($type === WhatsAppFlowStepType::Audio) {
+            $recording = (int) ($state['recording_delay'] ?? 0);
+
+            if ($recording > 0) {
+                $chips[] = "Gravando {$recording}s";
+            }
+        }
+
         if ($type === WhatsAppFlowStepType::WaitForResponse) {
             $chips[] = 'Bloqueio';
 

@@ -26,6 +26,7 @@ class WhatsAppFlowStep extends Model
         'media_path',
         'delay_seconds',
         'typing_delay',
+        'recording_delay',
     ];
 
     protected function casts(): array
@@ -35,6 +36,7 @@ class WhatsAppFlowStep extends Model
             'type' => WhatsAppFlowStepType::class,
             'delay_seconds' => 'integer',
             'typing_delay' => 'integer',
+            'recording_delay' => 'integer',
             'text_variation_cursor' => 'integer',
         ];
     }
