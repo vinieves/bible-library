@@ -24,11 +24,11 @@ class EvolutionInboundMessageProcessor
         private readonly WhatsAppFlowContactNameService $contactNameService,
     ) {}
 
-    public function process(EvolutionInboundMessageData $message): void
+    public function process(EvolutionInboundMessageData $message, ?int $webhookLogId = null): void
     {
         $this->contactNameService->syncFromInboundMessage($message);
 
-        if ($this->tryResumeWaitingExecution($message)) {
+        if ($this->tryResumeWaitingExecution($message, $webhookLogId)) {
             $this->pendingInboundService->clear($message);
 
             return;
@@ -121,6 +121,8 @@ class EvolutionInboundMessageProcessor
         });
 
         if ($isFirstMessage) {
+            app(EvolutionRegistryService::class)->markFlowTriggeredForWebhookLog($webhookLogId);
+
             Log::info('Fluxo de primeira mensagem enfileirado.', [
                 'phone' => $message->phoneNormalized,
                 'flow_id' => $flow->id,
@@ -130,7 +132,7 @@ class EvolutionInboundMessageProcessor
         }
     }
 
-    private function tryResumeWaitingExecution(EvolutionInboundMessageData $message): bool
+    private function tryResumeWaitingExecution(EvolutionInboundMessageData $message, ?int $webhookLogId = null): bool
     {
         $dispatched = false;
 
@@ -198,6 +200,8 @@ class EvolutionInboundMessageProcessor
         });
 
         if ($dispatched) {
+            app(EvolutionRegistryService::class)->markFlowTriggeredForWebhookLog($webhookLogId);
+
             Log::info('Fluxo retomado após resposta do contato.', [
                 'phone' => $message->phoneNormalized,
                 'instance' => $message->instance,

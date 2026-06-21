@@ -16,7 +16,7 @@ class EvolutionWebhookLogService
         $payload = $this->sanitizePayload($request->all());
         $extracted = $this->extractSummary($payload);
 
-        return EvolutionWebhookLog::query()->create([
+        $log = EvolutionWebhookLog::query()->create([
             'event' => $extracted['event'],
             'instance' => $extracted['instance'],
             'route_slug' => $routeSlug,
@@ -31,6 +31,10 @@ class EvolutionWebhookLogService
             'ip_address' => $request->ip(),
             'created_at' => now(),
         ]);
+
+        app(EvolutionRegistryService::class)->recordFromWebhookLog($log);
+
+        return $log;
     }
 
     public function recordUnauthorized(Request $request, ?string $routeSlug = null): EvolutionWebhookLog

@@ -51,7 +51,7 @@ class ProcessEvolutionInboundMessageJob implements ShouldQueue
         }
 
         foreach ($messages as $message) {
-            $processor->process($message);
+            $processor->process($message, $this->logId);
         }
     }
 

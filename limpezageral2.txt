@@ -1,0 +1,7 @@
+\App\Models\User::where('is_admin', true)->get();
+
+\App\Models\User::where('plan_complete', true)->get();
+
+
+token git
+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
