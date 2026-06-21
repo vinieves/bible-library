@@ -17,6 +17,10 @@ class FlowStepPreview
             return Str::limit(strip_tags((string) $state['content']), 40);
         }
 
+        if ($type === WhatsAppFlowStepType::WaitForResponse) {
+            return 'Pausa até o contato responder';
+        }
+
         if ($type === WhatsAppFlowStepType::Delay) {
             $seconds = (int) ($state['delay_seconds'] ?? 0);
 
@@ -45,7 +49,7 @@ class FlowStepPreview
         $type = WhatsAppFlowStepType::tryFrom($state['type'] ?? '');
         $chips = [];
 
-        if ($type !== WhatsAppFlowStepType::Delay) {
+        if ($type !== WhatsAppFlowStepType::Delay && $type !== WhatsAppFlowStepType::WaitForResponse) {
             $delay = (int) ($state['delay_seconds'] ?? 0);
 
             if ($delay > 0) {
@@ -68,6 +72,16 @@ class FlowStepPreview
 
             if ($variationCount > 1) {
                 $chips[] = "{$variationCount} textos";
+            }
+        }
+
+        if ($type === WhatsAppFlowStepType::WaitForResponse) {
+            $chips[] = 'Bloqueio';
+
+            $delay = (int) ($state['delay_seconds'] ?? 0);
+
+            if ($delay > 0) {
+                $chips[] = "Espera {$delay}s";
             }
         }
 
@@ -123,6 +137,7 @@ class FlowStepPreview
             WhatsAppFlowStepType::Audio => 'M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z',
             WhatsAppFlowStepType::File => 'M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z',
             WhatsAppFlowStepType::Delay => 'M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z',
+            WhatsAppFlowStepType::WaitForResponse => 'M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z',
             default => 'M19.5 14.25h-9a2.25 2.25 0 010-4.5h9m0 0V8.25m0 6.75V18m-3.75-6.75h-9a2.25 2.25 0 000 4.5h9',
         };
 

@@ -3,8 +3,13 @@
 namespace App\Services;
 
 use App\DataTransferObjects\EvolutionInboundMessageData;
+use App\Enums\WhatsAppFlowExecutionLogStatus;
+use App\Enums\WhatsAppFlowExecutionStatus;
 use App\Enums\WhatsAppFlowTriggerType;
+use App\Jobs\ExecuteWhatsAppFlowJob;
 use App\Models\WhatsAppFlow;
+use App\Models\WhatsAppFlowExecution;
+use App\Models\WhatsAppFlowExecutionLog;
 use App\Models\WhatsAppInboundContact;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -18,6 +23,10 @@ class EvolutionInboundMessageProcessor
 
     public function process(EvolutionInboundMessageData $message): void
     {
+        if ($this->tryResumeWaitingExecution($message)) {
+            return;
+        }
+
         $flow = $this->resolveFlowForInstance($message->instance);
 
         if (! $flow) {
@@ -86,6 +95,48 @@ class EvolutionInboundMessageProcessor
                 'execution_id' => $executionId,
             ]);
         }
+    }
+
+    private function tryResumeWaitingExecution(EvolutionInboundMessageData $message): bool
+    {
+        $execution = WhatsAppFlowExecution::query()
+            ->where('phone_normalized', $message->phoneNormalized)
+            ->where('status', WhatsAppFlowExecutionStatus::Waiting)
+            ->when(
+                filled($message->instance),
+                fn ($query) => $query->where('instance_name', $message->instance),
+            )
+            ->latest('id')
+            ->first();
+
+        if (! $execution) {
+            return false;
+        }
+
+        WhatsAppFlowExecutionLog::query()
+            ->where('execution_id', $execution->id)
+            ->where('step_id', $execution->waiting_step_id)
+            ->where('status', WhatsAppFlowExecutionLogStatus::Waiting)
+            ->latest('id')
+            ->limit(1)
+            ->update([
+                'status' => WhatsAppFlowExecutionLogStatus::Received,
+                'evolution_response' => [
+                    'inbound_message_id' => $message->messageId,
+                    'remote_jid' => $message->remoteJid,
+                ],
+            ]);
+
+        ExecuteWhatsAppFlowJob::dispatch($execution->id);
+
+        Log::info('Fluxo retomado após resposta do contato.', [
+            'execution_id' => $execution->id,
+            'phone' => $message->phoneNormalized,
+            'instance' => $message->instance,
+            'inbound_message_id' => $message->messageId,
+        ]);
+
+        return true;
     }
 
     private function resolveFlowForInstance(?string $instanceName): ?WhatsAppFlow

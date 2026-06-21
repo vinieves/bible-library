@@ -41,8 +41,6 @@ class ExecuteWhatsAppFlowJob implements ShouldQueue
             return;
         }
 
-        $sender = new WhatsAppFlowStepSenderService($instanceName);
-
         if (blank($execution->phone_normalized)) {
             $execution->update([
                 'status' => WhatsAppFlowExecutionStatus::Failed,
@@ -53,29 +51,71 @@ class ExecuteWhatsAppFlowJob implements ShouldQueue
             return;
         }
 
+        $resuming = $execution->status === WhatsAppFlowExecutionStatus::Waiting;
+        $resumeAfterOrder = $resuming ? (int) $execution->current_step : null;
+
         $execution->update([
             'status' => WhatsAppFlowExecutionStatus::Running,
-            'started_at' => now(),
+            'started_at' => $execution->started_at ?? now(),
+            'waiting_step_id' => null,
+            'waiting_since' => null,
         ]);
 
+        $sender = new WhatsAppFlowStepSenderService($instanceName);
         $steps = $execution->flow->steps;
         $hadFailure = false;
         $failureMessages = [];
 
         foreach ($steps as $step) {
-            $execution->increment('current_step');
-
-            $result = $sender->send($step, $execution->phone_normalized);
+            if ($resumeAfterOrder !== null && $step->order <= $resumeAfterOrder) {
+                continue;
+            }
 
             $stepType = $step->type instanceof WhatsAppFlowStepType
-                ? $step->type->value
-                : (string) $step->type;
+                ? $step->type
+                : WhatsAppFlowStepType::tryFrom((string) $step->type);
+
+            if ($stepType === WhatsAppFlowStepType::WaitForResponse) {
+                if ($step->delay_seconds > 0) {
+                    sleep($step->delay_seconds);
+                }
+
+                WhatsAppFlowExecutionLog::query()->create([
+                    'execution_id' => $execution->id,
+                    'step_id' => $step->id,
+                    'step_order' => $step->order,
+                    'step_type' => $stepType->value,
+                    'status' => WhatsAppFlowExecutionLogStatus::Waiting,
+                    'http_status' => null,
+                    'error_message' => null,
+                    'evolution_response' => null,
+                    'sent_at' => now(),
+                ]);
+
+                $execution->update([
+                    'status' => WhatsAppFlowExecutionStatus::Waiting,
+                    'current_step' => $step->order,
+                    'waiting_step_id' => $step->id,
+                    'waiting_since' => now(),
+                ]);
+
+                Log::info('WhatsApp Flow pausado aguardando resposta do contato.', [
+                    'execution_id' => $execution->id,
+                    'step_id' => $step->id,
+                    'step_order' => $step->order,
+                    'phone' => $execution->phone_normalized,
+                ]);
+
+                return;
+            }
+
+            $result = $sender->send($step, $execution->phone_normalized);
 
             WhatsAppFlowExecutionLog::query()->create([
                 'execution_id' => $execution->id,
                 'step_id' => $step->id,
                 'step_order' => $step->order,
-                'step_type' => $stepType,
+                'step_type' => $stepType?->value ?? (string) $step->type,
                 'status' => $result['success']
                     ? WhatsAppFlowExecutionLogStatus::Sent
                     : WhatsAppFlowExecutionLogStatus::Failed,
@@ -84,6 +124,8 @@ class ExecuteWhatsAppFlowJob implements ShouldQueue
                 'evolution_response' => $result['response'],
                 'sent_at' => now(),
             ]);
+
+            $execution->update(['current_step' => $step->order]);
 
             if (! $result['success']) {
                 $hadFailure = true;
@@ -110,6 +152,7 @@ class ExecuteWhatsAppFlowJob implements ShouldQueue
     {
         WhatsAppFlowExecution::query()
             ->whereKey($this->executionId)
+            ->where('status', '!=', WhatsAppFlowExecutionStatus::Waiting)
             ->update([
                 'status' => WhatsAppFlowExecutionStatus::Failed,
                 'error_message' => $exception?->getMessage(),

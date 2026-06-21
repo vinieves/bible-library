@@ -65,6 +65,14 @@ class WhatsAppFlowStepSenderService
                 return ['success' => true, 'http_status' => 200, 'response' => null, 'error' => null];
             }
 
+            if ($type === WhatsAppFlowStepType::WaitForResponse) {
+                if ($step->delay_seconds > 0) {
+                    sleep($step->delay_seconds);
+                }
+
+                return ['success' => true, 'http_status' => 200, 'response' => null, 'error' => null];
+            }
+
             if ($step->delay_seconds > 0) {
                 sleep($step->delay_seconds);
             }

@@ -20,6 +20,8 @@ class WhatsAppFlowExecution extends Model
         'instance_name',
         'status',
         'current_step',
+        'waiting_step_id',
+        'waiting_since',
         'total_steps',
         'started_at',
         'completed_at',
@@ -32,6 +34,7 @@ class WhatsAppFlowExecution extends Model
             'status' => WhatsAppFlowExecutionStatus::class,
             'started_at' => 'datetime',
             'completed_at' => 'datetime',
+            'waiting_since' => 'datetime',
             'current_step' => 'integer',
             'total_steps' => 'integer',
         ];

@@ -213,6 +213,23 @@ class WhatsAppFlowResource extends Resource
                 ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Delay->value)
                 ->columnSpanFull(),
 
+            Placeholder::make('wait_for_response_info')
+                ->hiddenLabel()
+                ->content('O fluxo pausa aqui até o contato enviar qualquer mensagem. Ao receber a resposta (webhook), continua automaticamente para o próximo passo — sem disparar novamente o fluxo de primeira mensagem.')
+                ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::WaitForResponse->value)
+                ->columnSpanFull(),
+
+            TextInput::make('delay_seconds')
+                ->label('Espera antes (seg)')
+                ->numeric()
+                ->default(0)
+                ->minValue(0)
+                ->maxValue(3600)
+                ->suffix('s')
+                ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::WaitForResponse->value)
+                ->helperText('Opcional: pausa antes de começar a aguardar a resposta.')
+                ->columnSpanFull(),
+
             TextInput::make('media_url')
                 ->hidden()
                 ->dehydrated(),
