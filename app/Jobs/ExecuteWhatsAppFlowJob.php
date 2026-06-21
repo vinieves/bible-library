@@ -8,6 +8,7 @@ use App\Enums\WhatsAppFlowStepType;
 use App\Models\WhatsAppFlowExecution;
 use App\Models\WhatsAppFlowExecutionLog;
 use App\Services\WhatsAppFlowStepSenderService;
+use App\Services\WhatsAppPendingInboundService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
@@ -26,7 +27,7 @@ class ExecuteWhatsAppFlowJob implements ShouldQueue
         private readonly ?int $resumeAfterStepOrder = null,
     ) {}
 
-    public function handle(): void
+    public function handle(WhatsAppPendingInboundService $pendingInboundService): void
     {
         $execution = WhatsAppFlowExecution::query()
             ->with(['flow.steps'])
@@ -94,6 +95,38 @@ class ExecuteWhatsAppFlowJob implements ShouldQueue
             if ($stepType === WhatsAppFlowStepType::WaitForResponse) {
                 if ($step->delay_seconds > 0) {
                     sleep($step->delay_seconds);
+                }
+
+                $pendingInbound = $pendingInboundService->consumeForExecution($execution, $instanceName);
+
+                if ($pendingInbound) {
+                    WhatsAppFlowExecutionLog::query()->create([
+                        'execution_id' => $execution->id,
+                        'step_id' => $step->id,
+                        'step_order' => $step->order,
+                        'step_type' => $stepType->value,
+                        'status' => WhatsAppFlowExecutionLogStatus::Received,
+                        'http_status' => null,
+                        'error_message' => null,
+                        'evolution_response' => [
+                            'inbound_message_id' => $pendingInbound['message_id'] ?? null,
+                            'remote_jid' => $pendingInbound['remote_jid'] ?? null,
+                            'source' => 'pending_inbound_buffer',
+                            'received_at' => $pendingInbound['received_at']?->toIso8601String(),
+                        ],
+                        'sent_at' => now(),
+                    ]);
+
+                    $execution->update(['current_step' => $step->order]);
+
+                    Log::info('WhatsApp Flow: resposta já recebida antes da pausa, continuando fluxo.', [
+                        'execution_id' => $execution->id,
+                        'step_id' => $step->id,
+                        'step_order' => $step->order,
+                        'phone' => $execution->phone_normalized,
+                    ]);
+
+                    continue;
                 }
 
                 WhatsAppFlowExecutionLog::query()->create([

@@ -107,6 +107,7 @@ class PhoneNumber
             || str_contains($jid, '@broadcast')
             || str_contains($jid, 'status@')
             || str_ends_with($jid, '@newsletter')
+            || str_ends_with($jid, '@lid')
         ) {
             return null;
         }
