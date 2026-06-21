@@ -267,7 +267,7 @@ class WhatsAppFlowResource extends Resource
                     WhatsAppFlowStepType::Image => 'JPG, PNG, GIF ou WEBP — até 5 MB.',
                     WhatsAppFlowStepType::Video => 'MP4 ou WEBM — até 16 MB.',
                     WhatsAppFlowStepType::Audio => 'MP3, MPEG, OGG ou M4A — até 16 MB.',
-                    WhatsAppFlowStepType::File => 'PDF, DOC, DOCX, XLS, XLSX, ZIP ou TXT — até 20 MB.',
+                    WhatsAppFlowStepType::File => 'PDF, DOC, DOCX, XLS, XLSX, ZIP ou TXT — até 100 MB.',
                     default => 'Formato compatível com WhatsApp / Evolution API.',
                 }),
 

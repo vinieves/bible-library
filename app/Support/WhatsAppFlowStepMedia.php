@@ -93,7 +93,7 @@ class WhatsAppFlowStepMedia
             WhatsAppFlowStepType::Image => 5120,
             WhatsAppFlowStepType::Video => 16384,
             WhatsAppFlowStepType::Audio => 16384,
-            WhatsAppFlowStepType::File => 20480,
+            WhatsAppFlowStepType::File => 102400,
             default => 5120,
         };
     }
