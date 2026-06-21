@@ -15,6 +15,7 @@ class WhatsAppFlowExecution extends Model
         'flow_id',
         'phone',
         'phone_normalized',
+        'contact_name',
         'user_id',
         'trigger',
         'instance_name',

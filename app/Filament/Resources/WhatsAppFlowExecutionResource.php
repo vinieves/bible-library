@@ -66,6 +66,9 @@ class WhatsAppFlowExecutionResource extends Resource
                         TextInput::make('phone_normalized')
                             ->label('Telefone')
                             ->disabled(),
+                        TextInput::make('contact_name')
+                            ->label('Nome do contato')
+                            ->disabled(),
                         TextInput::make('trigger')
                             ->label('Gatilho')
                             ->disabled(),

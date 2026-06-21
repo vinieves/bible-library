@@ -12,11 +12,16 @@ use RuntimeException;
 
 class WhatsAppFlowService
 {
+    public function __construct(
+        private readonly WhatsAppFlowContactNameService $contactNameService,
+    ) {}
+
     public function dispatch(
         WhatsAppFlow $flow,
         string $phone,
         string $trigger = 'manual',
         ?int $userId = null,
+        ?string $contactName = null,
     ): WhatsAppFlowExecution {
         if (! IntegrationSettings::evolutionApiReady()) {
             throw new RuntimeException('Evolution API não configurada no painel admin.');
@@ -42,6 +47,9 @@ class WhatsAppFlowService
             'flow_id' => $flow->id,
             'phone' => $phone,
             'phone_normalized' => $normalized,
+            'contact_name' => filled($contactName)
+                ? trim($contactName)
+                : $this->contactNameService->resolveForPhone($normalized),
             'user_id' => $userId,
             'trigger' => $trigger,
             'instance_name' => $instanceName,

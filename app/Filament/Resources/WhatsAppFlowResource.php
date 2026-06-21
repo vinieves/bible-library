@@ -203,7 +203,7 @@ class WhatsAppFlowResource extends Resource
 
             Placeholder::make('text_variations_help')
                 ->hiddenLabel()
-                ->content('Textos 2 e 3 são opcionais. A cada novo cliente, o envio alterna entre as variações preenchidas (ex.: 1→A, 2→B, 3→A…).')
+                ->content('Textos 2 e 3 são opcionais. A cada novo cliente, o envio alterna entre as variações preenchidas (ex.: 1→A, 2→B, 3→A…). Use <code>{nome}</code> para o primeiro nome do contato (pushName do WhatsApp).')
                 ->visible(fn (Get $get): bool => $get('type') === WhatsAppFlowStepType::Text->value)
                 ->columnSpanFull(),
 
@@ -276,6 +276,7 @@ class WhatsAppFlowResource extends Resource
                     TextInput::make('caption')
                         ->label('Legenda')
                         ->maxLength(1000)
+                        ->helperText('Use {nome} para o primeiro nome do contato.')
                         ->visible(fn (Get $get): bool => in_array($get('type'), [
                             WhatsAppFlowStepType::Image->value,
                             WhatsAppFlowStepType::Video->value,

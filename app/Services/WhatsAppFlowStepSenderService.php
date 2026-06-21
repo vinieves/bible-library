@@ -18,8 +18,10 @@ class WhatsAppFlowStepSenderService
 
     private string $apiKey;
 
-    public function __construct(?string $instanceName = null)
-    {
+    public function __construct(
+        ?string $instanceName = null,
+        private readonly ?WhatsAppFlowPlaceholderService $placeholderService = null,
+    ) {
         $baseUrl = IntegrationSettings::evolutionBaseUrl();
         $instance = $instanceName ?: IntegrationSettings::evolutionInstanceForFlows();
         $apiKey = IntegrationSettings::evolutionApiKey();
@@ -41,7 +43,7 @@ class WhatsAppFlowStepSenderService
     /**
      * @return array{success: bool, http_status: int, response: array|null, error: string|null}
      */
-    public function send(WhatsAppFlowStep $step, string $phoneNormalized): array
+    public function send(WhatsAppFlowStep $step, string $phoneNormalized, ?string $contactName = null): array
     {
         try {
             $type = $step->type instanceof WhatsAppFlowStepType
@@ -78,10 +80,10 @@ class WhatsAppFlowStepSenderService
             }
 
             return match ($type) {
-                WhatsAppFlowStepType::Text => $this->sendText($step, $phoneNormalized),
+                WhatsAppFlowStepType::Text => $this->sendText($step, $phoneNormalized, $contactName),
                 WhatsAppFlowStepType::Image,
                 WhatsAppFlowStepType::Video,
-                WhatsAppFlowStepType::File => $this->sendMedia($step, $phoneNormalized, $type),
+                WhatsAppFlowStepType::File => $this->sendMedia($step, $phoneNormalized, $type, $contactName),
                 WhatsAppFlowStepType::Audio => $this->sendAudio($step, $phoneNormalized),
             };
         } catch (\Throwable $exception) {
@@ -102,7 +104,7 @@ class WhatsAppFlowStepSenderService
     /**
      * @return array{success: bool, http_status: int, response: array|null, error: string|null}
      */
-    private function sendText(WhatsAppFlowStep $step, string $phone): array
+    private function sendText(WhatsAppFlowStep $step, string $phone, ?string $contactName = null): array
     {
         $response = Http::timeout(20)
             ->withHeaders([
@@ -111,7 +113,7 @@ class WhatsAppFlowStepSenderService
             ])
             ->post("{$this->baseUrl}/message/sendText/{$this->instance}", [
                 'number' => $phone,
-                'text' => $this->plainTextContent($step->resolveNextTextContent()),
+                'text' => $this->renderPlaceholders($this->plainTextContent($step->resolveNextTextContent()), $contactName),
                 'delay' => max(0, ($step->typing_delay ?? 3)) * 1000,
             ]);
 
@@ -121,7 +123,7 @@ class WhatsAppFlowStepSenderService
     /**
      * @return array{success: bool, http_status: int, response: array|null, error: string|null}
      */
-    private function sendMedia(WhatsAppFlowStep $step, string $phone, WhatsAppFlowStepType $type): array
+    private function sendMedia(WhatsAppFlowStep $step, string $phone, WhatsAppFlowStepType $type, ?string $contactName = null): array
     {
         $mediaUrl = $step->resolveMediaPublicUrl();
 
@@ -165,7 +167,7 @@ class WhatsAppFlowStepSenderService
                 'mediatype' => $mediatype,
                 'mimetype' => $mimetype,
                 'media' => $mediaUrl,
-                'caption' => $step->caption ?? '',
+                'caption' => $this->renderPlaceholders((string) ($step->caption ?? ''), $contactName),
                 'fileName' => $fileName,
             ]);
 
@@ -290,5 +292,11 @@ class WhatsAppFlowStepSenderService
         $plain = html_entity_decode(strip_tags($normalized), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
         return trim(preg_replace("/\n{3,}/", "\n\n", $plain) ?? $plain);
+    }
+
+    private function renderPlaceholders(string $text, ?string $contactName): string
+    {
+        return ($this->placeholderService ?? app(WhatsAppFlowPlaceholderService::class))
+            ->render($text, $contactName);
     }
 }

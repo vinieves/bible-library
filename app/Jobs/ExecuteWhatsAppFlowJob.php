@@ -158,7 +158,7 @@ class ExecuteWhatsAppFlowJob implements ShouldQueue
                 return;
             }
 
-            $result = $sender->send($step, $execution->phone_normalized);
+            $result = $sender->send($step, $execution->phone_normalized, $execution->contact_name);
 
             WhatsAppFlowExecutionLog::query()->create([
                 'execution_id' => $execution->id,

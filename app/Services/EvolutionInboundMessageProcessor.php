@@ -21,10 +21,13 @@ class EvolutionInboundMessageProcessor
     public function __construct(
         private readonly WhatsAppFlowService $flowService,
         private readonly WhatsAppPendingInboundService $pendingInboundService,
+        private readonly WhatsAppFlowContactNameService $contactNameService,
     ) {}
 
     public function process(EvolutionInboundMessageData $message): void
     {
+        $this->contactNameService->syncFromInboundMessage($message);
+
         if ($this->tryResumeWaitingExecution($message)) {
             $this->pendingInboundService->clear($message);
 
@@ -92,6 +95,7 @@ class EvolutionInboundMessageProcessor
                     flow: $flow,
                     phone: $message->phoneNormalized,
                     trigger: WhatsAppFlowTriggerType::FirstMessage->value,
+                    contactName: $message->pushName,
                 );
 
                 $executionId = $execution->id;
