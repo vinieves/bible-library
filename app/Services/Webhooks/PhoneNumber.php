@@ -16,7 +16,82 @@ class PhoneNumber
             return null;
         }
 
-        return strlen($digits) >= 10 ? $digits : null;
+        if (strlen($digits) < 10) {
+            return null;
+        }
+
+        return self::canonicalBrazilMobile($digits) ?? $digits;
+    }
+
+    /**
+     * Variantes equivalentes para comparação (ex.: BR com/sem nono dígito).
+     *
+     * @return list<string>
+     */
+    public static function matchVariants(mixed $value): array
+    {
+        $digits = self::normalize($value);
+
+        if (! $digits) {
+            return [];
+        }
+
+        $variants = [$digits];
+
+        $legacy = self::legacyBrazilMobileWithoutNinthDigit($digits);
+
+        if ($legacy) {
+            $variants[] = $legacy;
+        }
+
+        return array_values(array_unique($variants));
+    }
+
+    /**
+     * BR móvel: 55 + DDD + 9 + 8 dígitos. WhatsApp/Evolution costuma omitir o 9 extra.
+     */
+    public static function canonicalBrazilMobile(string $digits): ?string
+    {
+        $digits = self::digitsOnly($digits);
+
+        if (! str_starts_with($digits, '55') || strlen($digits) < 12) {
+            return null;
+        }
+
+        $ddd = substr($digits, 2, 2);
+        $local = substr($digits, 4);
+
+        if (! preg_match('/^\d{2}$/', $ddd)) {
+            return null;
+        }
+
+        if (strlen($local) === 8 && preg_match('/^[6-9]/', $local)) {
+            $local = '9'.$local;
+        }
+
+        if (strlen($local) !== 9 || ! str_starts_with($local, '9')) {
+            return null;
+        }
+
+        return '55'.$ddd.$local;
+    }
+
+    private static function legacyBrazilMobileWithoutNinthDigit(string $digits): ?string
+    {
+        $digits = self::digitsOnly($digits);
+
+        if (! str_starts_with($digits, '55') || strlen($digits) !== 13) {
+            return null;
+        }
+
+        $ddd = substr($digits, 2, 2);
+        $local = substr($digits, 4);
+
+        if (strlen($local) === 9 && str_starts_with($local, '9')) {
+            return '55'.$ddd.substr($local, 1);
+        }
+
+        return null;
     }
 
     /**

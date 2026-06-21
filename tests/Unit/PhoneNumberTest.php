@@ -64,4 +64,23 @@ class PhoneNumberTest extends TestCase
     {
         $this->assertSame('573165247626', PhoneNumber::normalize('57 316 524 7626'));
     }
+
+    public function test_it_adds_brazilian_mobile_ninth_digit_from_whatsapp_jid(): void
+    {
+        $this->assertSame('5533984660749', PhoneNumber::normalize('553384660749'));
+        $this->assertSame('5533984660749', PhoneNumber::fromRemoteJid('553384660749@s.whatsapp.net'));
+    }
+
+    public function test_it_keeps_brazilian_mobile_with_ninth_digit(): void
+    {
+        $this->assertSame('5533984660749', PhoneNumber::normalize('5533984660749'));
+    }
+
+    public function test_match_variants_include_legacy_and_canonical_brazilian_numbers(): void
+    {
+        $variants = PhoneNumber::matchVariants('553384660749');
+
+        $this->assertContains('5533984660749', $variants);
+        $this->assertContains('553384660749', $variants);
+    }
 }

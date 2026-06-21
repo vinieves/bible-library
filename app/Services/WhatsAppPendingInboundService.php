@@ -6,6 +6,8 @@ use App\DataTransferObjects\EvolutionInboundMessageData;
 use App\Models\WhatsAppFlowExecution;
 use App\Models\WhatsAppPendingInboundResponse;
 use App\Enums\WhatsAppFlowExecutionStatus;
+use App\Services\Webhooks\PhoneNumber;
+use App\Services\Webhooks\PhoneNumberQuery;
 use Illuminate\Support\Carbon;
 
 class WhatsAppPendingInboundService
@@ -14,7 +16,7 @@ class WhatsAppPendingInboundService
     {
         WhatsAppPendingInboundResponse::query()->updateOrCreate(
             [
-                'phone_normalized' => $message->phoneNormalized,
+                'phone_normalized' => PhoneNumber::normalize($message->phoneNormalized),
                 'instance_name' => $this->normalizeInstanceName($message->instance),
             ],
             [
@@ -28,7 +30,7 @@ class WhatsAppPendingInboundService
     public function clear(EvolutionInboundMessageData $message): void
     {
         WhatsAppPendingInboundResponse::query()
-            ->where('phone_normalized', $message->phoneNormalized)
+            ->tap(fn ($query) => PhoneNumberQuery::whereMatchesPhone($query, 'phone_normalized', $message->phoneNormalized))
             ->when(
                 filled($message->instance),
                 fn ($query) => $query->whereRaw('LOWER(instance_name) = ?', [strtolower(trim($message->instance))]),
@@ -42,7 +44,7 @@ class WhatsAppPendingInboundService
     public function consumeForExecution(WhatsAppFlowExecution $execution, string $instanceName): ?array
     {
         $pending = WhatsAppPendingInboundResponse::query()
-            ->where('phone_normalized', $execution->phone_normalized)
+            ->tap(fn ($query) => PhoneNumberQuery::whereMatchesPhone($query, 'phone_normalized', $execution->phone_normalized))
             ->whereRaw('LOWER(instance_name) = ?', [strtolower(trim($instanceName))])
             ->where('received_at', '>=', $execution->started_at ?? $execution->created_at)
             ->orderByDesc('received_at')
@@ -66,7 +68,7 @@ class WhatsAppPendingInboundService
     public function hasActiveExecution(EvolutionInboundMessageData $message): bool
     {
         return WhatsAppFlowExecution::query()
-            ->where('phone_normalized', $message->phoneNormalized)
+            ->tap(fn ($query) => PhoneNumberQuery::whereMatchesPhone($query, 'phone_normalized', $message->phoneNormalized))
             ->when(
                 filled($message->instance),
                 fn ($query) => $query->whereRaw('LOWER(instance_name) = ?', [strtolower(trim($message->instance))]),

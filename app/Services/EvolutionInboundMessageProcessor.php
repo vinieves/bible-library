@@ -11,6 +11,7 @@ use App\Models\WhatsAppFlow;
 use App\Models\WhatsAppFlowExecution;
 use App\Models\WhatsAppFlowExecutionLog;
 use App\Models\WhatsAppInboundContact;
+use App\Services\Webhooks\PhoneNumberQuery;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -58,7 +59,7 @@ class EvolutionInboundMessageProcessor
 
         DB::transaction(function () use ($message, $flow, &$isFirstMessage, &$executionId): void {
             $existing = WhatsAppInboundContact::query()
-                ->where('phone_normalized', $message->phoneNormalized)
+                ->tap(fn ($query) => PhoneNumberQuery::whereMatchesPhone($query, 'phone_normalized', $message->phoneNormalized))
                 ->lockForUpdate()
                 ->first();
 
@@ -67,7 +68,7 @@ class EvolutionInboundMessageProcessor
                     'phone' => $message->phoneNormalized,
                     'first_message_at' => $existing->first_message_at?->toIso8601String(),
                     'latest_executions' => WhatsAppFlowExecution::query()
-                        ->where('phone_normalized', $message->phoneNormalized)
+                        ->tap(fn ($query) => PhoneNumberQuery::whereMatchesPhone($query, 'phone_normalized', $message->phoneNormalized))
                         ->latest('id')
                         ->limit(3)
                         ->get(['id', 'status', 'instance_name', 'current_step', 'waiting_step_id'])
@@ -131,7 +132,7 @@ class EvolutionInboundMessageProcessor
 
         DB::transaction(function () use ($message, &$dispatched): void {
             $query = WhatsAppFlowExecution::query()
-                ->where('phone_normalized', $message->phoneNormalized)
+                ->tap(fn ($builder) => PhoneNumberQuery::whereMatchesPhone($builder, 'phone_normalized', $message->phoneNormalized))
                 ->where('status', WhatsAppFlowExecutionStatus::Waiting)
                 ->lockForUpdate();
 
@@ -143,7 +144,7 @@ class EvolutionInboundMessageProcessor
 
             if (! $execution && filled($message->instance)) {
                 $execution = WhatsAppFlowExecution::query()
-                    ->where('phone_normalized', $message->phoneNormalized)
+                    ->tap(fn ($builder) => PhoneNumberQuery::whereMatchesPhone($builder, 'phone_normalized', $message->phoneNormalized))
                     ->where('status', WhatsAppFlowExecutionStatus::Waiting)
                     ->lockForUpdate()
                     ->latest('id')
@@ -204,7 +205,7 @@ class EvolutionInboundMessageProcessor
                 'instance' => $message->instance,
                 'message_id' => $message->messageId,
                 'latest_executions' => WhatsAppFlowExecution::query()
-                    ->where('phone_normalized', $message->phoneNormalized)
+                    ->tap(fn ($query) => PhoneNumberQuery::whereMatchesPhone($query, 'phone_normalized', $message->phoneNormalized))
                     ->when(
                         filled($message->instance),
                         fn ($query) => $query->whereRaw('LOWER(instance_name) = ?', [strtolower(trim($message->instance))]),
