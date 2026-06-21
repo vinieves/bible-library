@@ -3,15 +3,19 @@
 namespace App\Http\Controllers\Api\Webhook;
 
 use App\Jobs\ProcessEvolutionInboundMessageJob;
+use App\Services\EvolutionWebhookLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class EvolutionWebhookController
 {
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(Request $request, EvolutionWebhookLogService $logService): JsonResponse
     {
+        $log = $logService->recordIncoming($request, $request->route('eventSlug'));
+
         Log::info('Webhook Evolution recebido.', [
+            'log_id' => $log->id,
             'event' => $request->input('event'),
             'event_slug' => $request->route('eventSlug'),
             'instance' => $request->input('instance'),
@@ -21,7 +25,7 @@ class EvolutionWebhookController
             'has_apikey' => filled($request->input('apikey') ?? $request->header('apikey')),
         ]);
 
-        ProcessEvolutionInboundMessageJob::dispatch($request->all());
+        ProcessEvolutionInboundMessageJob::dispatch($request->all(), $log->id);
 
         return response()->json([
             'status' => 'accepted',

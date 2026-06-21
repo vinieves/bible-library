@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\EvolutionWebhookLogService;
 use App\Support\IntegrationSettings;
 use Closure;
 use Illuminate\Http\Request;
@@ -22,6 +23,11 @@ class VerifyEvolutionWebhook
             'has_apikey_body' => filled($request->input('apikey')),
             'has_apikey_header' => filled($request->header('apikey')),
         ]);
+
+        app(EvolutionWebhookLogService::class)->recordUnauthorized(
+            $request,
+            $request->route('eventSlug'),
+        );
 
         return response()->json([
             'message' => 'Não autorizado.',

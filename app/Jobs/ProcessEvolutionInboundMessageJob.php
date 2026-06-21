@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\DataTransferObjects\EvolutionInboundMessageData;
 use App\Services\EvolutionInboundMessageProcessor;
+use App\Services\EvolutionWebhookLogService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
@@ -20,14 +21,24 @@ class ProcessEvolutionInboundMessageJob implements ShouldQueue
     /**
      * @param  array<string, mixed>  $payload
      */
-    public function __construct(private readonly array $payload) {}
+    public function __construct(
+        private readonly array $payload,
+        private readonly ?int $logId = null,
+    ) {}
 
-    public function handle(EvolutionInboundMessageProcessor $processor): void
-    {
+    public function handle(
+        EvolutionInboundMessageProcessor $processor,
+        EvolutionWebhookLogService $logService,
+    ): void {
         $messages = EvolutionInboundMessageData::collectFromPayload($this->payload);
+
+        if ($this->logId) {
+            $logService->markJobResult($this->logId, $messages, wasIgnored: true);
+        }
 
         if ($messages === []) {
             Log::warning('Webhook Evolution ignorado: evento/payload inválido para mensagem recebida.', [
+                'log_id' => $this->logId,
                 'event' => $this->payload['event'] ?? null,
                 'event_normalized' => strtoupper(str_replace(['.', '-'], '_', (string) ($this->payload['event'] ?? ''))),
                 'instance' => $this->payload['instance'] ?? null,
@@ -46,7 +57,15 @@ class ProcessEvolutionInboundMessageJob implements ShouldQueue
 
     public function failed(?Throwable $exception): void
     {
+        if ($this->logId) {
+            app(EvolutionWebhookLogService::class)->markJobFailed(
+                $this->logId,
+                $exception?->getMessage(),
+            );
+        }
+
         Log::error('ProcessEvolutionInboundMessageJob falhou.', [
+            'log_id' => $this->logId,
             'error' => $exception?->getMessage(),
             'event' => $this->payload['event'] ?? null,
         ]);
