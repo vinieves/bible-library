@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class WhatsAppPendingInboundResponse extends Model
 {
+    protected $table = 'whatsapp_pending_inbound_responses';
+
     protected $fillable = [
         'phone_normalized',
         'instance_name',
