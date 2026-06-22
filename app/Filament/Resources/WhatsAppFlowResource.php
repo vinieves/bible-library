@@ -8,6 +8,7 @@ use App\Enums\WhatsAppFlowTriggerType;
 use App\Filament\Resources\WhatsAppFlowResource\Pages;
 use App\Filament\Support\FlowStepPreview;
 use App\Models\WhatsAppFlow;
+use App\Models\WhatsAppMessageTrigger;
 use App\Services\WhatsAppFlowService;
 use App\Support\EvolutionInstanceOptions;
 use App\Support\IntegrationSettings;
@@ -100,14 +101,36 @@ class WhatsAppFlowResource extends Resource
                                 'PURCHASE_OUT_OF_SHOPPING_CART' => 'Abandonou carrinho',
                             ])
                             ->visible(fn (Get $get): bool => $get('trigger_type') === WhatsAppFlowTriggerType::Webhook->value),
+                        Select::make('message_trigger_id')
+                            ->label('Gatilho de mensagem')
+                            ->relationship(
+                                name: 'messageTrigger',
+                                titleAttribute: 'name',
+                                modifyQueryUsing: fn ($query) => $query->orderBy('name'),
+                            )
+                            ->getOptionLabelFromRecordUsing(
+                                fn (WhatsAppMessageTrigger $record): string => "{$record->public_code} — {$record->name}"
+                            )
+                            ->searchable(['name', 'public_code', 'message'])
+                            ->preload()
+                            ->native(false)
+                            ->required(fn (Get $get): bool => $get('trigger_type') === WhatsAppFlowTriggerType::MessageTrigger->value)
+                            ->visible(fn (Get $get): bool => $get('trigger_type') === WhatsAppFlowTriggerType::MessageTrigger->value)
+                            ->helperText('Selecione o gatilho cujo texto coincide com a primeira mensagem do anúncio. Cadastre em Sistema → Gatilhos.')
+                            ->columnSpanFull(),
                         View::make('filament.resources.whatsapp-flow.first-message-webhook-help')
-                            ->visible(fn (Get $get): bool => $get('trigger_type') === WhatsAppFlowTriggerType::FirstMessage->value)
+                            ->visible(fn (Get $get): bool => in_array($get('trigger_type'), [
+                                WhatsAppFlowTriggerType::FirstMessage->value,
+                                WhatsAppFlowTriggerType::MessageTrigger->value,
+                            ], true))
                             ->columnSpanFull(),
                         Toggle::make('is_active')
                             ->label('Fluxo ativo')
-                            ->helperText(fn (Get $get): ?string => $get('trigger_type') === WhatsAppFlowTriggerType::FirstMessage->value
-                                ? 'Ative para responder automaticamente a novos contatos do anúncio (Facebook → WhatsApp).'
-                                : 'Somente fluxos ativos são disparados automaticamente')
+                            ->helperText(fn (Get $get): ?string => match ($get('trigger_type')) {
+                                WhatsAppFlowTriggerType::FirstMessage->value => 'Ative para responder automaticamente a novos contatos do anúncio (Facebook → WhatsApp).',
+                                WhatsAppFlowTriggerType::MessageTrigger->value => 'Ative para disparar este fluxo quando a primeira mensagem bater com o gatilho selecionado.',
+                                default => 'Somente fluxos ativos são disparados automaticamente',
+                            })
                             ->default(false),
                         Select::make('instance_name')
                             ->label('Instância WhatsApp')
@@ -115,7 +138,10 @@ class WhatsAppFlowResource extends Resource
                             ->searchable()
                             ->native(false)
                             ->placeholder(fn (): string => 'Padrão: '.(IntegrationSettings::evolutionInstanceForFlows() ?: 'não definida'))
-                            ->helperText(fn (Get $get): string => $get('trigger_type') === WhatsAppFlowTriggerType::FirstMessage->value
+                            ->helperText(fn (Get $get): string => in_array($get('trigger_type'), [
+                                WhatsAppFlowTriggerType::FirstMessage->value,
+                                WhatsAppFlowTriggerType::MessageTrigger->value,
+                            ], true)
                                 ? 'Número que receberá mensagens e enviará este fluxo. Deve coincidir com o webhook registrado na Evolution.'
                                 : 'Instância que enviará os passos deste fluxo. Vazio usa o padrão de Integrações API.')
                             ->required(fn (Get $get): bool => (bool) $get('is_active'))
@@ -379,6 +405,10 @@ class WhatsAppFlowResource extends Resource
                     ->formatStateUsing(fn ($state) => $state instanceof WhatsAppFlowTriggerType
                         ? $state->label()
                         : WhatsAppFlowTriggerType::tryFrom((string) $state)?->label() ?? $state),
+                TextColumn::make('messageTrigger.public_code')
+                    ->label('Gatilho ID')
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('instance_name')
                     ->label('Instância')
                     ->placeholder(fn (WhatsAppFlow $record): string => $record->resolveInstanceName() ?: '—')

@@ -7,7 +7,6 @@ use App\Enums\WhatsAppFlowExecutionLogStatus;
 use App\Enums\WhatsAppFlowExecutionStatus;
 use App\Enums\WhatsAppFlowTriggerType;
 use App\Jobs\ExecuteWhatsAppFlowJob;
-use App\Models\WhatsAppFlow;
 use App\Models\WhatsAppFlowExecution;
 use App\Models\WhatsAppFlowExecutionLog;
 use App\Models\WhatsAppInboundContact;
@@ -22,6 +21,7 @@ class EvolutionInboundMessageProcessor
         private readonly WhatsAppFlowService $flowService,
         private readonly WhatsAppPendingInboundService $pendingInboundService,
         private readonly WhatsAppFlowContactNameService $contactNameService,
+        private readonly WhatsAppMessageTriggerMatcher $messageTriggerMatcher,
     ) {}
 
     public function process(EvolutionInboundMessageData $message, ?int $webhookLogId = null): void
@@ -46,21 +46,29 @@ class EvolutionInboundMessageProcessor
             return;
         }
 
-        $flow = $this->resolveFlowForInstance($message->instance);
+        $flow = $this->messageTriggerMatcher->resolveFlowForInboundMessage(
+            $message->instance,
+            $message->messageText,
+        );
 
         if (! $flow) {
-            Log::info('Mensagem recebida sem fluxo de primeira mensagem para retomar ou disparar.', [
+            Log::info('Mensagem recebida sem fluxo compatível para retomar ou disparar.', [
                 'phone' => $message->phoneNormalized,
                 'instance' => $message->instance,
+                'message_text' => $message->messageText,
             ]);
 
             return;
         }
 
+        $triggerLabel = $flow->trigger_type === WhatsAppFlowTriggerType::MessageTrigger
+            ? WhatsAppFlowTriggerType::MessageTrigger->value.':'.($flow->messageTrigger?->public_code ?? $flow->message_trigger_id)
+            : WhatsAppFlowTriggerType::FirstMessage->value;
+
         $isFirstMessage = false;
         $executionId = null;
 
-        DB::transaction(function () use ($message, $flow, &$isFirstMessage, &$executionId): void {
+        DB::transaction(function () use ($message, $flow, $triggerLabel, &$isFirstMessage, &$executionId): void {
             $existing = WhatsAppInboundContact::query()
                 ->tap(fn ($query) => PhoneNumberQuery::whereMatchesPhone($query, 'phone_normalized', $message->phoneNormalized))
                 ->lockForUpdate()
@@ -94,7 +102,7 @@ class EvolutionInboundMessageProcessor
                 $execution = $this->flowService->dispatch(
                     flow: $flow,
                     phone: $message->phoneNormalized,
-                    trigger: WhatsAppFlowTriggerType::FirstMessage->value,
+                    trigger: $triggerLabel,
                     contactName: $message->pushName,
                 );
 
@@ -123,11 +131,14 @@ class EvolutionInboundMessageProcessor
         if ($isFirstMessage) {
             app(EvolutionRegistryService::class)->markFlowTriggeredForWebhookLog($webhookLogId);
 
-            Log::info('Fluxo de primeira mensagem enfileirado.', [
+            Log::info('Fluxo enfileirado para nova conversa.', [
                 'phone' => $message->phoneNormalized,
                 'flow_id' => $flow->id,
+                'flow_trigger_type' => $flow->trigger_type?->value ?? $flow->trigger_type,
+                'message_trigger_id' => $flow->message_trigger_id,
                 'instance' => $message->instance,
                 'execution_id' => $executionId,
+                'inbound_message' => $message->messageText,
             ]);
         }
     }
@@ -233,24 +244,5 @@ class EvolutionInboundMessageProcessor
         }
 
         return $dispatched;
-    }
-
-    private function resolveFlowForInstance(?string $instanceName): ?WhatsAppFlow
-    {
-        if (blank($instanceName)) {
-            return null;
-        }
-
-        $flows = WhatsAppFlow::query()
-            ->where('trigger_type', WhatsAppFlowTriggerType::FirstMessage)
-            ->where('is_active', true)
-            ->where('steps_count', '>', 0)
-            ->get();
-
-        return $flows->first(function (WhatsAppFlow $flow) use ($instanceName): bool {
-            $resolved = $flow->resolveInstanceName();
-
-            return filled($resolved) && strcasecmp($resolved, $instanceName) === 0;
-        });
     }
 }

@@ -6,6 +6,7 @@ use App\Enums\WhatsAppFlowStatus;
 use App\Enums\WhatsAppFlowTriggerType;
 use App\Support\IntegrationSettings;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class WhatsAppFlow extends Model
@@ -18,6 +19,7 @@ class WhatsAppFlow extends Model
         'status',
         'trigger_type',
         'trigger_event',
+        'message_trigger_id',
         'is_active',
         'instance_name',
         'steps_count',
@@ -43,6 +45,11 @@ class WhatsAppFlow extends Model
         return $this->hasMany(WhatsAppFlowExecution::class, 'flow_id');
     }
 
+    public function messageTrigger(): BelongsTo
+    {
+        return $this->belongsTo(WhatsAppMessageTrigger::class, 'message_trigger_id');
+    }
+
     public function resolveInstanceName(): ?string
     {
         if (filled($this->instance_name)) {
@@ -55,6 +62,24 @@ class WhatsAppFlow extends Model
     protected static function booted(): void
     {
         static::saving(function (WhatsAppFlow $flow): void {
+            if ($flow->trigger_type === WhatsAppFlowTriggerType::MessageTrigger) {
+                if (! $flow->message_trigger_id) {
+                    return;
+                }
+
+                if (! $flow->is_active) {
+                    return;
+                }
+
+                static::query()
+                    ->where('trigger_type', WhatsAppFlowTriggerType::MessageTrigger)
+                    ->where('message_trigger_id', $flow->message_trigger_id)
+                    ->when($flow->exists, fn ($query) => $query->whereKeyNot($flow->id))
+                    ->update(['is_active' => false]);
+
+                return;
+            }
+
             if ($flow->trigger_type !== WhatsAppFlowTriggerType::FirstMessage || ! $flow->is_active) {
                 return;
             }

@@ -44,7 +44,10 @@ class EditWhatsAppFlow extends EditRecord
                 ->label('Registrar webhook na Evolution')
                 ->icon('heroicon-o-link')
                 ->color('warning')
-                ->visible(fn (): bool => $this->record?->trigger_type === WhatsAppFlowTriggerType::FirstMessage)
+                ->visible(fn (): bool => in_array($this->record?->trigger_type, [
+                    WhatsAppFlowTriggerType::FirstMessage,
+                    WhatsAppFlowTriggerType::MessageTrigger,
+                ], true))
                 ->requiresConfirmation()
                 ->modalHeading('Registrar webhook MESSAGES_UPSERT')
                 ->modalDescription('Isso configura a Evolution API para enviar mensagens recebidas para o Bible Library. A URL usada é a exibida nas configurações do fluxo.')

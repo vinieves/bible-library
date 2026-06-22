@@ -12,6 +12,7 @@ readonly class EvolutionInboundMessageData
         public bool $fromMe,
         public ?string $messageId,
         public ?string $pushName,
+        public ?string $messageText,
         public array $rawPayload,
     ) {}
 
@@ -112,6 +113,7 @@ readonly class EvolutionInboundMessageData
             fromMe: false,
             messageId: filled($key['id'] ?? null) ? (string) $key['id'] : null,
             pushName: filled($data['pushName'] ?? null) ? (string) $data['pushName'] : null,
+            messageText: self::extractMessageText($data),
             rawPayload: $payload,
         );
     }
@@ -148,5 +150,28 @@ readonly class EvolutionInboundMessageData
             || filled($message['templateButtonReplyMessage'] ?? null);
 
         return ! $hasContent;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private static function extractMessageText(array $data): ?string
+    {
+        $message = is_array($data['message'] ?? null) ? $data['message'] : [];
+
+        $text = $message['conversation']
+            ?? ($message['extendedTextMessage']['text'] ?? null)
+            ?? ($message['buttonsResponseMessage']['selectedDisplayText'] ?? null)
+            ?? ($message['listResponseMessage']['title'] ?? null)
+            ?? ($message['templateButtonReplyMessage']['selectedDisplayText'] ?? null)
+            ?? ($message['imageMessage']['caption'] ?? null)
+            ?? ($message['videoMessage']['caption'] ?? null)
+            ?? ($message['documentMessage']['caption'] ?? null);
+
+        if (! filled($text)) {
+            return null;
+        }
+
+        return trim((string) $text);
     }
 }
