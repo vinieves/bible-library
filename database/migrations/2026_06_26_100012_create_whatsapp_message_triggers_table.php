@@ -13,11 +13,13 @@ return new class extends Migration
             $table->string('public_code', 20)->unique();
             $table->string('name');
             $table->text('message');
-            $table->text('message_normalized');
+            $table->string('message_normalized', 500);
+            $table->string('message_hash', 64);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 
-            $table->unique('message_normalized');
+            $table->unique('message_hash');
+            $table->index('message_normalized');
             $table->index('is_active');
         });
 

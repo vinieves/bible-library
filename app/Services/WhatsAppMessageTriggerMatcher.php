@@ -38,7 +38,7 @@ class WhatsAppMessageTriggerMatcher
 
         return WhatsAppMessageTrigger::query()
             ->where('is_active', true)
-            ->where('message_normalized', $normalizedMessage)
+            ->where('message_hash', MessageTriggerNormalizer::hash($normalizedMessage))
             ->first();
     }
 
@@ -46,7 +46,7 @@ class WhatsAppMessageTriggerMatcher
     {
         $triggerIds = WhatsAppMessageTrigger::query()
             ->where('is_active', true)
-            ->where('message_normalized', $normalizedMessage)
+            ->where('message_hash', MessageTriggerNormalizer::hash($normalizedMessage))
             ->pluck('id');
 
         if ($triggerIds->isEmpty()) {

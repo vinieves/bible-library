@@ -14,6 +14,7 @@ class WhatsAppMessageTrigger extends Model
         'name',
         'message',
         'message_normalized',
+        'message_hash',
         'is_active',
     ];
 
@@ -48,7 +49,9 @@ class WhatsAppMessageTrigger extends Model
 
     public function syncNormalizedMessage(): void
     {
-        $this->message_normalized = MessageTriggerNormalizer::normalize($this->message) ?? '';
+        $normalized = MessageTriggerNormalizer::normalize($this->message) ?? '';
+        $this->message_normalized = mb_substr($normalized, 0, 500);
+        $this->message_hash = MessageTriggerNormalizer::hash($normalized);
     }
 
     public static function generatePublicCode(): string

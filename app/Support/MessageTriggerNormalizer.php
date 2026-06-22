@@ -19,4 +19,9 @@ class MessageTriggerNormalizer
 
         return mb_strtolower($normalized);
     }
+
+    public static function hash(?string $normalized): string
+    {
+        return hash('sha256', $normalized ?? '');
+    }
 }
