@@ -58,7 +58,7 @@ class WhatsAppFlowService
             'total_steps' => $flow->steps()->count(),
         ]);
 
-        ExecuteWhatsAppFlowJob::dispatch($execution->id);
+        ExecuteWhatsAppFlowJob::dispatchFlow($execution->id);
 
         return $execution;
     }

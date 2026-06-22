@@ -194,7 +194,7 @@ class EvolutionInboundMessageProcessor
                 'waiting_since' => null,
             ]);
 
-            ExecuteWhatsAppFlowJob::dispatch($execution->id, $resumeAfterStepOrder);
+            ExecuteWhatsAppFlowJob::dispatchFlow($execution->id, $resumeAfterStepOrder);
 
             $dispatched = true;
         });
