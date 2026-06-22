@@ -9,6 +9,8 @@ use Illuminate\Support\Str;
 
 class WhatsAppMessageTrigger extends Model
 {
+    protected $table = 'whatsapp_message_triggers';
+
     protected $fillable = [
         'public_code',
         'name',
