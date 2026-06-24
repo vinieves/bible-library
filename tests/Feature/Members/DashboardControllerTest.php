@@ -75,4 +75,24 @@ class DashboardControllerTest extends TestCase
             return $monthlyGoal['read'] === 0 && $monthlyGoal['percent'] === 0;
         });
     }
+
+    public function test_dashboard_shows_the_hero_image_and_welcome_copy(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get('/mi-biblioteca');
+
+        $response->assertSee('images/jesus.png', false);
+        $response->assertSee('Bienvenido');
+        $response->assertSee('Tu camino para comprender toda la Biblia comienza aquí');
+    }
+
+    public function test_dashboard_shows_the_monthly_goal_label(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get('/mi-biblioteca');
+
+        $response->assertSee('0 de 30 versículos este mes');
+    }
 }
