@@ -15,6 +15,8 @@ use Illuminate\Support\Collection;
 
 class MemberProgressService
 {
+    public const MONTHLY_VERSE_GOAL = 30;
+
     /**
      * @return list<array{title: string, subtitle: string, href: string, icon: string, accent: string, material: null}>
      */
@@ -176,6 +178,28 @@ class MemberProgressService
     public function suggestedStartLabel(): string
     {
         return 'La Biblia Explicada';
+    }
+
+    /**
+     * @return array{read: int, goal: int, percent: int, label: string}
+     */
+    public function monthlyGoalProgress(User $user): array
+    {
+        $progress = UserBibleProgress::query()->where('user_id', $user->id)->first();
+
+        $currentPeriod = now()->format('Y-m');
+        $read = ($progress && $progress->monthly_period === $currentPeriod)
+            ? $progress->monthly_verses_read
+            : 0;
+
+        $percent = (int) min(100, round($read / self::MONTHLY_VERSE_GOAL * 100));
+
+        return [
+            'read' => $read,
+            'goal' => self::MONTHLY_VERSE_GOAL,
+            'percent' => $percent,
+            'label' => "{$read} de ".self::MONTHLY_VERSE_GOAL.' versículos este mes',
+        ];
     }
 
     private function readingContinueCard(User $user): ?array
