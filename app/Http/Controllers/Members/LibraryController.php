@@ -50,7 +50,7 @@ class LibraryController extends Controller
         return response()->json($data);
     }
 
-    public function saveProgress(Request $request): JsonResponse
+    public function saveProgress(Request $request, BibleReaderService $bible): JsonResponse
     {
         $validated = $request->validate([
             'book_abbr' => ['required', 'string', 'max:12'],
@@ -58,12 +58,34 @@ class LibraryController extends Controller
             'verse' => ['nullable', 'integer', 'min:1'],
         ]);
 
+        $existing = UserBibleProgress::query()->where('user_id', Auth::id())->first();
+
+        $chapterChanged = ! $existing
+            || $existing->book_abbr !== $validated['book_abbr']
+            || $existing->chapter !== $validated['chapter'];
+
+        $versesToAdd = 0;
+
+        if ($chapterChanged) {
+            $chapterData = $bible->chapter($validated['book_abbr'], $validated['chapter']);
+            $versesToAdd = $chapterData ? count($chapterData['verses']) : 0;
+        }
+
+        $currentPeriod = now()->format('Y-m');
+        $samePeriod = $existing?->monthly_period === $currentPeriod;
+
+        $monthlyVersesRead = $samePeriod
+            ? $existing->monthly_verses_read + $versesToAdd
+            : $versesToAdd;
+
         UserBibleProgress::query()->updateOrCreate(
             ['user_id' => Auth::id()],
             [
                 'book_abbr' => $validated['book_abbr'],
                 'chapter' => $validated['chapter'],
                 'verse' => $validated['verse'] ?? null,
+                'monthly_verses_read' => $monthlyVersesRead,
+                'monthly_period' => $currentPeriod,
             ],
         );
 
