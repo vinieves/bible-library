@@ -10,11 +10,17 @@ class UserBibleProgress extends Model
 {
     protected $table = 'user_bible_progress';
 
+    protected $attributes = [
+        'monthly_verses_read' => 0,
+    ];
+
     protected $fillable = [
         'user_id',
         'book_abbr',
         'chapter',
         'verse',
+        'monthly_verses_read',
+        'monthly_period',
     ];
 
     protected function casts(): array
@@ -22,6 +28,7 @@ class UserBibleProgress extends Model
         return [
             'chapter' => 'integer',
             'verse' => 'integer',
+            'monthly_verses_read' => 'integer',
         ];
     }
 
