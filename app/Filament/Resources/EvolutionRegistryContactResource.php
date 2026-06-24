@@ -136,7 +136,7 @@ class EvolutionRegistryContactResource extends Resource
             ->columns([
                 TextColumn::make('last_event_at')
                     ->label('Último evento')
-                    ->dateTime('d/m/Y H:i:s')
+                    ->formatStateUsing(DateTimeFormat::filamentColumn('d/m/Y H:i:s'))
                     ->sortable(),
                 TextColumn::make('phone_normalized')
                     ->label('Telefone')

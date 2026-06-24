@@ -29,7 +29,6 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->brandName('Biblioteca Bíblica Digital')
-            ->timezone(config('app.display_timezone', 'America/Sao_Paulo'))
             ->colors([
                 'primary' => Color::Amber,
                 'gray' => Color::Zinc,

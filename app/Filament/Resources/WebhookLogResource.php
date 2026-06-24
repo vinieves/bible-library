@@ -142,7 +142,7 @@ class WebhookLogResource extends Resource
             ->columns([
                 TextColumn::make('created_at')
                     ->label('Recebido em')
-                    ->dateTime('d/m/Y H:i:s')
+                    ->formatStateUsing(DateTimeFormat::filamentColumn('d/m/Y H:i:s'))
                     ->sortable(),
                 TextColumn::make('platform')
                     ->label('Plataforma')

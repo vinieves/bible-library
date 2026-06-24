@@ -9,6 +9,7 @@ use App\Filament\Resources\WhatsAppFlowResource\Pages;
 use App\Filament\Support\FlowStepPreview;
 use App\Models\WhatsAppFlow;
 use App\Models\WhatsAppMessageTrigger;
+use App\Support\DateTimeFormat;
 use App\Services\WhatsAppFlowService;
 use App\Support\EvolutionInstanceOptions;
 use App\Support\IntegrationSettings;
@@ -422,7 +423,7 @@ class WhatsAppFlowResource extends Resource
                     ->boolean(),
                 TextColumn::make('updated_at')
                     ->label('Atualizado')
-                    ->dateTime('d/m/Y, H:i')
+                    ->formatStateUsing(DateTimeFormat::filamentColumn('d/m/Y, H:i'))
                     ->sortable(),
             ])
             ->defaultSort('updated_at', 'desc')

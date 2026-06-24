@@ -140,11 +140,11 @@ class WhatsAppFlowExecutionResource extends Resource
                     ->placeholder('—'),
                 TextColumn::make('started_at')
                     ->label('Iniciado')
-                    ->dateTime('d/m/Y H:i')
+                    ->formatStateUsing(DateTimeFormat::filamentColumn('d/m/Y H:i'))
                     ->placeholder('—'),
                 TextColumn::make('completed_at')
                     ->label('Concluído')
-                    ->dateTime('d/m/Y H:i')
+                    ->formatStateUsing(DateTimeFormat::filamentColumn('d/m/Y H:i'))
                     ->placeholder('—'),
                 TextColumn::make('error_message')
                     ->label('Erro')

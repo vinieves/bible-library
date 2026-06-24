@@ -22,4 +22,12 @@ class DateTimeFormat
             ->timezone(static::displayTimezone())
             ->format($format);
     }
+
+    public static function filamentColumn(string $format = 'd/m/Y H:i:s'): \Closure
+    {
+        return fn ($state): ?string => static::display(
+            $state instanceof DateTimeInterface ? $state : null,
+            $format,
+        );
+    }
 }

@@ -136,7 +136,7 @@ class WhatsAppDispatchLogResource extends Resource
             ->columns([
                 TextColumn::make('created_at')
                     ->label('Data')
-                    ->dateTime('d/m/Y H:i:s')
+                    ->formatStateUsing(DateTimeFormat::filamentColumn('d/m/Y H:i:s'))
                     ->sortable(),
                 TextColumn::make('message_event')
                     ->label('Origem')

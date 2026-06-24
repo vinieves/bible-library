@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\WhatsAppMessageTriggerResource\Pages;
 use App\Models\WhatsAppMessageTrigger;
+use App\Support\DateTimeFormat;
 use BackedEnum;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -101,7 +102,7 @@ class WhatsAppMessageTriggerResource extends Resource
                     ->boolean(),
                 TextColumn::make('updated_at')
                     ->label('Atualizado em')
-                    ->dateTime('d/m/Y H:i')
+                    ->formatStateUsing(DateTimeFormat::filamentColumn('d/m/Y H:i'))
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
