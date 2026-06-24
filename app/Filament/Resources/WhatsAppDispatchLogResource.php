@@ -7,6 +7,7 @@ use App\Enums\WhatsAppDispatchTrigger;
 use App\Enums\WhatsAppMessageEvent;
 use App\Filament\Resources\WhatsAppDispatchLogResource\Pages;
 use App\Models\WhatsAppDispatchLog;
+use App\Support\DateTimeFormat;
 use BackedEnum;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Textarea;
@@ -98,13 +99,7 @@ class WhatsAppDispatchLogResource extends Resource
                             ->disabled(),
                         TextInput::make('created_at')
                             ->label('Enviado em')
-                            ->formatStateUsing(function ($state): ?string {
-                                if ($state instanceof \DateTimeInterface) {
-                                    return $state->format('d/m/Y H:i:s');
-                                }
-
-                                return filled($state) ? (string) $state : null;
-                            })
+                            ->formatStateUsing(fn ($state) => DateTimeFormat::display($state instanceof \DateTimeInterface ? $state : null))
                             ->disabled(),
                         Textarea::make('error_message')
                             ->label('Erro')

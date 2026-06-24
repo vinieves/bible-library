@@ -7,6 +7,7 @@ use App\Enums\WebhookPlatform;
 use App\Filament\Resources\WebhookLogResource\Actions\ReprocessWebhookAction;
 use App\Filament\Resources\WebhookLogResource\Pages;
 use App\Models\WebhookLog;
+use App\Support\DateTimeFormat;
 use BackedEnum;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Textarea;
@@ -107,13 +108,7 @@ class WebhookLogResource extends Resource
                             ->dehydrated(false),
                         TextInput::make('created_at')
                             ->label('Recebido em')
-                            ->formatStateUsing(function ($state): ?string {
-                                if ($state instanceof \DateTimeInterface) {
-                                    return $state->format('d/m/Y H:i:s');
-                                }
-
-                                return filled($state) ? (string) $state : null;
-                            })
+                            ->formatStateUsing(fn ($state) => DateTimeFormat::display($state instanceof \DateTimeInterface ? $state : null))
                             ->disabled()
                             ->dehydrated(false),
                     ])

@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Enums\WhatsAppFlowExecutionStatus;
 use App\Filament\Resources\WhatsAppFlowExecutionResource\Pages;
 use App\Models\WhatsAppFlowExecution;
+use App\Support\DateTimeFormat;
 use BackedEnum;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Textarea;
@@ -81,15 +82,11 @@ class WhatsAppFlowExecutionResource extends Resource
                             ->dehydrated(false),
                         TextInput::make('started_at')
                             ->label('Iniciado em')
-                            ->formatStateUsing(fn ($state) => $state instanceof \DateTimeInterface
-                                ? $state->format('d/m/Y H:i:s')
-                                : (filled($state) ? (string) $state : '—'))
+                            ->formatStateUsing(fn ($state) => DateTimeFormat::display($state instanceof \DateTimeInterface ? $state : null) ?? '—')
                             ->disabled(),
                         TextInput::make('completed_at')
                             ->label('Concluído em')
-                            ->formatStateUsing(fn ($state) => $state instanceof \DateTimeInterface
-                                ? $state->format('d/m/Y H:i:s')
-                                : (filled($state) ? (string) $state : '—'))
+                            ->formatStateUsing(fn ($state) => DateTimeFormat::display($state instanceof \DateTimeInterface ? $state : null) ?? '—')
                             ->disabled(),
                         Textarea::make('error_message')
                             ->label('Erro geral')

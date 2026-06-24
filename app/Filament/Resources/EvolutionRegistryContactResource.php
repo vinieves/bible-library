@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Enums\EvolutionRegistryEventDirection;
 use App\Filament\Resources\EvolutionRegistryContactResource\Pages;
 use App\Models\EvolutionRegistryContact;
+use App\Support\DateTimeFormat;
 use BackedEnum;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Textarea;
@@ -210,11 +211,7 @@ class EvolutionRegistryContactResource extends Resource
 
     public static function formatDateTime(mixed $state): ?string
     {
-        if ($state instanceof \DateTimeInterface) {
-            return $state->format('d/m/Y H:i:s');
-        }
-
-        return filled($state) ? (string) $state : '—';
+        return DateTimeFormat::display($state instanceof \DateTimeInterface ? $state : null);
     }
 
     public static function directionLabel(mixed $state): string
