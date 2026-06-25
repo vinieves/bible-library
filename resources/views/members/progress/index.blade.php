@@ -15,8 +15,8 @@
                 Cuando comience a leer, ver o escuchar contenido, su progreso aparecerá aquí.
             </p>
             <a href="{{ route('members.library') }}"
-               class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-bible-gold transition hover:text-bible-gold/80">
-                Ir a Libros
+               class="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-member-gold px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-member-gold/20 transition hover:bg-member-gold-dark active:scale-[0.98]">
+                Ir a Buscador
                 <span aria-hidden="true">→</span>
             </a>
         </div>

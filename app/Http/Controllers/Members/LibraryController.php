@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Members;
 use App\Http\Controllers\Controller;
 use App\Models\UserBibleProgress;
 use App\Services\BibleReaderService;
+use App\Services\MemberProgressService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,7 +13,7 @@ use Illuminate\View\View;
 
 class LibraryController extends Controller
 {
-    public function index(BibleReaderService $bible, Request $request): View
+    public function index(BibleReaderService $bible, MemberProgressService $progressService, Request $request): View
     {
         $user = Auth::user();
         $savedProgress = UserBibleProgress::query()
@@ -31,6 +32,7 @@ class LibraryController extends Controller
             'initialBook' => $initialBook,
             'initialChapter' => $initialChapter,
             'initialVerse' => $initialVerse,
+            'streak' => $progressService->learningStreak($user),
         ]);
     }
 
@@ -50,7 +52,7 @@ class LibraryController extends Controller
         return response()->json($data);
     }
 
-    public function saveProgress(Request $request, BibleReaderService $bible): JsonResponse
+    public function saveProgress(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'book_abbr' => ['required', 'string', 'max:12'],
@@ -60,16 +62,14 @@ class LibraryController extends Controller
 
         $existing = UserBibleProgress::query()->where('user_id', Auth::id())->first();
 
-        $chapterChanged = ! $existing
+        $verseChanged = $validated['verse'] !== null && (
+            ! $existing
             || $existing->book_abbr !== $validated['book_abbr']
-            || $existing->chapter !== $validated['chapter'];
+            || $existing->chapter !== $validated['chapter']
+            || $existing->verse !== $validated['verse']
+        );
 
-        $versesToAdd = 0;
-
-        if ($chapterChanged) {
-            $chapterData = $bible->chapter($validated['book_abbr'], $validated['chapter']);
-            $versesToAdd = $chapterData ? count($chapterData['verses']) : 0;
-        }
+        $versesToAdd = $verseChanged ? 1 : 0;
 
         $currentPeriod = now()->format('Y-m');
         $samePeriod = $existing?->monthly_period === $currentPeriod;
@@ -77,6 +77,20 @@ class LibraryController extends Controller
         $monthlyVersesRead = $samePeriod
             ? $existing->monthly_verses_read + $versesToAdd
             : $versesToAdd;
+
+        $today = now()->toDateString();
+        $lastActivityDate = $existing?->last_activity_date?->toDateString();
+        $verseClicked = $validated['verse'] !== null;
+
+        if ($verseClicked) {
+            $currentStreak = match (true) {
+                $lastActivityDate === $today => $existing->current_streak,
+                $lastActivityDate === now()->subDay()->toDateString() => $existing->current_streak + 1,
+                default => 1,
+            };
+        } else {
+            $currentStreak = $existing?->current_streak ?? 0;
+        }
 
         UserBibleProgress::query()->updateOrCreate(
             ['user_id' => Auth::id()],
@@ -86,6 +100,8 @@ class LibraryController extends Controller
                 'verse' => $validated['verse'] ?? null,
                 'monthly_verses_read' => $monthlyVersesRead,
                 'monthly_period' => $currentPeriod,
+                'current_streak' => $currentStreak,
+                'last_activity_date' => $verseClicked ? $today : $lastActivityDate,
             ],
         );
 

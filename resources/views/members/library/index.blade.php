@@ -3,6 +3,11 @@
 @section('title', 'La Biblia Explicada')
 
 @section('content')
+    <img src="{{ asset('images/biblia-horizontal.png') }}"
+         alt=""
+         class="mb-4 h-36 w-full rounded-2xl object-cover sm:h-44"
+         loading="eager">
+
     @if(! $bibleAvailable)
         <x-members.tab-shell title="La Biblia Explicada">
             <div class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-6 text-center">
@@ -12,6 +17,7 @@
         </x-members.tab-shell>
     @else
         <x-members.tab-shell title="La Biblia Explicada">
+        <x-members.learning-streak :streak="$streak" />
         <div
             x-data="bibleReader({
                 booksUrl: @js($booksUrl),

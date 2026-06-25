@@ -27,10 +27,8 @@
                     @endif
                 @else
                     <div class="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
-                        <div class="member-header-brand-icon" aria-hidden="true">
-                            <svg class="h-5 w-5 sm:h-[1.375rem] sm:w-[1.375rem]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                            </svg>
+                        <div class="member-header-brand-icon overflow-hidden" aria-hidden="true">
+                            <img src="{{ asset('images/logo.png') }}" alt="" class="h-full w-full object-cover">
                         </div>
                         <div class="min-w-0">
                             <p class="text-xs text-member-body/70 sm:text-sm">Bienvenido</p>
@@ -42,7 +40,9 @@
                 @endif
             </div>
 
-            <x-members.logout-button />
+            @unless($showBack)
+                <x-members.logout-button />
+            @endunless
         </div>
     </div>
 </header>

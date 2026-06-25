@@ -21,6 +21,8 @@ class UserBibleProgress extends Model
         'verse',
         'monthly_verses_read',
         'monthly_period',
+        'current_streak',
+        'last_activity_date',
     ];
 
     protected function casts(): array
@@ -29,6 +31,8 @@ class UserBibleProgress extends Model
             'chapter' => 'integer',
             'verse' => 'integer',
             'monthly_verses_read' => 'integer',
+            'current_streak' => 'integer',
+            'last_activity_date' => 'date',
         ];
     }
 

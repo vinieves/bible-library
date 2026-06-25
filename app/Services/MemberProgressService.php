@@ -15,7 +15,9 @@ use Illuminate\Support\Collection;
 
 class MemberProgressService
 {
-    public const MONTHLY_VERSE_GOAL = 30;
+    public const MONTHLY_VERSE_GOAL = 50;
+
+    public const LEARNING_STREAK_GOAL_DAYS = 7;
 
     /**
      * @return list<array{title: string, subtitle: string, href: string, icon: string, accent: string, material: null}>
@@ -198,7 +200,23 @@ class MemberProgressService
             'read' => $read,
             'goal' => self::MONTHLY_VERSE_GOAL,
             'percent' => $percent,
-            'label' => "{$read} de ".self::MONTHLY_VERSE_GOAL.' versículos este mes',
+            'label' => "{$read} de ".self::MONTHLY_VERSE_GOAL.' versículos aprendidos este mes',
+        ];
+    }
+
+    /**
+     * @return array{days: int, percent: int}
+     */
+    public function learningStreak(User $user): array
+    {
+        $progress = UserBibleProgress::query()->where('user_id', $user->id)->first();
+
+        $days = $progress?->current_streak ?? 0;
+        $percent = (int) min(100, round($days / self::LEARNING_STREAK_GOAL_DAYS * 100));
+
+        return [
+            'days' => $days,
+            'percent' => $percent,
         ];
     }
 

@@ -22,7 +22,6 @@
             <p class="min-w-0 flex-1 truncate text-center text-sm font-medium text-member-title sm:text-base">
                 @yield('title')
             </p>
-            <x-members.logout-button />
         </div>
     </header>
 

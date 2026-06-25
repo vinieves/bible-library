@@ -38,8 +38,8 @@
                         <span class="font-medium text-member-gold">{{ $suggestedStartLabel }}</span>.
                     </p>
                     <a href="{{ $suggestedStartUrl }}"
-                       class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-member-gold transition hover:text-member-gold-dark">
-                        Ir a Libros
+                       class="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-member-gold px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-member-gold/20 transition hover:bg-member-gold-dark active:scale-[0.98]">
+                        Ir a Buscador
                         <span aria-hidden="true">→</span>
                     </a>
                 </div>

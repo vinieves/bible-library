@@ -7,14 +7,14 @@
         --m-paper: #F2EDE4;
         --m-card: #FBF8F2;
         --m-input: #F6F1E8;
-        --m-gold: #B08D4F;
-        --m-gold-dark: #A07E45;
-        --m-gold-light: #C9A86A;
+        --m-gold: #A86E2C;
+        --m-gold-dark: #996226;
+        --m-gold-light: #C0833B;
         --m-title: #4A3B2A;
         --m-body: #6B5D4A;
         --m-placeholder: #9B9182;
-        --m-border: rgba(176, 141, 79, 0.22);
-        --m-border-soft: rgba(176, 141, 79, 0.12);
+        --m-border: rgba(168, 110, 44, 0.22);
+        --m-border-soft: rgba(168, 110, 44, 0.12);
         background-attachment: fixed;
         color: var(--m-body);
     }
@@ -49,7 +49,7 @@
         @apply w-full appearance-none rounded-xl bg-[length:1rem] bg-[right_0.75rem_center] bg-no-repeat py-2.5 pl-3.5 pr-10 text-sm text-member-body focus:outline-none focus:ring-1 focus:ring-member-gold/20;
         background-color: var(--m-input);
         border: 1px solid var(--m-border-soft);
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23B08D4F' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23A86E2C' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
     }
 
     .library-search-category:focus {
@@ -67,45 +67,45 @@
     }
 
     .badge-tone-gold {
-        background: rgba(176, 141, 79, 0.12);
+        background: rgba(168, 110, 44, 0.12);
         color: var(--m-gold-dark);
-        border: 1px solid rgba(176, 141, 79, 0.2);
+        border: 1px solid rgba(168, 110, 44, 0.2);
     }
 
     .badge-tone-green {
-        background: rgba(176, 141, 79, 0.1);
+        background: rgba(168, 110, 44, 0.1);
         color: var(--m-gold-dark);
-        border: 1px solid rgba(176, 141, 79, 0.18);
+        border: 1px solid rgba(168, 110, 44, 0.18);
     }
 
     .badge-tone-emerald {
-        background: rgba(201, 168, 106, 0.14);
+        background: rgba(192, 131, 59, 0.14);
         color: var(--m-gold-dark);
-        border: 1px solid rgba(201, 168, 106, 0.22);
+        border: 1px solid rgba(192, 131, 59, 0.22);
     }
 
     .badge-tone-blue {
-        background: rgba(176, 141, 79, 0.08);
+        background: rgba(168, 110, 44, 0.08);
         color: var(--m-body);
         border: 1px solid var(--m-border-soft);
     }
 
     .badge-tone-purple {
-        background: rgba(176, 141, 79, 0.08);
+        background: rgba(168, 110, 44, 0.08);
         color: var(--m-body);
         border: 1px solid var(--m-border-soft);
     }
 
     .badge-tone-rose {
-        background: rgba(176, 141, 79, 0.08);
+        background: rgba(168, 110, 44, 0.08);
         color: var(--m-body);
         border: 1px solid var(--m-border-soft);
     }
 
     .badge-tone-amber {
-        background: rgba(201, 168, 106, 0.16);
+        background: rgba(192, 131, 59, 0.16);
         color: var(--m-gold-dark);
-        border: 1px solid rgba(201, 168, 106, 0.24);
+        border: 1px solid rgba(192, 131, 59, 0.24);
     }
 
     .badge-tone-muted {
@@ -115,45 +115,45 @@
     }
 
     .icon-thumb-gold {
-        background: rgba(176, 141, 79, 0.14);
+        background: rgba(168, 110, 44, 0.14);
         color: var(--m-gold-dark);
-        border: 1px solid rgba(176, 141, 79, 0.22);
+        border: 1px solid rgba(168, 110, 44, 0.22);
     }
 
     .icon-thumb-green {
-        background: rgba(176, 141, 79, 0.12);
+        background: rgba(168, 110, 44, 0.12);
         color: var(--m-gold-dark);
-        border: 1px solid rgba(176, 141, 79, 0.2);
+        border: 1px solid rgba(168, 110, 44, 0.2);
     }
 
     .icon-thumb-emerald {
-        background: rgba(201, 168, 106, 0.14);
+        background: rgba(192, 131, 59, 0.14);
         color: var(--m-gold-dark);
-        border: 1px solid rgba(201, 168, 106, 0.22);
+        border: 1px solid rgba(192, 131, 59, 0.22);
     }
 
     .icon-thumb-blue {
-        background: rgba(176, 141, 79, 0.1);
+        background: rgba(168, 110, 44, 0.1);
         color: var(--m-body);
         border: 1px solid var(--m-border-soft);
     }
 
     .icon-thumb-purple {
-        background: rgba(176, 141, 79, 0.1);
+        background: rgba(168, 110, 44, 0.1);
         color: var(--m-body);
         border: 1px solid var(--m-border-soft);
     }
 
     .icon-thumb-rose {
-        background: rgba(176, 141, 79, 0.1);
+        background: rgba(168, 110, 44, 0.1);
         color: var(--m-body);
         border: 1px solid var(--m-border-soft);
     }
 
     .icon-thumb-amber {
-        background: rgba(201, 168, 106, 0.16);
+        background: rgba(192, 131, 59, 0.16);
         color: var(--m-gold-dark);
-        border: 1px solid rgba(201, 168, 106, 0.24);
+        border: 1px solid rgba(192, 131, 59, 0.24);
     }
 
     .member-empty-state {
@@ -162,14 +162,14 @@
 
     .member-empty-state-glow {
         @apply relative mb-4 flex h-28 w-28 items-center justify-center;
-        background: radial-gradient(circle, rgba(201, 168, 106, 0.28) 0%, rgba(176, 141, 79, 0.1) 42%, transparent 70%);
+        background: radial-gradient(circle, rgba(192, 131, 59, 0.28) 0%, rgba(168, 110, 44, 0.1) 42%, transparent 70%);
     }
 
     .member-empty-state-icon {
         @apply flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-2xl text-member-gold-dark;
         background: var(--m-card);
         border: 1px solid var(--m-border);
-        box-shadow: 0 4px 20px rgba(176, 141, 79, 0.12);
+        box-shadow: 0 4px 20px rgba(168, 110, 44, 0.12);
     }
 
     .member-empty-state-title {
@@ -228,7 +228,7 @@
         @apply w-full appearance-none rounded-xl bg-[length:1rem] bg-[right_0.65rem_center] bg-no-repeat py-2.5 pl-3 pr-9 text-sm text-member-title transition focus:outline-none focus:ring-1 focus:ring-member-gold/20;
         background-color: var(--m-input);
         border: 1px solid var(--m-border-soft);
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23B08D4F' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23A86E2C' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
     }
 
     .library-filter-select:focus {
@@ -476,7 +476,7 @@
 
     .member-header-logout {
         @apply inline-flex min-h-[2.5rem] items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-medium text-member-gold transition hover:bg-member-gold/10 active:scale-[0.98] sm:min-h-[2.75rem] sm:px-3.5 sm:text-sm;
-        border: 1px solid rgba(176, 141, 79, 0.35);
+        border: 1px solid rgba(168, 110, 44, 0.35);
         background: var(--m-card);
     }
 
@@ -536,7 +536,7 @@
     }
 
     .members-shell .text-bible-gold\/40 {
-        color: rgba(176, 141, 79, 0.55);
+        color: rgba(168, 110, 44, 0.55);
     }
 
     .members-shell .text-bible-gold\/80 {
@@ -548,7 +548,7 @@
     }
 
     .members-shell .hover\:text-bible-gold\/80:hover {
-        color: rgba(176, 141, 79, 0.85);
+        color: rgba(168, 110, 44, 0.85);
     }
 
     .members-shell .bg-bible-dark,
@@ -559,21 +559,21 @@
     }
 
     .members-shell .bg-bible-gold\/10 {
-        background-color: rgba(176, 141, 79, 0.1);
+        background-color: rgba(168, 110, 44, 0.1);
     }
 
     .members-shell .bg-bible-gold\/15 {
-        background-color: rgba(176, 141, 79, 0.12);
+        background-color: rgba(168, 110, 44, 0.12);
     }
 
     .members-shell .bg-bible-green\/10,
     .members-shell .bg-bible-green\/20 {
-        background-color: rgba(176, 141, 79, 0.1);
+        background-color: rgba(168, 110, 44, 0.1);
     }
 
     .members-shell .bg-bible-green\/30,
     .members-shell .bg-bible-green\/90 {
-        background-color: rgba(176, 141, 79, 0.85);
+        background-color: rgba(168, 110, 44, 0.85);
     }
 
     .members-shell .border-bible-gold\/10,
@@ -584,19 +584,19 @@
     }
 
     .members-shell .from-bible-gold\/20 {
-        --tw-gradient-from: rgba(176, 141, 79, 0.2) var(--tw-gradient-from-position);
+        --tw-gradient-from: rgba(168, 110, 44, 0.2) var(--tw-gradient-from-position);
     }
 
     .members-shell .to-bible-gold\/5 {
-        --tw-gradient-to: rgba(176, 141, 79, 0.05) var(--tw-gradient-to-position);
+        --tw-gradient-to: rgba(168, 110, 44, 0.05) var(--tw-gradient-to-position);
     }
 
     .members-shell .from-bible-green\/20 {
-        --tw-gradient-from: rgba(201, 168, 106, 0.2) var(--tw-gradient-from-position);
+        --tw-gradient-from: rgba(192, 131, 59, 0.2) var(--tw-gradient-from-position);
     }
 
     .members-shell .to-bible-gold\/10 {
-        --tw-gradient-to: rgba(176, 141, 79, 0.1) var(--tw-gradient-to-position);
+        --tw-gradient-to: rgba(168, 110, 44, 0.1) var(--tw-gradient-to-position);
     }
 
     .members-shell .text-green-200,
@@ -609,7 +609,7 @@
     }
 
     .members-shell .bg-bible-green\/20.text-bible-green {
-        background-color: rgba(176, 141, 79, 0.12);
+        background-color: rgba(168, 110, 44, 0.12);
         color: var(--m-gold-dark);
     }
 
@@ -707,7 +707,7 @@
 
     .bible-reader-select {
         @apply w-full appearance-none rounded-xl border border-member-gold/15 bg-member-input bg-[length:1rem] bg-[right_0.65rem_center] bg-no-repeat px-3 py-2.5 text-sm text-member-title focus:border-member-gold/30 focus:outline-none focus:ring-1 focus:ring-member-gold/15 disabled:opacity-50;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23B08D4F' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23A86E2C' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
     }
 
     .bible-reader-dropdown {

@@ -30,9 +30,9 @@ class DashboardControllerTest extends TestCase
 
         $response->assertViewHas('monthlyGoal', function (array $monthlyGoal) {
             return $monthlyGoal['read'] === 0
-                && $monthlyGoal['goal'] === 30
+                && $monthlyGoal['goal'] === 50
                 && $monthlyGoal['percent'] === 0
-                && $monthlyGoal['label'] === '0 de 30 versículos este mes';
+                && $monthlyGoal['label'] === '0 de 50 versículos aprendidos este mes';
         });
     }
 
@@ -52,8 +52,8 @@ class DashboardControllerTest extends TestCase
 
         $response->assertViewHas('monthlyGoal', function (array $monthlyGoal) {
             return $monthlyGoal['read'] === 12
-                && $monthlyGoal['percent'] === 40
-                && $monthlyGoal['label'] === '12 de 30 versículos este mes';
+                && $monthlyGoal['percent'] === 24
+                && $monthlyGoal['label'] === '12 de 50 versículos aprendidos este mes';
         });
     }
 
@@ -93,6 +93,6 @@ class DashboardControllerTest extends TestCase
 
         $response = $this->actingAs($user)->get('/mi-biblioteca');
 
-        $response->assertSee('0 de 30 versículos este mes');
+        $response->assertSee('0 de 50 versículos aprendidos este mes');
     }
 }
