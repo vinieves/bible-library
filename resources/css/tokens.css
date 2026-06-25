@@ -1,0 +1,39 @@
+/*
+ * La Biblia Explicada — design tokens
+ * Única fonte de hex do app. Tudo em CSS/Tailwind deve referenciar
+ * estas variáveis (diretamente ou via var(--*-channel) para opacidade).
+ */
+:root {
+    --ink: #2F2117;
+    --ink-channel: 47 33 23;
+
+    --brown-deep: #3A2616;
+    --brown-deep-channel: 58 38 22;
+
+    --brown: #6E4C2C;
+    --brown-channel: 110 76 44;
+
+    --gold: #C39A5E;
+    --gold-channel: 195 154 94;
+
+    --tan: #D8B583;
+    --tan-channel: 216 181 131;
+
+    --caramel: #CDA871;
+    --caramel-channel: 205 168 113;
+
+    --beige: #EFE3CE;
+    --beige-channel: 239 227 206;
+
+    --cream: #F8F1E4;
+    --cream-channel: 248 241 228;
+
+    --paper: #FBF7EF;
+    --paper-channel: 251 247 239;
+
+    --line: #ECE0CC;
+    --line-channel: 236 224 204;
+
+    --muted: #8C7A63;
+    --muted-channel: 140 122 99;
+}
