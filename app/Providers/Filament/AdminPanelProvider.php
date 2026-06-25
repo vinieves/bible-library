@@ -30,8 +30,8 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->brandName('Biblioteca Bíblica Digital')
             ->colors([
-                'primary' => Color::Amber,
-                'gray' => Color::Zinc,
+                'primary' => Color::hex('#6E4C2C'),
+                'gray' => Color::hex('#8C7A63'),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')

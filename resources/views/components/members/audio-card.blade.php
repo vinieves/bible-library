@@ -24,7 +24,7 @@
     </div>
 
     <div class="audio-list-body min-w-0 flex-1">
-        <h3 class="truncate text-[0.9375rem] font-medium leading-snug text-bible-cream sm:text-base">
+        <h3 class="truncate text-[0.9375rem] font-medium leading-snug text-ink sm:text-base">
             {{ $track->title }}
         </h3>
 
@@ -46,8 +46,8 @@
 
     <span @class([
         'audio-list-play shrink-0',
-        'text-bible-gold' => $hasAccess,
-        'text-bible-muted' => ! $hasAccess,
+        'text-gold' => $hasAccess,
+        'text-tan' => ! $hasAccess,
     ]) aria-hidden="true">
         @if($hasAccess)
             <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">

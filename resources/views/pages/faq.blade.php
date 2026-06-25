@@ -13,9 +13,9 @@
                 ['¿Qué hago si un material está bloqueado?', 'Ese contenido requiere un plan superior. Use el botón "Desbloquear acceso" para ver la oferta.'],
                 ['¿Necesito ayuda?', 'Escríbanos a ' . ($siteSettings['support_email'] ?? 'soporte@biblioteca.test') . ' y le responderemos pronto.'],
             ] as [$question, $answer])
-                <div class="rounded-2xl border border-bible-gold/20 bg-bible-dark p-6">
-                    <h2 class="text-xl font-semibold text-bible-gold">{{ $question }}</h2>
-                    <p class="mt-3 text-lg text-bible-cream/80">{{ $answer }}</p>
+                <div class="rounded-2xl border border-gold/20 bg-brown-deep p-6">
+                    <h2 class="text-xl font-semibold text-gold">{{ $question }}</h2>
+                    <p class="mt-3 text-lg text-cream/80">{{ $answer }}</p>
                 </div>
             @endforeach
         </div>

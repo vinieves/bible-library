@@ -58,7 +58,7 @@
                             <button type="button" data-video-forward class="btn-video-control" aria-label="Avanzar 10 segundos">+10s</button>
                         </div>
 
-                        <div class="flex items-center gap-2 text-xs text-bible-cream/70">
+                        <div class="flex items-center gap-2 text-xs text-muted">
                             <span data-video-current>0:00</span>
                             <span>/</span>
                             <span data-video-duration>{{ $video->duration ?? '0:00' }}</span>
@@ -68,8 +68,8 @@
                 </div>
             </div>
         @else
-            <div class="mt-2 rounded-2xl border border-bible-gold/15 bg-bible-dark/60 p-5 text-center">
-                <p class="text-sm text-bible-cream/60">
+            <div class="mt-2 rounded-2xl border border-gold/15 bg-brown-deep/60 p-5 text-center">
+                <p class="text-sm text-cream/60">
                     El archivo de video aún no está disponible. Vuelva pronto o contacte a soporte.
                 </p>
             </div>
@@ -78,10 +78,10 @@
         <div class="video-player-meta">
             <h1 class="video-player-title">{{ $video->title }}</h1>
             @if($video->category)
-                <p class="mt-1 text-sm text-bible-cream/50">{{ $video->category->name }}</p>
+                <p class="mt-1 text-sm text-muted">{{ $video->category->name }}</p>
             @endif
             @if($video->description)
-                <p class="mt-3 text-sm leading-relaxed text-bible-cream/70">
+                <p class="mt-3 text-sm leading-relaxed text-muted">
                     {{ $video->description }}
                 </p>
             @endif

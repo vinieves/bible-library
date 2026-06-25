@@ -11,8 +11,8 @@
     @if(! $bibleAvailable)
         <x-members.tab-shell title="La Biblia Explicada">
             <div class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-6 text-center">
-                <p class="text-base text-bible-cream/80">La Biblia no está disponible en este momento.</p>
-                <p class="mt-2 text-sm text-bible-muted-warm">Contacte al soporte si el problema persiste.</p>
+                <p class="text-base text-muted">La Biblia no está disponible en este momento.</p>
+                <p class="mt-2 text-sm text-tan">Contacte al soporte si el problema persiste.</p>
             </div>
         </x-members.tab-shell>
     @else
@@ -31,10 +31,10 @@
             class="bible-reader space-y-4"
             @click.outside="bookOpen = false"
         >
-            <p class="text-sm text-bible-muted-warm">Elija un libro y un capítulo para leer la explicación.</p>
+            <p class="text-sm text-tan">Elija un libro y un capítulo para leer la explicación.</p>
 
             <template x-if="loadError">
-                <div class="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-4 text-sm text-bible-cream/80" x-text="loadError"></div>
+                <div class="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-4 text-sm text-ink" x-text="loadError"></div>
             </template>
 
             {{-- Paso 1: libro y capítulo --}}
@@ -87,8 +87,8 @@
                                     class="bible-reader-dropdown-item"
                                     @click="selectBook(book)"
                                 >
-                                    <span class="font-medium text-bible-cream" x-text="book.name"></span>
-                                    <span class="text-xs text-bible-cream/45" x-text="book.abbr"></span>
+                                    <span class="font-medium text-ink" x-text="book.name"></span>
+                                    <span class="text-xs text-muted" x-text="book.abbr"></span>
                                 </button>
                             </template>
                         </div>
@@ -166,7 +166,7 @@
                 <template x-if="selectedBook && selectedChapter">
                     <div class="mt-4">
                         <div class="bible-reader-search">
-                            <svg class="h-4 w-4 shrink-0 text-bible-cream/35" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <svg class="h-4 w-4 shrink-0 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
                             <input
@@ -183,15 +183,15 @@
                         </div>
 
                         <template x-if="loadingChapter">
-                            <p class="py-8 text-center text-sm text-bible-cream/50">Cargando versículos…</p>
+                            <p class="py-8 text-center text-sm text-muted">Cargando versículos…</p>
                         </template>
 
                         <template x-if="chapterError">
-                            <p class="py-6 text-center text-sm text-red-300/80" x-text="chapterError"></p>
+                            <p class="py-6 text-center text-sm text-red-500" x-text="chapterError"></p>
                         </template>
 
                         <template x-if="!loadingChapter && !chapterError && filteredVerses.length === 0">
-                            <p class="py-8 text-center text-sm text-bible-cream/50">No se encontraron versículos.</p>
+                            <p class="py-8 text-center text-sm text-muted">No se encontraron versículos.</p>
                         </template>
 
                         <div x-show="!loadingChapter && filteredVerses.length" class="mt-3 space-y-2">
@@ -204,7 +204,7 @@
                                 >
                                     <div class="flex items-center justify-between gap-2">
                                         <span class="bible-reader-verse-label" x-text="`Versículo ${verse.number}`"></span>
-                                        <svg class="h-4 w-4 shrink-0 text-bible-cream/30" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <svg class="h-4 w-4 shrink-0 text-muted/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
                                         </svg>
                                     </div>
@@ -218,8 +218,8 @@
                 <template x-if="!selectedBook || !selectedChapter">
                     <div class="bible-reader-empty">
                         <div class="bible-reader-empty-icon">☼</div>
-                        <h3 class="text-base font-semibold text-bible-cream/80">Elige un capítulo para comenzar</h3>
-                        <p class="mt-1 max-w-sm text-sm text-bible-cream/45">
+                        <h3 class="text-base font-semibold text-ink">Elige un capítulo para comenzar</h3>
+                        <p class="mt-1 max-w-sm text-sm text-muted">
                             Primero selecciona un libro. Después elige un capítulo para ver todos sus versículos.
                         </p>
                     </div>

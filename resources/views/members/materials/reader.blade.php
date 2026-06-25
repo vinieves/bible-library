@@ -19,7 +19,7 @@
          data-max-page-read="{{ $progress->last_page_read }}"
          data-total-pages="{{ $material->pdf_page_count ?? 0 }}">
 
-        <div class="pdf-reader-container relative min-h-0 flex-1 bg-bible-black" data-pdf-touch-area>
+        <div class="pdf-reader-container relative min-h-0 flex-1 bg-brown-deep" data-pdf-touch-area>
             <div data-pdf-canvas-wrap class="absolute inset-0 overflow-x-hidden overflow-y-auto overscroll-contain">
                 <canvas data-pdf-canvas class="mx-auto block w-full max-w-full"></canvas>
             </div>
@@ -27,19 +27,19 @@
                    type="application/pdf"
                    class="pdf-reader-embed hidden"
                    title="{{ $material->title }}">
-            <p data-pdf-loading class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center text-sm text-bible-cream/50">
+            <p data-pdf-loading class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center text-sm text-cream/50">
                 Cargando PDF…
             </p>
-            <p data-pdf-error class="pointer-events-none absolute inset-0 z-10 flex hidden items-center justify-center p-6 text-center text-sm text-bible-cream/60">
+            <p data-pdf-error class="pointer-events-none absolute inset-0 z-10 flex hidden items-center justify-center p-6 text-center text-sm text-cream/60">
                 No se pudo cargar el PDF.
                 <a href="{{ route('members.materials.pdf.stream', $material) }}"
-                   class="mt-3 block text-bible-gold underline">
+                   class="mt-3 block text-gold underline">
                     Abrir en el navegador
                 </a>
             </p>
         </div>
 
-        <div class="reader-toolbar shrink-0 border-t border-bible-gold/20 bg-bible-dark/95 px-3 py-3 backdrop-blur sm:px-4">
+        <div class="reader-toolbar shrink-0 border-t border-gold/20 bg-brown-deep/95 px-3 py-3 backdrop-blur sm:px-4">
             <div class="mx-auto flex max-w-3xl items-center justify-between gap-3">
                 <div data-pdf-page-controls class="flex flex-1 items-center justify-center gap-2 sm:justify-start sm:gap-1.5">
                     <button type="button"
@@ -50,7 +50,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
                         </svg>
                     </button>
-                    <span class="min-w-[5.5rem] text-center text-xs text-bible-cream/80 sm:text-sm">
+                    <span class="min-w-[5.5rem] text-center text-xs text-cream/80 sm:text-sm">
                         <span data-page-current>{{ $initialPage }}</span>
                         /
                         <span data-page-total>{{ $material->pdf_page_count ?: '—' }}</span>

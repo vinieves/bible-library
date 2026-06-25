@@ -8,35 +8,35 @@
         $isBonus = $material->type->value === 'bonus';
     @endphp
 
-    <article class="overflow-hidden rounded-2xl border border-bible-gold/20 bg-bible-dark shadow-lg">
+    <article class="overflow-hidden rounded-2xl border border-gold/20 bg-brown-deep shadow-lg">
         {{-- Capa --}}
-        <div class="mx-auto aspect-square w-full max-w-md overflow-hidden bg-bible-green/10 sm:max-w-lg">
+        <div class="mx-auto aspect-square w-full max-w-md overflow-hidden bg-brown/10 sm:max-w-lg">
             @if($coverUrl)
                 <img src="{{ $coverUrl }}"
                      alt="{{ $material->title }}"
                      class="h-full w-full object-cover">
             @else
-                <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-bible-green/20 to-bible-gold/10 text-7xl">
+                <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-brown/20 to-gold/10 text-7xl">
                     {{ $isBonus ? '🎁' : '📖' }}
                 </div>
             @endif
         </div>
 
         {{-- Info --}}
-        <div class="border-t border-bible-gold/10 p-5 sm:p-6">
+        <div class="border-t border-gold/10 p-5 sm:p-6">
             <div class="mb-3 flex flex-wrap gap-2">
-                <span class="rounded-full bg-bible-gold/10 px-3 py-1 text-xs font-medium text-bible-gold">
+                <span class="rounded-full bg-gold/10 px-3 py-1 text-xs font-medium text-gold">
                     {{ $material->category->name }}
                 </span>
                 @if($material->hasPdf())
-                    <span class="rounded-full bg-bible-green/20 px-3 py-1 text-xs font-medium text-green-300">PDF</span>
+                    <span class="rounded-full bg-brown/20 px-3 py-1 text-xs font-medium text-brown">PDF</span>
                 @endif
                 @if($progress->is_studied)
-                    <span class="rounded-full bg-bible-green/30 px-3 py-1 text-xs font-medium text-green-200">Estudiado</span>
+                    <span class="rounded-full bg-brown/30 px-3 py-1 text-xs font-medium text-brown">Estudiado</span>
                 @endif
             </div>
 
-            <p class="text-base leading-relaxed text-bible-cream/85 sm:text-lg">
+            <p class="text-base leading-relaxed text-cream/85 sm:text-lg">
                 {{ $material->description }}
             </p>
 
@@ -93,9 +93,9 @@
     </form>
 
     @if($material->content)
-        <section class="mt-6 rounded-2xl border border-bible-gold/20 bg-bible-dark p-5 sm:p-6">
+        <section class="mt-6 rounded-2xl border border-gold/20 bg-brown-deep p-5 sm:p-6">
             <h2 class="section-title mb-4">Sobre este material</h2>
-            <div class="prose prose-invert max-w-none text-base leading-relaxed text-bible-cream/90 sm:text-lg">
+            <div class="prose prose-invert max-w-none text-base leading-relaxed text-cream/90 sm:text-lg">
                 {!! $material->content !!}
             </div>
         </section>

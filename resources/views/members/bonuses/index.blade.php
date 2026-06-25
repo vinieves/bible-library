@@ -4,7 +4,7 @@
 
 @section('content')
     @if($bonuses->isEmpty())
-        <p class="text-center text-lg text-bible-cream/70">No hay bonos disponibles por el momento.</p>
+        <p class="text-center text-lg text-muted">No hay bonos disponibles por el momento.</p>
     @else
         <div class="space-y-3">
             @foreach($bonuses as $material)

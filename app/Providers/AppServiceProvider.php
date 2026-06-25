@@ -28,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
                 'tagline' => Setting::get('site_tagline', 'Todos los LIBROS DE LA BIBLIA explicados versículo por versículo'),
                 'support_email' => Setting::get('support_email', 'soporte@biblioteca.test'),
                 'footer_text' => Setting::get('footer_text', '© Biblioteca Bíblica Digital'),
-                'primary_color' => Setting::get('primary_color', '#1a5c38'),
+                'primary_color' => Setting::get('primary_color', '#6E4C2C'),
             ]);
         });
     }

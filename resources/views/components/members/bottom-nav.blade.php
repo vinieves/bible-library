@@ -7,7 +7,7 @@
     ];
 @endphp
 
-<nav class="fixed bottom-0 left-0 right-0 z-50 border-t border-member-gold/20 bg-member-card/95 backdrop-blur-md md:hidden">
+<nav class="fixed bottom-0 left-0 right-0 z-50 border-t border-brown/20 bg-cream/95 backdrop-blur-md md:hidden">
     <div class="mx-auto flex max-w-3xl justify-around px-2 py-2">
         @foreach($items as $item)
             @php
@@ -19,11 +19,11 @@
             @endphp
             <a href="{{ route($item['route']) }}"
                class="flex min-w-[4.5rem] flex-col items-center rounded-xl px-2 py-2 text-center transition
-                      {{ $isActive ? 'bg-member-gold/15 text-member-gold-dark' : 'text-member-body/70 hover:text-member-gold' }}">
+                      {{ $isActive ? 'bg-beige text-brown' : 'text-muted/70 hover:text-brown' }}">
                 <svg class="mb-1 h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="{{ $item['icon'] }}"/>
                 </svg>
-                <span class="text-xs font-medium">{{ $item['label'] }}</span>
+                <span class="font-ui text-xs font-medium">{{ $item['label'] }}</span>
             </a>
         @endforeach
     </div>

@@ -5,21 +5,21 @@
 @section('content')
     <div class="mx-auto max-w-md px-4 py-12">
         <h1 class="page-title mb-2 text-center">Recuperar contraseña</h1>
-        <p class="mb-8 text-center text-lg text-bible-cream/70">
+        <p class="mb-8 text-center text-lg text-cream/70">
             Le enviaremos un enlace para restablecer su contraseña
         </p>
 
         @if(session('status'))
-            <div class="mb-4 rounded-xl border border-bible-green/40 bg-bible-green/20 px-4 py-3 text-bible-cream">
+            <div class="mb-4 rounded-xl border border-brown/40 bg-brown/20 px-4 py-3 text-cream">
                 {{ session('status') }}
             </div>
         @endif
 
-        <form method="POST" action="{{ route('password.email') }}" class="space-y-5 rounded-2xl border border-bible-gold/20 bg-bible-dark p-6">
+        <form method="POST" action="{{ route('password.email') }}" class="space-y-5 rounded-2xl border border-gold/20 bg-brown-deep p-6">
             @csrf
 
             <div>
-                <label for="email" class="mb-2 block text-lg font-medium text-bible-cream">Correo electrónico</label>
+                <label for="email" class="mb-2 block text-lg font-medium text-cream">Correo electrónico</label>
                 <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus
                        class="input-field">
                 @error('email')
@@ -32,7 +32,7 @@
             </button>
 
             <div class="text-center">
-                <a href="{{ route('login') }}" class="text-base text-bible-gold hover:underline">
+                <a href="{{ route('login') }}" class="text-base text-gold hover:underline">
                     Volver al inicio de sesión
                 </a>
             </div>

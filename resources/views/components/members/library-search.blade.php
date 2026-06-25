@@ -38,7 +38,7 @@
     @if($search || $categoryId)
         <div class="library-search-active mt-2.5 flex flex-wrap items-center gap-2">
             @if($search)
-                <span class="inline-flex items-center rounded-full bg-bible-gold/10 px-2.5 py-0.5 text-xs text-bible-gold">
+                <span class="inline-flex items-center rounded-full bg-gold/10 px-2.5 py-0.5 text-xs text-gold">
                     «{{ Str::limit($search, 24) }}»
                 </span>
             @endif
@@ -48,7 +48,7 @@
                     <x-members.category-badge :category="$activeCategory" />
                 @endif
             @endif
-            <a href="{{ $action }}" class="text-xs text-bible-muted transition hover:text-bible-gold">
+            <a href="{{ $action }}" class="text-xs text-tan transition hover:text-gold">
                 Limpiar
             </a>
         </div>

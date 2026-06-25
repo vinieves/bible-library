@@ -6,8 +6,8 @@
     <div class="py-8 text-center">
         <div class="mb-6 text-6xl">🔒</div>
         <h2 class="page-title mb-4 text-center">Este contenido requiere el Plan Completo</h2>
-        <p class="mx-auto mb-8 max-w-md text-lg text-bible-cream/80">
-            <strong class="text-bible-gold">{{ $material->title }}</strong> está disponible para clientes con
+        <p class="mx-auto mb-8 max-w-md text-lg text-muted">
+            <strong class="text-gold">{{ $material->title }}</strong> está disponible para clientes con
             <strong>Plan Completo</strong>.
         </p>
 
@@ -21,7 +21,7 @@
             </a>
         @endif
 
-        <p class="mt-8 text-base text-bible-cream/50">
+        <p class="mt-8 text-base text-muted">
             ¿Ya compró? Su acceso se activará automáticamente después de la confirmación.
         </p>
     </div>

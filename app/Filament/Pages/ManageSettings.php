@@ -43,7 +43,7 @@ class ManageSettings extends Page
             'checkout_completo_url' => Setting::get('checkout_completo_url'),
             'footer_text' => Setting::get('footer_text'),
             'logo_path' => filled(Setting::get('logo_path')) ? [Setting::get('logo_path')] : [],
-            'primary_color' => Setting::get('primary_color', '#1a5c38'),
+            'primary_color' => Setting::get('primary_color', '#6E4C2C'),
             'audio_subscription_title' => Setting::get('audio_subscription_title', 'Biblioteca Bíblica en Audio'),
             'audio_subscription_price' => Setting::get('audio_subscription_price', 'USD $4.90/mes'),
             'audio_subscription_checkout_url' => Setting::get('audio_subscription_checkout_url', '#'),

@@ -40,14 +40,15 @@ enum WhatsAppFlowStepType: string
 
     public function color(): string
     {
+        // Tons espelham resources/css/tokens.css — paleta beige/marrom.
         return match ($this) {
-            self::Text => '#3b82f6',
-            self::Image => '#22c55e',
-            self::Video => '#a855f7',
-            self::Audio => '#f97316',
-            self::File => '#6366f1',
-            self::Delay => '#14b8a6',
-            self::WaitForResponse => '#eab308',
+            self::Text => '#6E4C2C',
+            self::Image => '#C39A5E',
+            self::Video => '#D8B583',
+            self::Audio => '#CDA871',
+            self::File => '#3A2616',
+            self::Delay => '#2F2117',
+            self::WaitForResponse => '#8C7A63',
         };
     }
 }

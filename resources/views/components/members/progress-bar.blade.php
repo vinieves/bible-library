@@ -17,9 +17,9 @@
 
 <div {{ $attributes->merge(['class' => '']) }}>
     @if($showLabel)
-        <div class="mb-1 flex items-center justify-between gap-2 text-xs text-bible-cream/60">
+        <div class="mb-1 flex items-center justify-between gap-2 text-xs text-muted">
             <span>{{ $status }}</span>
-            <span class="font-medium text-bible-gold">{{ $percent }}%</span>
+            <span class="font-medium text-gold">{{ $percent }}%</span>
         </div>
     @endif
     <div class="progress-bar-track {{ $compact ? 'h-1.5' : 'h-2.5' }}" role="progressbar" aria-valuenow="{{ $percent }}" aria-valuemin="0" aria-valuemax="100">

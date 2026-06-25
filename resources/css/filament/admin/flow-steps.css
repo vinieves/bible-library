@@ -1,3 +1,4 @@
+/* Cores espelham resources/css/tokens.css (inline via file_get_contents, fora do pipeline Vite/Tailwind — manter hex em sincronia manual). */
 /* ═══════════════════════════════════════════════════════════
    FLOW STEPS — Cards compactos com setas verticais
    ═══════════════════════════════════════════════════════════ */
@@ -25,7 +26,7 @@
     width: 3px;
     height: 1.15rem;
     border-radius: 2px;
-    background: rgb(245 158 11);
+    background: #C39A5E;
     flex-shrink: 0;
 }
 
@@ -68,7 +69,7 @@
     min-width: var(--flow-card-width) !important;
     max-width: var(--flow-card-width) !important;
     margin: 0 !important;
-    background: #1a2035 !important;
+    background: #3A2616 !important;
     border: 1px solid rgb(255 255 255 / 0.08) !important;
     border-radius: 10px !important;
     overflow: visible !important;
@@ -76,15 +77,15 @@
 }
 
 .flow-steps-repeater .fi-fo-repeater-item:hover {
-    border-color: rgb(99 102 241 / 0.35) !important;
+    border-color: rgb(110 76 44 / 0.35) !important;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item:not(.fi-collapsed) {
     width: var(--flow-expanded-width) !important;
     min-width: var(--flow-expanded-width) !important;
     max-width: var(--flow-expanded-width) !important;
-    border-color: rgb(99 102 241 / 0.55) !important;
-    box-shadow: 0 0 0 3px rgb(99 102 241 / 0.1) !important;
+    border-color: rgb(110 76 44 / 0.55) !important;
+    box-shadow: 0 0 0 3px rgb(110 76 44 / 0.1) !important;
     z-index: 2;
 }
 
@@ -102,14 +103,14 @@
     height: 1.25rem;
     padding: 0 0.2rem;
     border-radius: 0.3rem;
-    background: rgb(12 12 14);
-    border: 1px solid rgb(55 55 60);
-    color: rgb(228 228 231);
+    background: #2F2117;
+    border: 1px solid #3A2616;
+    color: #F8F1E4;
     font-size: 0.62rem;
     font-weight: 700;
     line-height: 1;
     pointer-events: none;
-    box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
+    box-shadow: 0 2px 6px rgb(47 33 23 / 0.35);
 }
 
 /* ── Header compacto ─────────────────────────────────────── */
@@ -183,7 +184,7 @@
     height: 2rem;
     flex-shrink: 0;
     border-radius: 9999px;
-    background: var(--step-color, rgb(59 130 246));
+    background: var(--step-color, rgb(110 76 44));
     align-self: center;
 }
 
@@ -212,9 +213,9 @@
     font-size: 0.65rem;
     font-weight: 600;
     line-height: 1.2;
-    color: var(--step-color, rgb(96 165 250));
-    background: color-mix(in srgb, var(--step-color, rgb(59 130 246)) 16%, transparent);
-    border: 1px solid color-mix(in srgb, var(--step-color, rgb(59 130 246)) 28%, transparent);
+    color: var(--step-color, rgb(195 154 94));
+    background: color-mix(in srgb, var(--step-color, rgb(110 76 44)) 16%, transparent);
+    border: 1px solid color-mix(in srgb, var(--step-color, rgb(110 76 44)) 28%, transparent);
 }
 
 .flow-step-card__type-icon {
@@ -229,7 +230,7 @@
     font-size: 0.72rem;
     font-weight: 500;
     line-height: 1.3;
-    color: #c9d1e0;
+    color: #D8B583;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -248,11 +249,11 @@
     gap: 0.2rem;
     padding: 0.08rem 0.35rem;
     border-radius: 9999px;
-    background: rgb(18 18 20);
-    border: 1px solid rgb(63 63 70);
+    background: #2F2117;
+    border: 1px solid #3A2616;
     font-size: 0.58rem;
     line-height: 1.2;
-    color: rgb(161 161 170);
+    color: #D8B583;
 }
 
 .flow-step-card__chip-icon {
@@ -359,12 +360,12 @@
     font-size: 11px !important;
     min-height: 30px !important;
     padding: 0 8px !important;
-    color: #e2e8f0 !important;
+    color: #F8F1E4 !important;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-content input:focus {
-    border-color: rgb(99 102 241 / 0.5) !important;
-    box-shadow: 0 0 0 2px rgb(99 102 241 / 0.1) !important;
+    border-color: rgb(110 76 44 / 0.5) !important;
+    box-shadow: 0 0 0 2px rgb(110 76 44 / 0.1) !important;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-content .fi-fo-select .choices__inner,
@@ -383,7 +384,7 @@
     font-size: 11px !important;
     padding: 6px 8px !important;
     background: rgb(0 0 0 / 0.25) !important;
-    color: #e2e8f0 !important;
+    color: #F8F1E4 !important;
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-content .fi-fo-rich-editor-toolbar,
@@ -450,7 +451,7 @@
 }
 
 .flow-steps-repeater .fi-fo-repeater-item-content .fi-fo-file-upload .filepond--label-action {
-    color: rgb(251 191 36 / 0.95);
+    color: rgb(195 154 94 / 0.95);
     text-decoration: underline;
 }
 
@@ -467,7 +468,7 @@
 .flow-arrow__line {
     width: 2px;
     height: 20px;
-    background: rgb(99 102 241 / 0.3);
+    background: rgb(110 76 44 / 0.3);
     margin-left: 22px;
 }
 
@@ -476,7 +477,7 @@
     height: 0;
     border-left: 5px solid transparent;
     border-right: 5px solid transparent;
-    border-top: 6px solid rgb(99 102 241 / 0.3);
+    border-top: 6px solid rgb(110 76 44 / 0.3);
     margin-left: 17px;
 }
 
@@ -491,9 +492,9 @@
     min-height: 0 !important;
     height: auto !important;
     padding: 7px 16px !important;
-    background: rgb(217 119 6 / 0.07) !important;
-    border: 1px dashed rgb(217 119 6 / 0.45) !important;
-    color: #d97706 !important;
+    background: rgb(195 154 94 / 0.07) !important;
+    border: 1px dashed rgb(195 154 94 / 0.45) !important;
+    color: #C39A5E !important;
     border-radius: 8px !important;
     font-size: 12px !important;
     font-weight: 500 !important;
@@ -502,9 +503,9 @@
 }
 
 .flow-steps-repeater .fi-fo-repeater-add .fi-btn:hover {
-    background: rgb(217 119 6 / 0.14) !important;
-    border-color: rgb(217 119 6 / 0.7) !important;
-    color: #fbbf24 !important;
+    background: rgb(195 154 94 / 0.14) !important;
+    border-color: rgb(195 154 94 / 0.7) !important;
+    color: #D8B583 !important;
 }
 
 @media (max-width: 1024px) {

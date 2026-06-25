@@ -1,6 +1,15 @@
 import defaultTheme from 'tailwindcss/defaultTheme';
 import forms from '@tailwindcss/forms';
 
+/** Tailwind color helper: enables `bg-brown/10`-style opacity modifiers
+ *  while sourcing the actual RGB from resources/css/tokens.css. */
+function withOpacity(channelVar) {
+    return ({ opacityValue }) =>
+        opacityValue === undefined
+            ? `rgb(var(${channelVar}))`
+            : `rgb(var(${channelVar}) / ${opacityValue})`;
+}
+
 /** @type {import('tailwindcss').Config} */
 export default {
     content: [
@@ -31,40 +40,33 @@ export default {
     theme: {
         extend: {
             colors: {
-                bible: {
-                    black: '#0a0907',
-                    dark: '#14110a',
-                    'dark-solid': '#1c1711',
-                    'dark-elevated': '#231c14',
-                    'card': 'rgba(28, 23, 17, 0.72)',
-                    gold: '#f0c75e',
-                    'gold-light': '#f5dfa0',
-                    cream: '#f5f0e8',
-                    muted: '#9a9588',
-                    'muted-warm': '#c9b98a',
-                    green: '#1a5c38',
-                    'green-light': '#2d7a52',
-                },
-                member: {
-                    paper: '#F2EDE4',
-                    card: '#FBF8F2',
-                    input: '#F6F1E8',
-                    gold: '#A86E2C',
-                    'gold-dark': '#996226',
-                    'gold-light': '#C0833B',
-                    title: '#4A3B2A',
-                    body: '#6B5D4A',
-                    placeholder: '#9B9182',
-                },
+                ink: withOpacity('--ink-channel'),
+                'brown-deep': withOpacity('--brown-deep-channel'),
+                brown: withOpacity('--brown-channel'),
+                gold: withOpacity('--gold-channel'),
+                tan: withOpacity('--tan-channel'),
+                caramel: withOpacity('--caramel-channel'),
+                beige: withOpacity('--beige-channel'),
+                cream: withOpacity('--cream-channel'),
+                paper: withOpacity('--paper-channel'),
+                line: withOpacity('--line-channel'),
+                muted: withOpacity('--muted-channel'),
             },
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
                 serif: ['Playfair Display', 'Georgia', 'Cambria', 'Times New Roman', 'serif'],
+                // Fonte dedicada da home pública (resources/views/public/home.blade.php) — não afeta o resto do app.
+                display: ['Lora', 'Georgia', 'Cambria', 'Times New Roman', 'serif'],
+                ui: ['DM Sans', ...defaultTheme.fontFamily.sans],
             },
-            backgroundImage: {
-                'public-mesh': 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(201, 162, 39, 0.15), transparent), radial-gradient(ellipse 60% 40% at 100% 100%, rgba(26, 92, 56, 0.12), transparent)',
-                'members-divine': 'radial-gradient(120% 90% at 50% -10%, #3d3018 0%, #1a1610 38%, #0f0d09 72%, #0a0907 100%)',
-                'member-paper': 'linear-gradient(180deg, #FBF8F2 0%, #F2EDE4 100%)',
+            boxShadow: {
+                DEFAULT: '0 1px 3px 0 rgb(var(--ink-channel) / 0.1), 0 1px 2px -1px rgb(var(--ink-channel) / 0.1)',
+                sm: '0 1px 2px 0 rgb(var(--ink-channel) / 0.05)',
+                md: '0 4px 6px -1px rgb(var(--ink-channel) / 0.1), 0 2px 4px -2px rgb(var(--ink-channel) / 0.1)',
+                lg: '0 10px 15px -3px rgb(var(--ink-channel) / 0.1), 0 4px 6px -4px rgb(var(--ink-channel) / 0.1)',
+                xl: '0 20px 25px -5px rgb(var(--ink-channel) / 0.1), 0 8px 10px -6px rgb(var(--ink-channel) / 0.1)',
+                '2xl': '0 25px 50px -12px rgb(var(--ink-channel) / 0.25)',
+                inner: 'inset 0 2px 4px 0 rgb(var(--ink-channel) / 0.05)',
             },
         },
     },

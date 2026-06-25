@@ -15,19 +15,19 @@
          data-duration-seconds="{{ $audioTrack->durationSeconds() ?? 0 }}">
 
         @if($audioTrack->coverUrl())
-            <div class="mx-auto mb-5 aspect-square w-full max-w-xs overflow-hidden rounded-2xl border border-bible-gold/20">
+            <div class="mx-auto mb-5 aspect-square w-full max-w-xs overflow-hidden rounded-2xl border border-gold/20">
                 <img src="{{ $audioTrack->coverUrl() }}"
                      alt="{{ $audioTrack->title }}"
                      class="h-full w-full object-cover">
             </div>
         @endif
 
-        <h1 class="text-center text-xl font-semibold text-bible-gold sm:text-2xl">{{ $audioTrack->title }}</h1>
+        <h1 class="text-center text-xl font-semibold text-gold sm:text-2xl">{{ $audioTrack->title }}</h1>
         @if($audioTrack->category)
-            <p class="mt-1 text-center text-sm text-bible-cream/50">{{ $audioTrack->category->name }}</p>
+            <p class="mt-1 text-center text-sm text-cream/50">{{ $audioTrack->category->name }}</p>
         @endif
         @if($audioTrack->description)
-            <p class="mx-auto mt-3 max-w-md text-center text-sm leading-relaxed text-bible-cream/70">
+            <p class="mx-auto mt-3 max-w-md text-center text-sm leading-relaxed text-cream/70">
                 {{ $audioTrack->description }}
             </p>
         @endif
@@ -59,7 +59,7 @@
                     </button>
                 </div>
 
-                <div class="flex items-center gap-3 text-xs text-bible-cream/60">
+                <div class="flex items-center gap-3 text-xs text-cream/60">
                     <span data-audio-current>0:00</span>
                     <div class="progress-bar-track h-2 min-w-0 flex-1">
                         <div data-audio-progress-fill class="progress-bar-fill-partial h-full rounded-full transition-all" style="width: 0%"></div>
@@ -70,8 +70,8 @@
                 <audio data-audio-element class="hidden" preload="metadata"></audio>
             </div>
         @else
-            <div class="mt-6 rounded-2xl border border-bible-gold/15 bg-bible-dark/60 p-5 text-center">
-                <p class="text-sm text-bible-cream/60">
+            <div class="mt-6 rounded-2xl border border-gold/15 bg-brown-deep/60 p-5 text-center">
+                <p class="text-sm text-cream/60">
                     El archivo de audio aún no está disponible. Vuelva pronto o contacte a soporte.
                 </p>
             </div>

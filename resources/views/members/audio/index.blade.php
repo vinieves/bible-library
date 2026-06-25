@@ -13,7 +13,7 @@
 
         @if($tracks->isEmpty())
             @if($search || $categoryId)
-                <p class="py-8 text-center text-sm text-bible-muted-warm">No se encontraron audios con esos filtros.</p>
+                <p class="py-8 text-center text-sm text-tan">No se encontraron audios con esos filtros.</p>
             @else
                 <x-members.empty-state
                     icon="audio"
