@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Mi Biblioteca') — {{ $siteSettings['name'] ?? 'Biblioteca Bíblica Digital' }}</title>
+
+    <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+    <meta name="theme-color" content="#9B6424">
+    <link rel="apple-touch-icon" href="{{ asset('icons/icon-192.png') }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="La Biblia Explicada">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('scripts')
 </head>

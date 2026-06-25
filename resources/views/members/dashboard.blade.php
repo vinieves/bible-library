@@ -3,6 +3,10 @@
 @section('title', 'Inicio')
 
 @section('content')
+    <div class="mb-4">
+        <x-members.pwa-install />
+    </div>
+
     <x-members.dashboard-hero />
 
     <div class="mt-5 space-y-4">
