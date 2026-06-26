@@ -40,6 +40,7 @@ Route::middleware('auth')->prefix('mi-biblioteca')->name('members.')->group(func
     Route::get('/videos/{video}/stream', [VideoController::class, 'stream'])->name('videos.stream');
     Route::post('/videos/{video}/progress', [VideoController::class, 'saveProgress'])->name('videos.progress');
     Route::post('/videos/{video}/complete', [VideoController::class, 'markComplete'])->name('videos.complete');
+    Route::get('/materiales', [MaterialController::class, 'index'])->name('materials.index');
     Route::get('/materiales/{material}', [MaterialController::class, 'show'])->name('materials.show');
     Route::get('/materiales/{material}/leer', [MaterialPdfController::class, 'reader'])->name('materials.pdf.reader');
     Route::post('/materiales/{material}/progreso-lectura', [MaterialPdfController::class, 'saveReadingProgress'])->name('materials.pdf.progress');

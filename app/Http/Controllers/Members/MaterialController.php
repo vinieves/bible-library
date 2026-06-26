@@ -12,6 +12,23 @@ use Illuminate\View\View;
 
 class MaterialController extends Controller
 {
+    public function index(): View
+    {
+        $materials = Material::query()
+            ->published()
+            ->with(['category', 'plan'])
+            ->orderBy('sort_order')
+            ->get();
+
+        $user = Auth::user();
+        $progressByMaterial = $user->materialProgress()
+            ->whereIn('material_id', $materials->pluck('id'))
+            ->get()
+            ->keyBy('material_id');
+
+        return view('members.materials.index', compact('materials', 'progressByMaterial'));
+    }
+
     public function show(Material $material): View
     {
         if (! $material->isPublished()) {
