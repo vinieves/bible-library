@@ -44,9 +44,9 @@
                 <div data-pdf-page-controls class="flex flex-1 items-center justify-center gap-2 sm:justify-start sm:gap-1.5">
                     <button type="button"
                             data-page-prev
-                            class="btn-reader-page h-12 w-12 sm:h-11 sm:w-11"
+                            class="btn-reader-page h-16 w-16 sm:h-14 sm:w-14"
                             aria-label="Página anterior">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
                         </svg>
                     </button>
@@ -57,9 +57,9 @@
                     </span>
                     <button type="button"
                             data-page-next
-                            class="btn-reader-page h-12 w-12 sm:h-11 sm:w-11"
+                            class="btn-reader-page h-16 w-16 sm:h-14 sm:w-14"
                             aria-label="Página siguiente">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
                         </svg>
                     </button>
