@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "La Biblia Explicada",
-  "short_name": "Biblia",
+  "name": "Biblia digital",
+  "short_name": "Biblia digital",
   "description": "Lee y comprende la Biblia versículo por versículo.",
   "lang": "es",
   "start_url": "/mi-biblioteca",
