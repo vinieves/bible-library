@@ -223,6 +223,42 @@ function initCanvasPdfReader(root, loadDocument) {
         }
     };
 
+    // ── Zoom (pinça) e pan, restritos à página do PDF — nunca afeta o app/viewport. ──
+    const MIN_ZOOM = 1;
+    const MAX_ZOOM = 4;
+    let zoomScale = 1;
+    let panX = 0;
+    let panY = 0;
+
+    const clampNum = (value, min, max) => Math.min(max, Math.max(min, value));
+
+    const clampPan = () => {
+        const wrapW = canvasWrap?.clientWidth || 0;
+        const wrapH = canvasWrap?.clientHeight || 0;
+        const visW = canvas.clientWidth * zoomScale;
+        const visH = canvas.clientHeight * zoomScale;
+
+        panX = clampNum(panX, Math.min(0, wrapW - visW), 0);
+        panY = clampNum(panY, Math.min(0, wrapH - visH), 0);
+    };
+
+    const applyZoomTransform = () => {
+        canvas.style.transformOrigin = '0 0';
+        canvas.style.transform = zoomScale === 1 ? '' : `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
+
+        if (canvasWrap) {
+            canvasWrap.style.overflowY = zoomScale === 1 ? 'auto' : 'hidden';
+            canvasWrap.style.touchAction = zoomScale === 1 ? 'pan-y' : 'none';
+        }
+    };
+
+    const resetZoom = () => {
+        zoomScale = 1;
+        panX = 0;
+        panY = 0;
+        applyZoomTransform();
+    };
+
     const drawToVisibleCanvas = (offscreen) => {
         canvas.width = offscreen.width;
         canvas.height = offscreen.height;
@@ -230,6 +266,7 @@ function initCanvasPdfReader(root, loadDocument) {
         canvas.style.height = 'auto';
         canvas.style.display = 'block';
         canvas.getContext('2d').drawImage(offscreen, 0, 0);
+        resetZoom();
     };
 
     const renderCurrentPage = async () => {
@@ -297,16 +334,74 @@ function initCanvasPdfReader(root, loadDocument) {
         }
     };
 
+    const touchDistance = (t1, t2) => Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+
     let touchStartX = 0;
     let touchStartY = 0;
+    let pinchStartDistance = 0;
+    let pinchStartScale = 1;
+    let panning = false;
+    let panStartX = 0;
+    let panStartY = 0;
+    let panOriginX = 0;
+    let panOriginY = 0;
 
     touchArea?.addEventListener('touchstart', (event) => {
+        if (event.touches.length === 2) {
+            pinchStartDistance = touchDistance(event.touches[0], event.touches[1]);
+            pinchStartScale = zoomScale;
+            panning = false;
+            return;
+        }
+
         const touch = event.changedTouches[0];
         touchStartX = touch.screenX;
         touchStartY = touch.screenY;
+
+        if (zoomScale > 1.01) {
+            panning = true;
+            panStartX = touch.clientX;
+            panStartY = touch.clientY;
+            panOriginX = panX;
+            panOriginY = panY;
+        }
     }, { passive: true });
 
+    touchArea?.addEventListener('touchmove', (event) => {
+        if (event.touches.length === 2) {
+            event.preventDefault();
+
+            if (pinchStartDistance > 0) {
+                const distance = touchDistance(event.touches[0], event.touches[1]);
+                zoomScale = clampNum(pinchStartScale * (distance / pinchStartDistance), MIN_ZOOM, MAX_ZOOM);
+                clampPan();
+                applyZoomTransform();
+            }
+            return;
+        }
+
+        if (panning) {
+            event.preventDefault();
+            const touch = event.touches[0];
+            panX = panOriginX + (touch.clientX - panStartX);
+            panY = panOriginY + (touch.clientY - panStartY);
+            clampPan();
+            applyZoomTransform();
+        }
+    }, { passive: false });
+
     touchArea?.addEventListener('touchend', (event) => {
+        panning = false;
+
+        if (zoomScale <= 1.01) {
+            resetZoom();
+        }
+
+        // Ainda tem dedo na tela (pinça terminando) ou a página está com zoom: não troca de página.
+        if (event.touches.length > 0 || zoomScale > 1.01) {
+            return;
+        }
+
         const touch = event.changedTouches[0];
         const deltaX = touch.screenX - touchStartX;
         const deltaY = touch.screenY - touchStartY;

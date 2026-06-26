@@ -30,7 +30,7 @@
                 </span>
             </div>
         @elseif($percent > 0)
-            <div class="absolute inset-x-0 bottom-0 h-1 bg-ink/15">
+            <div class="absolute inset-x-0 bottom-0 h-2.5 bg-ink/20">
                 <div class="h-full bg-gold" style="width: {{ min(100, $percent) }}%"></div>
             </div>
         @endif
