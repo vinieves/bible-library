@@ -111,41 +111,6 @@ function createSharedReaderState(root) {
         saveTimer = setTimeout(persist, 400);
     };
 
-    const bindNavigation = (goToPage) => {
-        prevBtn?.addEventListener('click', () => {
-            goToPage(currentPage - 1);
-        });
-        nextBtn?.addEventListener('click', () => {
-            goToPage(currentPage + 1);
-        });
-
-        let touchStartX = 0;
-        let touchStartY = 0;
-        const touchArea = root.querySelector('[data-pdf-touch-area]');
-
-        touchArea?.addEventListener('touchstart', (event) => {
-            const touch = event.changedTouches[0];
-            touchStartX = touch.screenX;
-            touchStartY = touch.screenY;
-        }, { passive: true });
-
-        touchArea?.addEventListener('touchend', (event) => {
-            const touch = event.changedTouches[0];
-            const deltaX = touch.screenX - touchStartX;
-            const deltaY = touch.screenY - touchStartY;
-
-            if (Math.abs(deltaX) < 40 || Math.abs(deltaX) < Math.abs(deltaY)) {
-                return;
-            }
-
-            if (deltaX < 0) {
-                goToPage(currentPage + 1);
-            } else {
-                goToPage(currentPage - 1);
-            }
-        }, { passive: true });
-    };
-
     const hideLoading = () => {
         loadingEl?.classList.add('hidden');
     };
@@ -167,7 +132,6 @@ function createSharedReaderState(root) {
         },
         updateUi,
         saveProgress,
-        bindNavigation,
         hideLoading,
     };
 }
@@ -192,19 +156,58 @@ async function loadPdfDocument(pdfUrl) {
     }
 }
 
+const SLIDE_TRANSITION = 'transform 220ms ease-out';
+
 function initCanvasPdfReader(root, loadDocument) {
     const pdfUrl = root.dataset.pdfUrl;
     const canvasWrap = root.querySelector('[data-pdf-canvas-wrap]');
     const embed = root.querySelector('[data-pdf-embed]');
-    const canvas = root.querySelector('[data-pdf-canvas]');
+    const originalCanvas = root.querySelector('[data-pdf-canvas]');
+    const touchArea = root.querySelector('[data-pdf-touch-area]') || canvasWrap;
     const mobile = isMobileReader();
+    const dpr = Math.min(window.devicePixelRatio || 1, 3);
+    const maxScale = mobile ? 2 : 3;
     const state = createSharedReaderState(root);
 
     embed?.classList.add('hidden');
     canvasWrap?.classList.remove('hidden');
 
+    if (!canvasWrap) {
+        return;
+    }
+
+    canvasWrap.style.overflowX = 'hidden';
+
+    // Trilho de 3 posições: [anterior][atual][seguinte] — permite arrastar como um carrossel.
+    originalCanvas?.remove();
+    const track = document.createElement('div');
+    track.style.display = 'flex';
+    track.style.width = '300%';
+    track.style.willChange = 'transform';
+    track.style.transform = 'translateX(-33.3333%)';
+
+    const slots = [0, 1, 2].map(() => {
+        const slot = document.createElement('div');
+        slot.style.flex = '0 0 33.3333%';
+        slot.style.display = 'flex';
+        slot.style.justifyContent = 'center';
+
+        const canvas = document.createElement('canvas');
+        canvas.style.width = '100%';
+        canvas.style.height = 'auto';
+        canvas.style.display = 'block';
+
+        slot.appendChild(canvas);
+        track.appendChild(slot);
+
+        return canvas;
+    });
+
+    canvasWrap.appendChild(track);
+
     let pdfDoc = null;
-    let renderTask = null;
+    let animating = false;
+    const renderTasks = new Map();
 
     const getAvailableWidth = () => {
         const wrapWidth = canvasWrap?.clientWidth || 0;
@@ -213,70 +216,184 @@ function initCanvasPdfReader(root, loadDocument) {
         return Math.max(wrapWidth, rootWidth, window.innerWidth);
     };
 
-    const renderPage = async (pageNumber) => {
-        if (!pdfDoc || !canvas) {
-            return;
+    const renderPageToCanvas = async (pageNumber, canvas) => {
+        if (renderTasks.has(canvas)) {
+            try {
+                renderTasks.get(canvas).cancel();
+            } catch {
+                // Ignorado: a renderização anterior já tinha terminado/cancelado.
+            }
+            renderTasks.delete(canvas);
         }
 
-        if (renderTask) {
-            renderTask.cancel();
+        if (!pdfDoc || pageNumber < 1 || (state.totalPages > 0 && pageNumber > state.totalPages)) {
+            canvas.width = 0;
+            canvas.height = 0;
+            return;
         }
 
         const page = await pdfDoc.getPage(pageNumber);
         const availableWidth = Math.max(getAvailableWidth(), 280);
         const viewport = page.getViewport({ scale: 1 });
-        const maxScale = mobile ? 1.75 : 2.5;
-        const scale = Math.min(availableWidth / viewport.width, maxScale);
-        const scaledViewport = page.getViewport({ scale });
+        const cssScale = Math.min(availableWidth / viewport.width, maxScale);
+        const scaledViewport = page.getViewport({ scale: cssScale * dpr });
 
         canvas.width = Math.floor(scaledViewport.width);
         canvas.height = Math.floor(scaledViewport.height);
-        canvas.style.width = '100%';
-        canvas.style.height = 'auto';
-        canvas.style.display = 'block';
 
         const context = canvas.getContext('2d');
         context.setTransform(1, 0, 0, 1, 0, 0);
 
-        renderTask = page.render({
+        const task = page.render({
             canvas,
             canvasContext: context,
             viewport: scaledViewport,
         });
-
-        await renderTask.promise;
-        renderTask = null;
-        state.hideLoading();
-        canvasWrap?.scrollTo({ top: 0, behavior: 'auto' });
-    };
-
-    const goToPage = async (pageNumber) => {
-        if (!pdfDoc || pageNumber < 1) {
-            return;
-        }
-
-        if (state.totalPages > 0 && pageNumber > state.totalPages) {
-            return;
-        }
-
-        state.currentPage = pageNumber;
-        state.updateUi();
+        renderTasks.set(canvas, task);
 
         try {
-            await renderPage(state.currentPage);
+            await task.promise;
+        } finally {
+            renderTasks.delete(canvas);
+        }
+    };
+
+    const refreshSlots = async () => {
+        const current = state.currentPage;
+
+        await renderPageToCanvas(current, slots[1]);
+        state.hideLoading();
+        canvasWrap?.scrollTo({ top: 0, behavior: 'auto' });
+
+        renderPageToCanvas(current - 1, slots[0]).catch(() => {});
+        renderPageToCanvas(current + 1, slots[2]).catch(() => {});
+    };
+
+    const setTrackTransform = (offsetPx, withTransition) => {
+        track.style.transition = withTransition ? SLIDE_TRANSITION : 'none';
+        track.style.transform = `translateX(calc(-33.3333% + ${offsetPx}px))`;
+    };
+
+    const waitForTransition = () => new Promise((resolve) => {
+        const onEnd = () => {
+            track.removeEventListener('transitionend', onEnd);
+            resolve();
+        };
+        track.addEventListener('transitionend', onEnd, { once: true });
+    });
+
+    const goToPageAnimated = async (targetPage) => {
+        if (animating || !pdfDoc || targetPage === state.currentPage) {
+            return;
+        }
+
+        if (targetPage < 1 || (state.totalPages > 0 && targetPage > state.totalPages)) {
+            return;
+        }
+
+        const direction = targetPage > state.currentPage ? -1 : 1; // -1 = avança (desliza p/ esquerda)
+        const containerWidth = getAvailableWidth();
+
+        animating = true;
+        setTrackTransform(direction * -containerWidth, true);
+
+        try {
+            await waitForTransition();
+
+            state.currentPage = targetPage;
+            state.updateUi();
+            setTrackTransform(0, false);
+            await refreshSlots();
             state.saveProgress();
         } catch {
             showReaderError(root);
+        } finally {
+            animating = false;
         }
     };
 
-    state.bindNavigation(goToPage);
+    let dragging = false;
+    let startX = 0;
+    let startY = 0;
+    let lastDeltaX = 0;
+    let axisLocked = null;
+
+    touchArea?.addEventListener('touchstart', (event) => {
+        if (animating) {
+            return;
+        }
+
+        const touch = event.changedTouches[0];
+        dragging = true;
+        startX = touch.screenX;
+        startY = touch.screenY;
+        lastDeltaX = 0;
+        axisLocked = null;
+        track.style.transition = 'none';
+    }, { passive: true });
+
+    touchArea?.addEventListener('touchmove', (event) => {
+        if (!dragging || animating) {
+            return;
+        }
+
+        const touch = event.changedTouches[0];
+        const deltaX = touch.screenX - startX;
+        const deltaY = touch.screenY - startY;
+
+        if (axisLocked === null) {
+            if (Math.abs(deltaX) < 8 && Math.abs(deltaY) < 8) {
+                return;
+            }
+            axisLocked = Math.abs(deltaX) > Math.abs(deltaY) ? 'x' : 'y';
+        }
+
+        if (axisLocked === 'y') {
+            return;
+        }
+
+        event.preventDefault();
+
+        const containerWidth = getAvailableWidth();
+        lastDeltaX = Math.max(-containerWidth, Math.min(containerWidth, deltaX));
+        setTrackTransform(lastDeltaX, false);
+    }, { passive: false });
+
+    touchArea?.addEventListener('touchend', () => {
+        if (!dragging) {
+            return;
+        }
+
+        dragging = false;
+
+        if (axisLocked !== 'x') {
+            return;
+        }
+
+        const containerWidth = getAvailableWidth();
+        const threshold = containerWidth * 0.25;
+
+        if (lastDeltaX <= -threshold) {
+            goToPageAnimated(state.currentPage + 1);
+        } else if (lastDeltaX >= threshold) {
+            goToPageAnimated(state.currentPage - 1);
+        } else {
+            setTrackTransform(0, true);
+        }
+    }, { passive: true });
+
+    root.querySelector('[data-page-prev]')?.addEventListener('click', () => {
+        goToPageAnimated(state.currentPage - 1);
+    });
+    root.querySelector('[data-page-next]')?.addEventListener('click', () => {
+        goToPageAnimated(state.currentPage + 1);
+    });
 
     window.addEventListener('resize', () => {
         clearTimeout(window.__pdfReaderResizeTimer);
         window.__pdfReaderResizeTimer = setTimeout(() => {
-            if (pdfDoc) {
-                renderPage(state.currentPage).catch(() => {});
+            if (pdfDoc && !animating) {
+                refreshSlots().catch(() => {});
             }
         }, 150);
     });
@@ -301,7 +418,7 @@ function initCanvasPdfReader(root, loadDocument) {
             }
 
             state.updateUi();
-            await renderPage(state.currentPage);
+            await refreshSlots();
             state.saveProgress();
         })
         .catch(() => {

@@ -44,22 +44,22 @@
                 <div data-pdf-page-controls class="flex flex-1 items-center justify-center gap-2 sm:justify-start sm:gap-1.5">
                     <button type="button"
                             data-page-prev
-                            class="btn-reader-action min-h-11 min-w-11 px-3 sm:min-h-0 sm:min-w-0 sm:px-2.5"
+                            class="btn-reader-action min-h-12 min-w-12 px-3.5 sm:min-h-11 sm:min-w-11 sm:px-3"
                             aria-label="Página anterior">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
                         </svg>
                     </button>
-                    <span class="min-w-[5.5rem] text-center text-xs text-cream/80 sm:text-sm">
+                    <span class="min-w-[5.5rem] text-center text-sm text-cream/80 sm:text-base">
                         <span data-page-current>{{ $initialPage }}</span>
                         /
                         <span data-page-total>{{ $material->pdf_page_count ?: '—' }}</span>
                     </span>
                     <button type="button"
                             data-page-next
-                            class="btn-reader-action min-h-11 min-w-11 px-3 sm:min-h-0 sm:min-w-0 sm:px-2.5"
+                            class="btn-reader-action min-h-12 min-w-12 px-3.5 sm:min-h-11 sm:min-w-11 sm:px-3"
                             aria-label="Página siguiente">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
                         </svg>
                     </button>
