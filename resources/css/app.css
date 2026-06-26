@@ -245,6 +245,10 @@
         @apply border-brown/40 bg-brown/10 text-ink hover:border-brown hover:bg-brown/15;
     }
 
+    .btn-reader-page {
+        @apply inline-flex items-center justify-center rounded-full bg-brown text-cream shadow-sm transition duration-150 hover:bg-ink active:scale-90 disabled:bg-brown/30 disabled:text-cream/60 disabled:shadow-none disabled:active:scale-100;
+    }
+
     .pdf-reader-container {
         min-height: 280px;
     }

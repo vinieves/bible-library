@@ -186,24 +186,31 @@ function initCanvasPdfReader(root, loadDocument) {
     track.style.willChange = 'transform';
     track.style.transform = 'translateX(-33.3333%)';
 
-    const slots = [0, 1, 2].map(() => {
+    const slotEls = [0, 1, 2].map(() => {
         const slot = document.createElement('div');
         slot.style.flex = '0 0 33.3333%';
         slot.style.display = 'flex';
         slot.style.justifyContent = 'center';
+        track.appendChild(slot);
+        return slot;
+    });
 
+    canvasWrap.appendChild(track);
+
+    // Cada "pane" guarda seu próprio <canvas> e qual página ele tem desenhada agora.
+    // Ao trocar de página, em vez de redesenhar as 3 do zero, a gente RODA os panes
+    // entre as posições — a vizinha que já estava pronta (ex.: a "seguinte" virando
+    // a "atual") só é movida de lugar, sem novo render. Só sobra 1 página de fato
+    // nova pra renderizar em segundo plano (a que ficou mais distante).
+    const panes = [0, 1, 2].map(() => {
         const canvas = document.createElement('canvas');
         canvas.style.width = '100%';
         canvas.style.height = 'auto';
         canvas.style.display = 'block';
-
-        slot.appendChild(canvas);
-        track.appendChild(slot);
-
-        return canvas;
+        return { canvas, page: null };
     });
 
-    canvasWrap.appendChild(track);
+    panes.forEach((pane, index) => slotEls[index].appendChild(pane.canvas));
 
     let pdfDoc = null;
     let animating = false;
@@ -224,12 +231,6 @@ function initCanvasPdfReader(root, loadDocument) {
                 // Ignorado: a renderização anterior já tinha terminado/cancelado.
             }
             renderTasks.delete(canvas);
-        }
-
-        if (!pdfDoc || pageNumber < 1 || (state.totalPages > 0 && pageNumber > state.totalPages)) {
-            canvas.width = 0;
-            canvas.height = 0;
-            return;
         }
 
         const page = await pdfDoc.getPage(pageNumber);
@@ -258,15 +259,45 @@ function initCanvasPdfReader(root, loadDocument) {
         }
     };
 
+    // Só renderiza de fato se o pane ainda não tiver essa página desenhada.
+    const ensurePane = async (pane, pageNumber) => {
+        if (pageNumber < 1 || (state.totalPages > 0 && pageNumber > state.totalPages)) {
+            pane.page = null;
+            pane.canvas.width = 0;
+            pane.canvas.height = 0;
+            return;
+        }
+
+        if (pane.page === pageNumber) {
+            return;
+        }
+
+        pane.page = pageNumber;
+        await renderPageToCanvas(pageNumber, pane.canvas);
+    };
+
     const refreshSlots = async () => {
         const current = state.currentPage;
 
-        await renderPageToCanvas(current, slots[1]);
+        await ensurePane(panes[1], current);
         state.hideLoading();
         canvasWrap?.scrollTo({ top: 0, behavior: 'auto' });
 
-        renderPageToCanvas(current - 1, slots[0]).catch(() => {});
-        renderPageToCanvas(current + 1, slots[2]).catch(() => {});
+        ensurePane(panes[0], current - 1).catch(() => {});
+        ensurePane(panes[2], current + 1).catch(() => {});
+    };
+
+    // Reatribui qual pane ocupa qual posição visual sem tocar no canvas/bitmap já pronto.
+    const rotatePanes = (direction) => {
+        if (direction === -1) {
+            // Avançou: [prev,cur,next] -> [cur,next,prev]
+            panes.push(panes.shift());
+        } else {
+            // Voltou: [prev,cur,next] -> [next,prev,cur]
+            panes.unshift(panes.pop());
+        }
+
+        panes.forEach((pane, index) => slotEls[index].appendChild(pane.canvas));
     };
 
     const setTrackTransform = (offsetPx, withTransition) => {
@@ -300,9 +331,15 @@ function initCanvasPdfReader(root, loadDocument) {
         try {
             await waitForTransition();
 
+            const isAdjacent = Math.abs(targetPage - state.currentPage) === 1;
             state.currentPage = targetPage;
             state.updateUi();
             setTrackTransform(0, false);
+
+            if (isAdjacent) {
+                rotatePanes(direction);
+            }
+
             await refreshSlots();
             state.saveProgress();
         } catch {
@@ -393,6 +430,8 @@ function initCanvasPdfReader(root, loadDocument) {
         clearTimeout(window.__pdfReaderResizeTimer);
         window.__pdfReaderResizeTimer = setTimeout(() => {
             if (pdfDoc && !animating) {
+                // O tamanho mudou: o que já tinha renderizado pode estar na resolução errada agora.
+                panes.forEach((pane) => { pane.page = null; });
                 refreshSlots().catch(() => {});
             }
         }, 150);
