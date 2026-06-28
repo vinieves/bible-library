@@ -6,6 +6,7 @@ use App\Enums\ForumPostStatus;
 use App\Filament\Resources\ForumPostResource\Pages;
 use App\Models\ForumPost;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -19,9 +20,9 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\TextInputColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Str;
 use UnitEnum;
 
 class ForumPostResource extends Resource
@@ -121,13 +122,10 @@ class ForumPostResource extends Resource
                     ->disk('public')
                     ->stacked()
                     ->limit(3),
-                TextInputColumn::make('body')
+                TextColumn::make('body')
                     ->label('Conteúdo')
-                    ->getStateUsing(fn (ForumPost $record) => trim(strip_tags($record->body)))
-                    ->updateStateUsing(function (ForumPost $record, string $state) {
-                        $record->update(['body' => '<p>'.e(trim($state)).'</p>']);
-                    })
-                    ->rules(['required', 'string']),
+                    ->getStateUsing(fn (ForumPost $record) => Str::limit(trim(strip_tags($record->body)), 80))
+                    ->wrap(),
                 IconColumn::make('youtube_url')
                     ->label('Vídeo')
                     ->boolean()
@@ -156,6 +154,37 @@ class ForumPostResource extends Resource
                     ->options(collect(ForumPostStatus::cases())->mapWithKeys(fn ($status) => [$status->value => $status->label()])),
             ])
             ->recordActions([
+                Action::make('editContent')
+                    ->label('Editar texto')
+                    ->icon('heroicon-o-pencil-square')
+                    ->modalHeading('Editar conteúdo da publicação')
+                    ->form([
+                        RichEditor::make('body')
+                            ->label('Texto')
+                            ->required(),
+                    ])
+                    ->fillForm(fn (ForumPost $record) => ['body' => $record->body])
+                    ->action(function (ForumPost $record, array $data) {
+                        $record->update(['body' => $data['body']]);
+                    }),
+                Action::make('editImages')
+                    ->label('Editar imagens')
+                    ->icon('heroicon-o-photo')
+                    ->modalHeading('Editar imagens da publicação')
+                    ->form([
+                        FileUpload::make('images')
+                            ->label('Imagens (carrossel)')
+                            ->image()
+                            ->multiple()
+                            ->reorderable()
+                            ->imageEditor()
+                            ->disk('public')
+                            ->directory('forum-galleries'),
+                    ])
+                    ->fillForm(fn (ForumPost $record) => ['images' => $record->images])
+                    ->action(function (ForumPost $record, array $data) {
+                        $record->update(['images' => $data['images'] ?? []]);
+                    }),
                 EditAction::make(),
             ])
             ->toolbarActions([
