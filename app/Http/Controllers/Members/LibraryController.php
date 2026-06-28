@@ -3,12 +3,16 @@
 namespace App\Http\Controllers\Members;
 
 use App\Http\Controllers\Controller;
+use App\Models\BibleTopic;
+use App\Models\BibleTopicVerse;
 use App\Models\UserBibleProgress;
 use App\Services\BibleReaderService;
+use App\Services\BibleSearchService;
 use App\Services\MemberProgressService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class LibraryController extends Controller
@@ -29,6 +33,9 @@ class LibraryController extends Controller
             'booksUrl' => url('/mi-biblioteca/libros/api/libros'),
             'chapterUrl' => url('/mi-biblioteca/libros/api/__BOOK__/__CHAPTER__'),
             'progressUrl' => url('/mi-biblioteca/libros/progreso'),
+            'searchUrl' => url('/mi-biblioteca/libros/api/buscar'),
+            'topicsUrl' => url('/mi-biblioteca/libros/api/topicos'),
+            'topicUrlTemplate' => url('/mi-biblioteca/libros/api/topicos/__TOPIC__'),
             'initialBook' => $initialBook,
             'initialChapter' => $initialChapter,
             'initialVerse' => $initialVerse,
@@ -50,6 +57,58 @@ class LibraryController extends Controller
         }
 
         return response()->json($data);
+    }
+
+    public function search(Request $request, BibleSearchService $search): JsonResponse
+    {
+        $validated = $request->validate([
+            'q' => ['required', 'string', 'max:120'],
+        ]);
+
+        return response()->json($search->search($validated['q']));
+    }
+
+    public function topics(): JsonResponse
+    {
+        return response()->json(
+            BibleTopic::query()
+                ->active()
+                ->orderBy('sort_order')
+                ->get(['id', 'title'])
+        );
+    }
+
+    public function topicResults(BibleTopic $topic, BibleReaderService $bible): JsonResponse
+    {
+        abort_if(! $topic->is_active, 404);
+
+        $matches = $topic->verses
+            ->map(function (BibleTopicVerse $pointer) use ($bible) {
+                $chapterData = $bible->chapter($pointer->book_abbr, $pointer->chapter);
+                $verseRow = collect($chapterData['verses'] ?? [])
+                    ->firstWhere('number', $pointer->verse);
+
+                if (! $chapterData || ! $verseRow) {
+                    return null;
+                }
+
+                return [
+                    'book_abbr' => $pointer->book_abbr,
+                    'book_name' => $chapterData['bookName'],
+                    'chapter' => $pointer->chapter,
+                    'verse' => $pointer->verse,
+                    'snippet' => Str::limit($verseRow['text'], 110),
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
+
+        return response()->json([
+            'type' => 'results',
+            'query' => $topic->title,
+            'matches' => $matches,
+        ]);
     }
 
     public function saveProgress(Request $request): JsonResponse

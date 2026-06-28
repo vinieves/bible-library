@@ -704,4 +704,16 @@
     .bible-reader-empty-icon {
         @apply mb-3 text-2xl text-gold;
     }
+
+    .bible-reader-topics {
+        @apply mt-3 flex flex-wrap gap-2;
+    }
+
+    .bible-reader-topic-chip {
+        @apply rounded-full border border-brown/20 bg-beige px-3 py-1.5 font-ui text-xs font-medium text-brown transition hover:border-brown/35 hover:bg-brown/10;
+    }
+
+    .bible-reader-topic-chip-active {
+        @apply border-brown/50 bg-brown/15;
+    }
 }

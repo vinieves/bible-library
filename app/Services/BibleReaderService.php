@@ -66,6 +66,14 @@ class BibleReaderService
         ];
     }
 
+    /**
+     * @return array<string, array<string, list<list<string>>>>
+     */
+    public function rawData(): array
+    {
+        return $this->allData();
+    }
+
     public function isAvailable(): bool
     {
         $path = config('bible.data_path');

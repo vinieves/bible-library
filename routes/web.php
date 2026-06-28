@@ -26,6 +26,9 @@ Route::middleware('auth')->prefix('mi-biblioteca')->name('members.')->group(func
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/libros', [LibraryController::class, 'index'])->name('library');
     Route::get('/libros/api/libros', [LibraryController::class, 'books'])->name('library.books');
+    Route::get('/libros/api/buscar', [LibraryController::class, 'search'])->name('library.search');
+    Route::get('/libros/api/topicos', [LibraryController::class, 'topics'])->name('library.topics');
+    Route::get('/libros/api/topicos/{topic}', [LibraryController::class, 'topicResults'])->name('library.topics.show');
     Route::get('/libros/api/{book}/{chapter}', [LibraryController::class, 'chapter'])
         ->where(['book' => '[A-Za-z0-9]+', 'chapter' => '[0-9]+'])
         ->name('library.chapter');

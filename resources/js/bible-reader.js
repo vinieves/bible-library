@@ -13,8 +13,17 @@ document.addEventListener('alpine:init', () => {
         chapterError: null,
         verseQuery: '',
         selectedVerse: null,
+        searchLoading: false,
+        searchError: null,
+        searchTimer: null,
+        searchResults: null,
+        topics: [],
+        topicsLoading: true,
+        activeTopicId: null,
 
         async init() {
+            this.loadTopics();
+
             try {
                 const response = await fetch(config.booksUrl, {
                     headers: { Accept: 'application/json' },
@@ -160,6 +169,157 @@ document.addEventListener('alpine:init', () => {
                 this.verses = [];
                 this.selectedVerse = null;
             }
+        },
+
+        onSearchInput() {
+            clearTimeout(this.searchTimer);
+
+            const query = this.bookQuery.trim();
+
+            if (! query) {
+                this.searchResults = null;
+                this.searchError = null;
+                this.activeTopicId = null;
+                return;
+            }
+
+            this.searchTimer = setTimeout(() => this.runSearch(query), 350);
+        },
+
+        async runSearch(query) {
+            if (! config.searchUrl) {
+                return;
+            }
+
+            this.searchLoading = true;
+            this.searchError = null;
+            this.activeTopicId = null;
+
+            try {
+                const url = `${config.searchUrl}?q=${encodeURIComponent(query)}`;
+                const response = await fetch(url, { headers: { Accept: 'application/json' } });
+
+                if (! response.ok) {
+                    throw new Error('search');
+                }
+
+                const data = await response.json();
+
+                if (data.type === 'reference') {
+                    this.searchResults = null;
+                    await this.jumpToReference(data);
+                } else {
+                    this.searchResults = data;
+                    this.bookOpen = false;
+                }
+            } catch {
+                this.searchError = 'No se pudo completar la búsqueda.';
+            } finally {
+                this.searchLoading = false;
+            }
+        },
+
+        async jumpToReference({ book, chapter, verse }) {
+            const matchedBook = this.books.find((item) => item.abbr === book.abbr);
+
+            if (! matchedBook) {
+                return;
+            }
+
+            this.selectBook(matchedBook);
+            this.bookQuery = matchedBook.name;
+
+            if (! chapter) {
+                return;
+            }
+
+            await this.selectChapter(chapter);
+
+            if (! verse) {
+                return;
+            }
+
+            const verseRow = this.verses.find((item) => item.number === verse);
+
+            if (verseRow) {
+                this.openVerse(verseRow);
+            }
+        },
+
+        async openSearchMatch(match) {
+            const needsChapterLoad = ! this.selectedBook
+                || this.selectedBook.abbr !== match.book_abbr
+                || Number(this.selectedChapter) !== match.chapter;
+
+            if (needsChapterLoad) {
+                const matchedBook = this.books.find((item) => item.abbr === match.book_abbr);
+
+                if (! matchedBook) {
+                    return;
+                }
+
+                this.selectBook(matchedBook);
+                this.bookQuery = matchedBook.name;
+                await this.selectChapter(match.chapter);
+            }
+
+            const verseRow = this.verses.find((item) => item.number === match.verse);
+
+            if (verseRow) {
+                this.openVerse(verseRow);
+                this.searchResults = null;
+                this.bookQuery = '';
+            }
+        },
+
+        async loadTopics() {
+            if (! config.topicsUrl) {
+                this.topicsLoading = false;
+                return;
+            }
+
+            try {
+                const response = await fetch(config.topicsUrl, { headers: { Accept: 'application/json' } });
+                this.topics = response.ok ? await response.json() : [];
+            } catch {
+                this.topics = [];
+            } finally {
+                this.topicsLoading = false;
+            }
+        },
+
+        async selectTopic(topic) {
+            if (! config.topicUrlTemplate) {
+                return;
+            }
+
+            this.searchLoading = true;
+            this.searchError = null;
+            this.bookQuery = '';
+            this.bookOpen = false;
+            this.activeTopicId = topic.id;
+
+            try {
+                const url = config.topicUrlTemplate.replace('__TOPIC__', encodeURIComponent(topic.id));
+                const response = await fetch(url, { headers: { Accept: 'application/json' } });
+
+                if (! response.ok) {
+                    throw new Error('topic');
+                }
+
+                this.searchResults = await response.json();
+            } catch {
+                this.searchError = 'No se pudo cargar este tópico.';
+            } finally {
+                this.searchLoading = false;
+            }
+        },
+
+        clearSearch() {
+            this.bookQuery = '';
+            this.searchResults = null;
+            this.searchError = null;
+            this.activeTopicId = null;
         },
 
         async selectChapter(chapter, options = {}) {

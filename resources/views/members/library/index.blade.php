@@ -23,6 +23,9 @@
                 booksUrl: @js($booksUrl),
                 chapterUrl: @js($chapterUrl),
                 progressUrl: @js($progressUrl),
+                searchUrl: @js($searchUrl),
+                topicsUrl: @js($topicsUrl),
+                topicUrlTemplate: @js($topicUrlTemplate),
                 csrfToken: @js(csrf_token()),
                 initialBook: @js($initialBook),
                 initialChapter: @js($initialChapter),
@@ -55,8 +58,8 @@
                                 type="text"
                                 x-model="bookQuery"
                                 @focus="openBookPicker()"
-                                @input="onBookInput()"
-                                placeholder="Ej.: Génesis"
+                                @input="onBookInput(); onSearchInput()"
+                                placeholder="Ej.: Juan 3:16, Juan 3, o 'paz interior'"
                                 autocomplete="off"
                                 class="bible-reader-input"
                                 :disabled="loadingBooks"
@@ -116,6 +119,61 @@
                     class="bible-reader-meta"
                     x-text="`Capítulo ${selectedChapter}: ${verseCountLabel}.`"
                 ></p>
+
+                <div x-show="!loadingBooks && topics.length" x-cloak class="bible-reader-topics">
+                    <template x-for="topic in topics" :key="topic.id">
+                        <button
+                            type="button"
+                            class="bible-reader-topic-chip"
+                            :class="activeTopicId === topic.id ? 'bible-reader-topic-chip-active' : ''"
+                            @click="selectTopic(topic)"
+                        >
+                            <span x-text="topic.title"></span>
+                        </button>
+                    </template>
+                </div>
+            </section>
+
+            {{-- Resultados de búsqueda / tópico --}}
+            <section x-show="searchResults" x-cloak class="bible-reader-card">
+                <div class="bible-reader-card-head bible-reader-card-head-split">
+                    <div>
+                        <h2 class="bible-reader-card-title">Resultados</h2>
+                        <p
+                            class="bible-reader-card-subtitle"
+                            x-text="searchResults ? `${searchResults.matches.length} versículo${searchResults.matches.length === 1 ? '' : 's'} encontrado${searchResults.matches.length === 1 ? '' : 's'}` : ''"
+                        ></p>
+                    </div>
+                    <button type="button" class="bible-reader-link-btn" @click="clearSearch()">
+                        Cerrar
+                    </button>
+                </div>
+
+                <template x-if="searchLoading">
+                    <p class="py-8 text-center text-sm text-muted">Buscando…</p>
+                </template>
+
+                <template x-if="searchError">
+                    <p class="py-6 text-center text-sm text-red-500" x-text="searchError"></p>
+                </template>
+
+                <template x-if="!searchLoading && !searchError && searchResults && searchResults.matches.length === 0">
+                    <p class="py-8 text-center text-sm text-muted">No se encontraron versículos para esta búsqueda.</p>
+                </template>
+
+                <div x-show="!searchLoading && searchResults && searchResults.matches.length" class="mt-3 space-y-2">
+                    <template x-for="(match, index) in (searchResults?.matches ?? [])" :key="`${match.book_abbr}-${match.chapter}-${match.verse}-${index}`">
+                        <button type="button" class="bible-reader-verse-card" @click="openSearchMatch(match)">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="bible-reader-verse-label" x-text="`${match.book_name} ${match.chapter}:${match.verse}`"></span>
+                                <svg class="h-4 w-4 shrink-0 text-muted/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </div>
+                            <p class="bible-reader-verse-preview" x-text="match.snippet"></p>
+                        </button>
+                    </template>
+                </div>
             </section>
 
             {{-- Paso 3: lectura del versículo --}}
