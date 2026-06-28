@@ -11,6 +11,7 @@ export default defineConfig({
                 'resources/js/pdf-reader-legacy.js',
                 'resources/js/audio-player.js',
                 'resources/js/video-player.js',
+                'resources/js/forum.js',
             ],
             refresh: true,
         }),

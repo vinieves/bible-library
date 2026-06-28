@@ -47,6 +47,7 @@ class AdminPanelProvider extends PanelProvider
                 'Áudio',
                 'Vídeo',
                 'Conteúdo',
+                'Comunidade',
                 'Loja',
                 'Usuários e acesso',
             ])

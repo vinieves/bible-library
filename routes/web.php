@@ -3,6 +3,7 @@
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Members\AudioController;
 use App\Http\Controllers\Members\DashboardController;
+use App\Http\Controllers\Members\ForumController;
 use App\Http\Controllers\Members\LibraryController;
 use App\Http\Controllers\Members\MaterialController;
 use App\Http\Controllers\Members\MaterialPdfController;
@@ -47,6 +48,9 @@ Route::middleware('auth')->prefix('mi-biblioteca')->name('members.')->group(func
     Route::get('/materiales/{material}/pdf', [MaterialPdfController::class, 'stream'])->name('materials.pdf.stream');
     Route::get('/materiales/{material}/descargar', [MaterialPdfController::class, 'download'])->name('materials.pdf.download');
     Route::post('/materiales/{material}/estudiado', [MaterialController::class, 'toggleStudied'])->name('materials.toggle-studied');
+    Route::get('/comunidad', [ForumController::class, 'index'])->name('forum.index');
+    Route::get('/comunidad/{forumPost}/audio', [ForumController::class, 'streamAudio'])->name('forum.audio');
+    Route::post('/comunidad/{forumPost}/reaccionar', [ForumController::class, 'react'])->name('forum.react');
 });
 
 Route::middleware('auth')->group(function () {
