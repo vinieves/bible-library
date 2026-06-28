@@ -191,7 +191,7 @@
             >
                 <span aria-hidden="true">🙏</span>
                 <span>Amén</span>
-                <span class="text-xs text-muted" data-forum-reaction-count>{{ $post->reactions_count }}</span>
+                <span class="text-xs text-muted" data-forum-reaction-count>{{ $post->totalReactionsCount() }}</span>
             </button>
         </div>
     </div>

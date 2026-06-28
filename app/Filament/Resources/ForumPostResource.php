@@ -75,6 +75,13 @@ class ForumPostResource extends Resource
                             ->disk('public')
                             ->directory('forum-galleries')
                             ->columnSpanFull(),
+                        TextInput::make('reactions_boost')
+                            ->label('Quantidade de likes (🙏 Amém)')
+                            ->helperText('Número inicial exibido. Reações reais dos membros somam a partir daqui.')
+                            ->numeric()
+                            ->minValue(0)
+                            ->default(20)
+                            ->required(),
                         TextInput::make('youtube_url')
                             ->label('Link do YouTube (opcional)')
                             ->url()
@@ -141,7 +148,8 @@ class ForumPostResource extends Resource
                     ->formatStateUsing(fn ($state) => $state instanceof ForumPostStatus ? $state->label() : $state),
                 TextColumn::make('reactions_count')
                     ->label('🙏 Amém')
-                    ->counts('reactions'),
+                    ->counts('reactions')
+                    ->getStateUsing(fn (ForumPost $record) => $record->totalReactionsCount()),
                 TextColumn::make('created_at')
                     ->label('Publicado em')
                     ->dateTime('d/m/Y H:i')
@@ -168,9 +176,9 @@ class ForumPostResource extends Resource
                         $record->update(['body' => $data['body']]);
                     }),
                 Action::make('editImages')
-                    ->label('Editar imagens')
+                    ->label('Editar imagens/likes')
                     ->icon('heroicon-o-photo')
-                    ->modalHeading('Editar imagens da publicação')
+                    ->modalHeading('Editar imagens e quantidade de likes')
                     ->form([
                         FileUpload::make('images')
                             ->label('Imagens (carrossel)')
@@ -180,10 +188,22 @@ class ForumPostResource extends Resource
                             ->imageEditor()
                             ->disk('public')
                             ->directory('forum-galleries'),
+                        TextInput::make('reactions_boost')
+                            ->label('Quantidade de likes (🙏 Amém)')
+                            ->helperText('Número inicial exibido. Reações reais dos membros somam a partir daqui.')
+                            ->numeric()
+                            ->minValue(0)
+                            ->required(),
                     ])
-                    ->fillForm(fn (ForumPost $record) => ['images' => $record->images])
+                    ->fillForm(fn (ForumPost $record) => [
+                        'images' => $record->images,
+                        'reactions_boost' => $record->reactions_boost,
+                    ])
                     ->action(function (ForumPost $record, array $data) {
-                        $record->update(['images' => $data['images'] ?? []]);
+                        $record->update([
+                            'images' => $data['images'] ?? [],
+                            'reactions_boost' => $data['reactions_boost'],
+                        ]);
                     }),
                 EditAction::make(),
             ])

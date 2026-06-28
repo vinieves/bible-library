@@ -18,6 +18,7 @@ class ForumPost extends Model
         'images',
         'youtube_url',
         'audio_file',
+        'reactions_boost',
         'status',
     ];
 
@@ -26,6 +27,7 @@ class ForumPost extends Model
         return [
             'status' => ForumPostStatus::class,
             'images' => 'array',
+            'reactions_boost' => 'integer',
         ];
     }
 
@@ -37,6 +39,11 @@ class ForumPost extends Model
     public function reactions(): HasMany
     {
         return $this->hasMany(ForumPostReaction::class);
+    }
+
+    public function totalReactionsCount(): int
+    {
+        return $this->reactions_boost + ($this->reactions_count ?? $this->reactions()->count());
     }
 
     public function scopePublished(Builder $query): Builder

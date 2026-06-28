@@ -62,7 +62,7 @@ class ForumController extends Controller
 
         return response()->json([
             'reacted' => $reacted,
-            'count' => $forumPost->reactions()->count(),
+            'count' => $forumPost->reactions_boost + $forumPost->reactions()->count(),
         ]);
     }
 
