@@ -19,6 +19,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\TextInputColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use UnitEnum;
@@ -64,10 +65,6 @@ class ForumPostResource extends Resource
                     ]),
                 Section::make('Informações gerais')
                     ->schema([
-                        TextInput::make('title')
-                            ->label('Título (opcional)')
-                            ->maxLength(255)
-                            ->columnSpanFull(),
                         FileUpload::make('images')
                             ->label('Imagens (carrossel)')
                             ->image()
@@ -124,11 +121,13 @@ class ForumPostResource extends Resource
                     ->disk('public')
                     ->stacked()
                     ->limit(3),
-                TextColumn::make('title')
-                    ->label('Título')
-                    ->searchable()
-                    ->limit(40)
-                    ->default('(sem título)'),
+                TextInputColumn::make('body')
+                    ->label('Conteúdo')
+                    ->getStateUsing(fn (ForumPost $record) => trim(strip_tags($record->body)))
+                    ->updateStateUsing(function (ForumPost $record, string $state) {
+                        $record->update(['body' => '<p>'.e(trim($state)).'</p>']);
+                    })
+                    ->rules(['required', 'string']),
                 IconColumn::make('youtube_url')
                     ->label('Vídeo')
                     ->boolean()
