@@ -41,14 +41,15 @@
                 ></iframe>
             </div>
         @elseif(count($imageUrls) > 0)
-            <div class="relative mt-3" x-data="{ active: 0 }">
-                <div class="aspect-[4/3] w-full overflow-hidden rounded-xl bg-cream">
+            <div class="relative mt-3" x-data="{ active: 0, lightbox: false }">
+                <div class="aspect-[4/5] w-full overflow-hidden rounded-xl bg-cream">
                     @foreach($imageUrls as $i => $url)
                         <img
                             x-show="active === {{ $i }}"
+                            @click="lightbox = true"
                             src="{{ $url }}"
                             alt=""
-                            class="h-full w-full object-cover"
+                            class="h-full w-full cursor-zoom-in object-cover"
                             loading="lazy"
                         >
                     @endforeach
@@ -87,6 +88,41 @@
                         @endforeach
                     </div>
                 @endif
+
+                <div
+                    x-show="lightbox"
+                    x-cloak
+                    @click="lightbox = false"
+                    @keydown.escape.window="lightbox = false"
+                    x-transition:enter="ease-out duration-200"
+                    x-transition:enter-start="opacity-0"
+                    x-transition:enter-end="opacity-100"
+                    x-transition:leave="ease-in duration-150"
+                    x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0"
+                    class="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 p-4"
+                >
+                    <button
+                        type="button"
+                        @click.stop="lightbox = false"
+                        class="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-cream/10 text-cream hover:bg-cream/20"
+                        aria-label="Cerrar"
+                    >
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+
+                    @foreach($imageUrls as $i => $url)
+                        <img
+                            x-show="active === {{ $i }}"
+                            @click.stop
+                            src="{{ $url }}"
+                            alt=""
+                            class="max-h-full max-w-full rounded-lg object-contain"
+                        >
+                    @endforeach
+                </div>
             </div>
         @endif
 
