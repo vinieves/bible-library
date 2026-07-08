@@ -1,7 +1,39 @@
-\App\Models\User::where('is_admin', true)->get();
+cd /var/www/bible-library
 
-\App\Models\User::where('plan_complete', true)->get();
+# 1) Pausa o worker pra não processar job novo enquanto limpa
+supervisorctl stop bible-library-worker:*
 
+# 2) Esvazia fila Laravel + jobs falhos
+php artisan queue:clear
+php artisan queue:flush
 
-token git
-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
+# 3) Cancela execuções pendentes/em andamento/aguardando resposta
+php artisan tinker --execute="
+use App\Enums\WhatsAppFlowExecutionStatus;
+use App\Models\WhatsAppFlowExecution;
+use App\Models\WhatsAppPendingInboundResponse;
+use Illuminate\Support\Facades\DB;
+
+\$active = WhatsAppFlowExecution::query()
+    ->whereIn('status', [
+        WhatsAppFlowExecutionStatus::Pending,
+        WhatsAppFlowExecutionStatus::Running,
+        WhatsAppFlowExecutionStatus::Waiting,
+    ])
+    ->update([
+        'status' => WhatsAppFlowExecutionStatus::Failed,
+        'error_message' => 'Cancelado manualmente (limpeza de testes).',
+        'waiting_step_id' => null,
+        'waiting_since' => null,
+        'completed_at' => now(),
+    ]);
+
+WhatsAppPendingInboundResponse::query()->delete();
+DB::table('jobs')->truncate();
+DB::table('job_batches')->truncate();
+
+echo \"Execuções canceladas: {\$active}\nFila e buffer limpos.\";
+"
+
+# 4) Sobe o worker de novo
+supervisorctl start bible-library-worker:*

@@ -5,3 +5,62 @@
 
 token git
 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
+
+8d58e2a6d4dd4e587f04ff50d8d20b3db7d8c9ed8bf29b15169cb85539336833
+
+curl -s -H "apikey: SUA_API_KEY" \
+  "https://wpp.mediamrkt.online/webhook/find/Akaka"
+
+
+
+
+cd /var/www/bible-library
+
+php artisan tinker --execute="
+use App\Models\WhatsAppInboundContact;
+use App\Services\Webhooks\PhoneNumber;
+
+\$phone = '553384660749'; // seu número de teste
+
+WhatsAppInboundContact::query()
+    ->whereIn('phone_normalized', PhoneNumber::matchVariants(\$phone))
+    ->delete();
+
+echo 'Contato removido: ' . implode(', ', PhoneNumber::matchVariants(\$phone));
+"
+
+
+cd /var/www/bible-library
+
+php artisan tinker --execute="
+use App\Models\WhatsAppInboundContact;
+use App\Services\Webhooks\PhoneNumber;
+
+\$phone = '555597284533'; // seu número de teste
+
+WhatsAppInboundContact::query()
+    ->whereIn('phone_normalized', PhoneNumber::matchVariants(\$phone))
+    ->delete();
+
+echo 'Contato removido: ' . implode(', ', PhoneNumber::matchVariants(\$phone));
+"
+
+cd /var/www/bible-library
+
+php artisan tinker --execute="
+use App\Models\WhatsAppInboundContact;
+use App\Services\Webhooks\PhoneNumber;
+
+\$phone = '553399494882'; // seu número de teste
+
+WhatsAppInboundContact::query()
+    ->whereIn('phone_normalized', PhoneNumber::matchVariants(\$phone))
+    ->delete();
+
+echo 'Contato removido: ' . implode(', ', PhoneNumber::matchVariants(\$phone));
+"
+
+553384660749
+555597284533
+553399494882
+

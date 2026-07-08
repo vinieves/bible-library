@@ -1,0 +1,14 @@
+cd /var/www/bible-library
+
+# Pare o worker para não reprocessar jobs antigos
+supervisorctl stop bible-library-worker:*
+
+
+php artisan whatsapp:purge-phones \
+  555597284533 \
+  553388138635 \
+  553399494882 \
+  553384660749
+
+php artisan optimize:clear
+supervisorctl start bible-library-worker:*
