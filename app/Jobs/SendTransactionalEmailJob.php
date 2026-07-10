@@ -154,6 +154,7 @@ class SendTransactionalEmailJob implements ShouldBeUnique, ShouldQueue
                 'email' => $this->recipientEmail,
                 'trigger' => $this->trigger->value,
                 'message_event' => $this->messageEvent->value,
+                'attachments' => $result['response']['attachments'] ?? [],
             ]);
         } catch (Throwable $exception) {
             $dispatchLog->recordThrowable(

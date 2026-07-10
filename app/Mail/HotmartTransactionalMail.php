@@ -10,19 +10,18 @@ use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Storage;
 
 class HotmartTransactionalMail extends Mailable
 {
     use Queueable, SerializesModels;
 
     /**
-     * @param  list<array{path: string, name?: string}>|list<string>  $attachmentPaths
+     * @param  list<array{full_path: string, name: string, mime: string, disk?: string, path?: string}>  $resolvedAttachments
      */
     public function __construct(
         public string $subjectLine,
         public string $bodyHtml,
-        public array $attachmentPaths = [],
+        public array $resolvedAttachments = [],
     ) {}
 
     public function envelope(): Envelope
@@ -52,20 +51,18 @@ class HotmartTransactionalMail extends Mailable
      */
     public function attachments(): array
     {
-        $attachments = [];
+        return collect($this->resolvedAttachments)
+            ->map(function (array $attachment): Attachment {
+                if (filled($attachment['disk'] ?? null) && filled($attachment['path'] ?? null)) {
+                    return Attachment::fromStorageDisk((string) $attachment['disk'], (string) $attachment['path'])
+                        ->as($attachment['name'])
+                        ->withMime($attachment['mime']);
+                }
 
-        foreach ($this->attachmentPaths as $attachment) {
-            $path = is_array($attachment) ? ($attachment['path'] ?? null) : $attachment;
-            $name = is_array($attachment) ? ($attachment['name'] ?? basename((string) $path)) : basename((string) $attachment);
-
-            if (blank($path) || ! Storage::disk('public')->exists($path)) {
-                continue;
-            }
-
-            $attachments[] = Attachment::fromStorageDisk('public', $path)
-                ->as($name);
-        }
-
-        return $attachments;
+                return Attachment::fromPath($attachment['full_path'])
+                    ->as($attachment['name'])
+                    ->withMime($attachment['mime']);
+            })
+            ->all();
     }
 }

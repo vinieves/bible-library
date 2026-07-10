@@ -6,6 +6,7 @@ use App\Enums\EmailDispatchTrigger;
 use App\Enums\WhatsAppMessageEvent;
 use App\Jobs\SendTransactionalEmailJob;
 use App\Models\EmailMessageTemplate;
+use App\Services\EmailAttachmentResolver;
 use App\Services\EmailMessageTemplateService;
 use App\Support\IntegrationSettings;
 use BackedEnum;
@@ -134,6 +135,7 @@ class ManageEmails extends Page
                             return $templates->availableConditionOptions();
                         })
                         ->disabled(fn (): bool => filled($this->editingEvent))
+                        ->dehydrated()
                         ->required()
                         ->native(false)
                         ->live()
@@ -222,20 +224,13 @@ class ManageEmails extends Page
                         ->directory('email-rules/attachments')
                         ->visibility('public')
                         ->maxSize(10240)
+                        ->maxFiles(10)
                         ->previewable()
                         ->openable()
                         ->downloadable()
                         ->reorderable()
-                        ->acceptedFileTypes([
-                            'application/pdf',
-                            'image/jpeg',
-                            'image/png',
-                            'image/webp',
-                            'application/msword',
-                            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                        ])
                         ->visible(fn (Get $get): bool => filled($get('rule_event')))
-                        ->helperText('PDF, imagens ou Word enviados como anexo junto ao e-mail (máx. 10 MB por arquivo).')
+                        ->helperText('PDF, imagens, Word ou outros arquivos (máx. 10 MB cada). Enviados como anexo no e-mail.')
                         ->columnSpanFull(),
                     Placeholder::make('rule_files_summary')
                         ->label('Arquivos desta regra')
@@ -377,7 +372,7 @@ class ManageEmails extends Page
     {
         $data = $this->form->getState();
 
-        $eventValue = $data['rule_event'] ?? null;
+        $eventValue = $data['rule_event'] ?? $this->editingEvent;
         $subject = trim((string) ($data['rule_subject'] ?? ''));
         $body = trim((string) ($data['rule_body'] ?? ''));
         $isEnabled = ! empty($data['rule_enabled']);
@@ -414,6 +409,32 @@ class ManageEmails extends Page
             $data['rule_attachments'] ?? [],
             $existing?->attachments,
         );
+
+        if (filled($data['rule_attachments'] ?? []) && $attachments === []) {
+            Notification::make()
+                ->title('Anexos não foram salvos')
+                ->body('Os arquivos não puderam ser processados. Envie novamente e clique em Salvar regra.')
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        $resolver = app(EmailAttachmentResolver::class);
+        $missingAttachments = collect($attachments)
+            ->filter(fn (array $record): bool => $resolver->resolve($record['path']) === null)
+            ->pluck('name')
+            ->all();
+
+        if ($missingAttachments !== []) {
+            Notification::make()
+                ->title('Anexo não encontrado no servidor')
+                ->body('Salve novamente após o upload terminar: '.implode(', ', $missingAttachments))
+                ->warning()
+                ->send();
+
+            return;
+        }
 
         $templates->upsert($event, $subject, $body, $isEnabled, $inlineImages, $attachments);
 

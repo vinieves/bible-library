@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Mail\HotmartTransactionalMail;
 use App\Support\IntegrationSettings;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
@@ -16,17 +17,27 @@ class TransactionalMailService
     }
 
     /**
-     * @param  list<string>  $attachmentPaths
+     * @param  list<array{path: string, name?: string}|string>  $attachmentRecords
      * @return array{sent: bool, response: array<string, mixed>}
      *
      * @throws TransportExceptionInterface
      */
-    public function send(string $to, string $subject, string $bodyHtml, array $attachmentPaths = []): array
+    public function send(string $to, string $subject, string $bodyHtml, array $attachmentRecords = []): array
     {
         $this->applyRuntimeMailConfig();
 
+        $resolvedAttachments = app(EmailAttachmentResolver::class)->resolveMany($attachmentRecords);
+
+        if ($attachmentRecords !== [] && $resolvedAttachments === []) {
+            Log::warning('E-mail enviado sem anexos: nenhum arquivo foi encontrado no disco.', [
+                'to' => $to,
+                'subject' => $subject,
+                'requested' => $attachmentRecords,
+            ]);
+        }
+
         Mail::mailer('transactional')->to($to)->send(
-            new HotmartTransactionalMail($subject, $bodyHtml, $attachmentPaths)
+            new HotmartTransactionalMail($subject, $bodyHtml, $resolvedAttachments)
         );
 
         return [
@@ -35,6 +46,10 @@ class TransactionalMailService
                 'to' => $to,
                 'from' => IntegrationSettings::mailFromAddress(),
                 'subject' => $subject,
+                'attachments' => collect($resolvedAttachments)
+                    ->pluck('name')
+                    ->values()
+                    ->all(),
             ],
         ];
     }

@@ -186,14 +186,28 @@ class EmailMessageTemplateService
     public function attachmentsFromUpload(mixed $uploadedPaths, mixed $existingStored = null): array
     {
         $paths = $this->flattenUploadPaths($uploadedPaths);
-        $existing = collect($this->normalizeAttachmentRecords($existingStored))->keyBy('path');
+        $resolver = app(EmailAttachmentResolver::class);
+
+        $existing = collect($this->normalizeAttachmentRecords($existingStored))
+            ->mapWithKeys(fn (array $record): array => [
+                $resolver->normalizeRelativePath($record['path']) => [
+                    'path' => $resolver->normalizeRelativePath($record['path']),
+                    'name' => $record['name'],
+                ],
+            ]);
 
         $records = [];
 
         foreach ($paths as $path) {
-            $records[] = $existing->get($path) ?? [
-                'path' => $path,
-                'name' => basename($path),
+            $normalizedPath = $resolver->normalizeRelativePath($path);
+
+            if (blank($normalizedPath)) {
+                continue;
+            }
+
+            $records[] = $existing->get($normalizedPath) ?? [
+                'path' => $normalizedPath,
+                'name' => basename($normalizedPath),
             ];
         }
 
@@ -282,11 +296,13 @@ class EmailMessageTemplateService
             return [];
         }
 
+        $resolver = app(EmailAttachmentResolver::class);
+
         if (isset($stored[0]) && is_array($stored[0]) && isset($stored[0]['path'])) {
             return collect($stored)
                 ->filter(fn (array $record): bool => filled($record['path'] ?? null))
                 ->map(fn (array $record): array => [
-                    'path' => (string) $record['path'],
+                    'path' => $resolver->normalizeRelativePath((string) $record['path']),
                     'name' => (string) ($record['name'] ?? basename((string) $record['path'])),
                 ])
                 ->values()
@@ -295,8 +311,8 @@ class EmailMessageTemplateService
 
         return collect($this->flattenUploadPaths($stored))
             ->map(fn (string $path): array => [
-                'path' => $path,
-                'name' => basename($path),
+                'path' => $resolver->normalizeRelativePath($path),
+                'name' => basename($resolver->normalizeRelativePath($path)),
             ])
             ->values()
             ->all();
