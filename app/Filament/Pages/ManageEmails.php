@@ -103,8 +103,8 @@ class ManageEmails extends Page
                             '<p><code>{email}</code> — E-mail de acesso</p>'.
                             '<p><code>{telefone}</code> — Telefone do checkout</p>'.
                             '<p><code>{producto}</code> — Nome do produto Hotmart</p>'.
-                            '<p><code>{link_acceso}</code> — URL de login</p>'.
-                            '<p><code>{link_checkout}</code> — URL de checkout (carrinho abandonado)</p>'.
+                            '<p><code>{link_acceso}</code> — Botão de acesso à biblioteca</p>'.
+                            '<p><code>{link_checkout}</code> — Botão de checkout (carrinho abandonado)</p>'.
                             '<p><code>{transacao}</code> — Código HP da Hotmart</p>'.
                             '<p><code>{evento}</code> — Evento Hotmart (ex: PURCHASE_APPROVED)</p>'.
                             '<p><code>{moeda}</code> — Moeda da compra</p>'.
@@ -185,11 +185,15 @@ class ManageEmails extends Page
                             $subject = (string) ($get('rule_subject') ?? '');
                             $body = (string) ($get('rule_body') ?? '');
 
+                            if (blank($body)) {
+                                return new HtmlString('<p class="text-sm text-gray-400">Escreva o corpo para ver a prévia.</p>');
+                            }
+
                             return new HtmlString(
                                 '<div class="space-y-3">'.
                                 '<p class="text-sm font-medium text-gray-200">Assunto: '.e($templateService->preview($subject)).'</p>'.
-                                '<div class="whitespace-pre-wrap rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100">'.
-                                e($templateService->preview($body)).
+                                '<div class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">'.
+                                $templateService->previewHtml($body).
                                 '</div></div>'
                             );
                         })

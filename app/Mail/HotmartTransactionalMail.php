@@ -2,8 +2,10 @@
 
 namespace App\Mail;
 
+use App\Support\IntegrationSettings;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -14,22 +16,28 @@ class HotmartTransactionalMail extends Mailable
 
     public function __construct(
         public string $subjectLine,
-        public string $bodyText,
+        public string $bodyHtml,
     ) {}
 
     public function envelope(): Envelope
     {
-        return new Envelope(
+        $envelope = new Envelope(
             subject: $this->subjectLine,
         );
+
+        $replyTo = IntegrationSettings::emailReplyTo();
+
+        if (filled($replyTo)) {
+            $envelope = $envelope->replyTo([new Address($replyTo)]);
+        }
+
+        return $envelope;
     }
 
     public function content(): Content
     {
         return new Content(
-            htmlString: '<div style="font-family: sans-serif; line-height: 1.6; white-space: pre-wrap;">'
-                .e($this->bodyText)
-                .'</div>',
+            htmlString: $this->bodyHtml,
         );
     }
 }

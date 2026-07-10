@@ -75,7 +75,8 @@ class SendTransactionalEmailJob implements ShouldBeUnique, ShouldQueue
         );
 
         $subject = $templates->renderSubject($this->messageEvent, $user, $purchase, $context);
-        $body = $templates->renderBody($this->messageEvent, $user, $purchase, $context);
+        $bodyPlain = $templates->renderBody($this->messageEvent, $user, $purchase, $context);
+        $bodyHtml = $templates->renderBodyHtml($this->messageEvent, $user, $purchase, $context);
         $purchaseId = $this->purchaseId > 0 ? $this->purchaseId : null;
         $attempt = $this->attempts();
 
@@ -99,7 +100,7 @@ class SendTransactionalEmailJob implements ShouldBeUnique, ShouldQueue
                 purchaseId: $purchaseId,
                 hotmartTransaction: $this->contextTransaction,
                 subject: $subject,
-                body: $body,
+                body: $bodyPlain,
                 errorMessage: 'Endereço de e-mail inválido ou vazio.',
                 attempt: $attempt,
             );
@@ -122,7 +123,7 @@ class SendTransactionalEmailJob implements ShouldBeUnique, ShouldQueue
                 purchaseId: $purchaseId,
                 hotmartTransaction: $this->contextTransaction,
                 subject: $subject,
-                body: $body,
+                body: $bodyPlain,
                 errorMessage: 'SMTP Hostinger não configurado.',
                 attempt: $attempt,
             );
@@ -131,7 +132,7 @@ class SendTransactionalEmailJob implements ShouldBeUnique, ShouldQueue
         }
 
         try {
-            $result = $mailer->send($this->recipientEmail, $subject, $body);
+            $result = $mailer->send($this->recipientEmail, $subject, $bodyHtml);
 
             $dispatchLog->recordSuccess(
                 trigger: $this->trigger,
@@ -141,7 +142,7 @@ class SendTransactionalEmailJob implements ShouldBeUnique, ShouldQueue
                 purchaseId: $purchaseId,
                 hotmartTransaction: $this->contextTransaction,
                 subject: $subject,
-                body: $body,
+                body: $bodyPlain,
                 mailerResponse: $result['response'],
                 attempt: $attempt,
             );
@@ -162,7 +163,7 @@ class SendTransactionalEmailJob implements ShouldBeUnique, ShouldQueue
                 purchaseId: $purchaseId,
                 hotmartTransaction: $this->contextTransaction,
                 subject: $subject,
-                body: $body,
+                body: $bodyPlain,
                 exception: $exception,
                 attempt: $attempt,
             );

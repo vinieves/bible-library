@@ -62,26 +62,34 @@ class EmailMessageTemplateService
         return $this->replacePlaceholders($this->body($event), $event, $user, $purchase, $context);
     }
 
+    public function renderBodyHtml(
+        WhatsAppMessageEvent $event,
+        User $user,
+        ?Purchase $purchase = null,
+        ?NormalizedPurchaseContext $context = null,
+    ): string {
+        $markedBody = $this->replacePlaceholders(
+            $this->body($event),
+            $event,
+            $user,
+            $purchase,
+            $context,
+            forEmailHtml: true,
+        );
+
+        return app(EmailBodyRenderer::class)->renderFromMarkedBody($markedBody);
+    }
+
     public function preview(string $text): string
     {
-        $replacements = [
-            '{nome}' => 'María García',
-            '{email}' => 'maria@ejemplo.com',
-            '{telefone}' => '5215512345678',
-            '{producto}' => 'Plan Completo — Hotmart',
-            '{link_acceso}' => route('login'),
-            '{link_checkout}' => Setting::get('checkout_completo_url', route('home')),
-            '{transacao}' => 'HP1234567890',
-            '{evento}' => 'PURCHASE_APPROVED',
-            '{moeda}' => 'USD',
-            '{valor}' => '4.90',
-        ];
+        return $this->replacePlaceholders($text, preview: true);
+    }
 
-        return str_replace(
-            array_keys($replacements),
-            array_values($replacements),
-            $text
-        );
+    public function previewHtml(string $text): string
+    {
+        $markedBody = $this->replacePlaceholders($text, preview: true, forEmailHtml: true);
+
+        return app(EmailBodyRenderer::class)->renderFromMarkedBody($markedBody);
     }
 
     public function upsert(
@@ -192,22 +200,62 @@ class EmailMessageTemplateService
 
     private function replacePlaceholders(
         string $text,
-        WhatsAppMessageEvent $event,
-        User $user,
-        ?Purchase $purchase,
-        ?NormalizedPurchaseContext $context,
+        ?WhatsAppMessageEvent $event = null,
+        ?User $user = null,
+        ?Purchase $purchase = null,
+        ?NormalizedPurchaseContext $context = null,
+        bool $preview = false,
+        bool $forEmailHtml = false,
     ): string {
+        if ($preview) {
+            $accessUrl = route('login');
+            $checkoutUrl = (string) Setting::get('checkout_completo_url', route('home'));
+
+            $replacements = [
+                '{nome}' => 'María García',
+                '{email}' => 'maria@ejemplo.com',
+                '{telefone}' => '5215512345678',
+                '{producto}' => 'Plan Completo — Hotmart',
+                '{link_acceso}' => $forEmailHtml
+                    ? EmailBodyRenderer::accessMarker($accessUrl)
+                    : $accessUrl,
+                '{link_checkout}' => $forEmailHtml
+                    ? EmailBodyRenderer::checkoutMarker($checkoutUrl)
+                    : $checkoutUrl,
+                '{transacao}' => 'HP1234567890',
+                '{evento}' => 'PURCHASE_APPROVED',
+                '{moeda}' => 'USD',
+                '{valor}' => '4.90',
+            ];
+
+            return str_replace(
+                array_keys($replacements),
+                array_values($replacements),
+                $text
+            );
+        }
+
+        $event ??= WhatsAppMessageEvent::PurchaseApproved;
+        $user ??= new User(['name' => 'Cliente', 'email' => 'cliente@ejemplo.com']);
+
         $productTitle = $purchase?->product?->title
             ?? $context?->productTitle
             ?? '';
+
+        $accessUrl = route('login');
+        $checkoutUrl = $this->resolveCheckoutLink($event, $context?->productTitle);
 
         $replacements = [
             '{nome}' => $user->name,
             '{email}' => $user->email,
             '{telefone}' => $purchase?->phone ?? $context?->phone ?? '',
             '{producto}' => $productTitle,
-            '{link_acceso}' => route('login'),
-            '{link_checkout}' => $this->resolveCheckoutLink($event, $context?->productTitle),
+            '{link_acceso}' => $forEmailHtml
+                ? EmailBodyRenderer::accessMarker($accessUrl)
+                : $accessUrl,
+            '{link_checkout}' => filled($checkoutUrl)
+                ? ($forEmailHtml ? EmailBodyRenderer::checkoutMarker($checkoutUrl) : $checkoutUrl)
+                : '',
             '{transacao}' => $purchase?->external_reference ?? $context?->transaction ?? '',
             '{evento}' => $context?->hotmartEvent ?? $event->hotmartEvent(),
             '{moeda}' => $context?->currency ?? '',

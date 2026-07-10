@@ -47,6 +47,11 @@ class ManageEmailConnections extends Page
             'smtp_password' => '',
             'mail_from_address' => IntegrationSettings::mailFromAddress() ?? '',
             'mail_from_name' => IntegrationSettings::mailFromName(),
+            'email_logo_url' => Setting::get('email_logo_url', ''),
+            'email_button_color' => IntegrationSettings::emailButtonColor(),
+            'email_button_text' => IntegrationSettings::emailButtonText(),
+            'email_checkout_button_text' => IntegrationSettings::emailCheckoutButtonText(),
+            'email_reply_to' => IntegrationSettings::emailReplyTo() ?? '',
         ]);
     }
 
@@ -130,6 +135,35 @@ class ManageEmailConnections extends Page
                         ->columnSpanFull(),
                 ])
                 ->columns(2),
+            Section::make('Aparência dos e-mails')
+                ->description('Layout padrão aplicado a todos os disparos. O corpo de cada regra é configurado em Disparos.')
+                ->schema([
+                    TextInput::make('email_logo_url')
+                        ->label('URL do logo')
+                        ->url()
+                        ->placeholder('https://seudominio.com/storage/logo.png')
+                        ->helperText('URL pública HTTPS da imagem. Se vazio, exibe o nome da marca como texto.')
+                        ->columnSpanFull(),
+                    TextInput::make('email_button_color')
+                        ->label('Cor do botão')
+                        ->placeholder('#000000')
+                        ->helperText('Cor hexadecimal do botão de acesso (ex.: #000000).'),
+                    TextInput::make('email_button_text')
+                        ->label('Texto do botão de acesso')
+                        ->placeholder('Acceder ahora')
+                        ->helperText('Usado quando a regra contém {link_acceso}.'),
+                    TextInput::make('email_checkout_button_text')
+                        ->label('Texto do botão de checkout')
+                        ->placeholder('Completar compra')
+                        ->helperText('Usado quando a regra contém {link_checkout}.'),
+                    TextInput::make('email_reply_to')
+                        ->label('Reply-To (suporte)')
+                        ->email()
+                        ->placeholder('suporte@seudominio.com')
+                        ->helperText('Opcional. Para onde vão as respostas do cliente.')
+                        ->columnSpanFull(),
+                ])
+                ->columns(2),
         ]);
     }
 
@@ -153,6 +187,11 @@ class ManageEmailConnections extends Page
 
         Setting::set('mail_from_address', $fromAddress);
         Setting::set('mail_from_name', $data['mail_from_name'] ?? config('app.name', 'Biblioteca Bíblica Digital'));
+        Setting::set('email_logo_url', $data['email_logo_url'] ?? '');
+        Setting::set('email_button_color', $data['email_button_color'] ?? '#000000');
+        Setting::set('email_button_text', $data['email_button_text'] ?? 'Acceder ahora');
+        Setting::set('email_checkout_button_text', $data['email_checkout_button_text'] ?? 'Completar compra');
+        Setting::set('email_reply_to', $data['email_reply_to'] ?? '');
 
         Notification::make()
             ->title('Conexão de e-mail salva')

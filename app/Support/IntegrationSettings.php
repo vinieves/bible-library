@@ -180,4 +180,45 @@ class IntegrationSettings
             && filled(static::smtpPassword())
             && filled(static::mailFromAddress());
     }
+
+    public static function emailLogoUrl(): ?string
+    {
+        $url = Setting::get('email_logo_url');
+
+        if (blank($url)) {
+            return null;
+        }
+
+        $url = trim((string) $url);
+
+        if (str_starts_with($url, '/')) {
+            return rtrim((string) config('app.url'), '/').$url;
+        }
+
+        return $url;
+    }
+
+    public static function emailButtonColor(): string
+    {
+        $color = (string) Setting::get('email_button_color', '#000000');
+
+        return preg_match('/^#[0-9A-Fa-f]{6}$/', $color) ? $color : '#000000';
+    }
+
+    public static function emailButtonText(): string
+    {
+        return (string) Setting::get('email_button_text', 'Acceder ahora');
+    }
+
+    public static function emailCheckoutButtonText(): string
+    {
+        return (string) Setting::get('email_checkout_button_text', 'Completar compra');
+    }
+
+    public static function emailReplyTo(): ?string
+    {
+        $replyTo = Setting::get('email_reply_to');
+
+        return filled($replyTo) ? (string) $replyTo : null;
+    }
 }

@@ -20,12 +20,12 @@ class TransactionalMailService
      *
      * @throws TransportExceptionInterface
      */
-    public function send(string $to, string $subject, string $body): array
+    public function send(string $to, string $subject, string $bodyHtml): array
     {
         $this->applyRuntimeMailConfig();
 
         Mail::mailer('transactional')->to($to)->send(
-            new HotmartTransactionalMail($subject, $body)
+            new HotmartTransactionalMail($subject, $bodyHtml)
         );
 
         return [
