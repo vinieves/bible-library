@@ -26,7 +26,7 @@ class WhatsAppMessageTriggerResource extends Resource
 
     protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-bolt';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Sistema';
+    protected static string | UnitEnum | null $navigationGroup = 'WhatsApp';
 
     protected static ?string $navigationLabel = 'Gatilhos';
 
@@ -34,7 +34,7 @@ class WhatsAppMessageTriggerResource extends Resource
 
     protected static ?string $pluralModelLabel = 'gatilhos';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 4;
 
     public static function form(Schema $schema): Schema
     {

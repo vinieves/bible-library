@@ -19,6 +19,7 @@ class PurchaseWebhookService
 {
     public function __construct(
         private readonly WhatsAppNotificationService $whatsappNotifications,
+        private readonly EmailNotificationService $emailNotifications,
         private readonly ProductWebhookSyncService $productSync,
     ) {}
 
@@ -131,6 +132,13 @@ class PurchaseWebhookService
             userId: $result['user_id'],
         );
 
+        $this->emailNotifications->dispatchForWebhook(
+            data: $data,
+            action: PurchaseWebhookAction::GrantAccess,
+            purchaseId: $result['purchase_id'],
+            userId: $result['user_id'],
+        );
+
         return $result;
     }
 
@@ -183,6 +191,13 @@ class PurchaseWebhookService
             userId: $user?->id,
         );
 
+        $this->emailNotifications->dispatchForWebhook(
+            data: $data,
+            action: PurchaseWebhookAction::AcknowledgeFunnel,
+            purchaseId: $purchase->id,
+            userId: $user?->id,
+        );
+
         return [
             'status' => 'acknowledged',
             'message' => 'Compra de funil registrada com sucesso (sem liberação de acesso).',
@@ -211,6 +226,11 @@ class PurchaseWebhookService
         ]);
 
         $this->whatsappNotifications->dispatchForWebhook(
+            data: $data,
+            action: PurchaseWebhookAction::NotifyOnly,
+        );
+
+        $this->emailNotifications->dispatchForWebhook(
             data: $data,
             action: PurchaseWebhookAction::NotifyOnly,
         );

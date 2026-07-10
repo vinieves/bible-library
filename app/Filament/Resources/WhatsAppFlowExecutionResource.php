@@ -23,11 +23,11 @@ class WhatsAppFlowExecutionResource extends Resource
 
     protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-list-bullet';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Sistema';
+    protected static string | UnitEnum | null $navigationGroup = 'Evolution API';
 
     protected static ?string $navigationLabel = 'Execuções de Fluxo';
 
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 3;
 
     protected static ?string $modelLabel = 'execução de fluxo';
 

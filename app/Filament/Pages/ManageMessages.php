@@ -34,7 +34,7 @@ class ManageMessages extends Page
 {
     protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-document-text';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Sistema';
+    protected static string | UnitEnum | null $navigationGroup = 'WhatsApp';
 
     protected static ?string $navigationLabel = 'Mensagens';
 

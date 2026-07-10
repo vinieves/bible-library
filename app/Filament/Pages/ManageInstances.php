@@ -22,11 +22,11 @@ class ManageInstances extends Page
 {
     protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-device-phone-mobile';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Sistema';
+    protected static string | UnitEnum | null $navigationGroup = 'Evolution API';
 
     protected static ?string $navigationLabel = 'Instâncias';
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 1;
 
     /** @var list<array{name: string, state: string, instanceId: ?string, profileName: ?string, ownerJid: ?string, stateLabel: string, stateColor: string}> */
     public array $instances = [];

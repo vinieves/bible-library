@@ -126,4 +126,58 @@ class IntegrationSettings
 
         return $secret;
     }
+
+    public static function emailEnabled(): bool
+    {
+        return filter_var(Setting::get('email_enabled', '0'), FILTER_VALIDATE_BOOL);
+    }
+
+    public static function smtpHost(): string
+    {
+        return (string) Setting::get('smtp_host', 'smtp.hostinger.com');
+    }
+
+    public static function smtpPort(): int
+    {
+        return (int) Setting::get('smtp_port', 465);
+    }
+
+    public static function smtpEncryption(): string
+    {
+        $encryption = (string) Setting::get('smtp_encryption', 'ssl');
+
+        return in_array($encryption, ['ssl', 'tls'], true) ? $encryption : 'ssl';
+    }
+
+    public static function smtpUsername(): ?string
+    {
+        $username = Setting::get('smtp_username');
+
+        return filled($username) ? (string) $username : null;
+    }
+
+    public static function smtpPassword(): ?string
+    {
+        return Setting::getEncrypted('smtp_password');
+    }
+
+    public static function mailFromAddress(): ?string
+    {
+        $address = Setting::get('mail_from_address') ?: static::smtpUsername();
+
+        return filled($address) ? (string) $address : null;
+    }
+
+    public static function mailFromName(): string
+    {
+        return (string) Setting::get('mail_from_name', config('app.name', 'Biblioteca Bíblica Digital'));
+    }
+
+    public static function emailSmtpConfigured(): bool
+    {
+        return filled(static::smtpHost())
+            && filled(static::smtpUsername())
+            && filled(static::smtpPassword())
+            && filled(static::mailFromAddress());
+    }
 }

@@ -26,7 +26,7 @@ class WhatsAppDispatchLogResource extends Resource
 
     protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-chat-bubble-left-right';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Sistema';
+    protected static string | UnitEnum | null $navigationGroup = 'WhatsApp';
 
     protected static ?string $navigationLabel = 'Disparos WhatsApp';
 
@@ -34,7 +34,7 @@ class WhatsAppDispatchLogResource extends Resource
 
     protected static ?string $pluralModelLabel = 'disparos WhatsApp';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 1;
 
     public static function canCreate(): bool
     {

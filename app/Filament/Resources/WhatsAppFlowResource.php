@@ -48,11 +48,11 @@ class WhatsAppFlowResource extends Resource
 
     protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-arrows-right-left';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Sistema';
+    protected static string | UnitEnum | null $navigationGroup = 'WhatsApp';
 
     protected static ?string $navigationLabel = 'Fluxos';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $modelLabel = 'fluxo';
 

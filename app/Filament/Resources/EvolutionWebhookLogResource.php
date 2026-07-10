@@ -26,7 +26,7 @@ class EvolutionWebhookLogResource extends Resource
 
     protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-inbox-arrow-down';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Sistema';
+    protected static string | UnitEnum | null $navigationGroup = 'Evolution API';
 
     protected static ?string $navigationLabel = 'Webhooks Evolution';
 
@@ -34,7 +34,7 @@ class EvolutionWebhookLogResource extends Resource
 
     protected static ?string $pluralModelLabel = 'webhooks Evolution';
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 2;
 
     public static function canCreate(): bool
     {
