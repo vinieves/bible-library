@@ -4,14 +4,17 @@ namespace App\Services;
 
 use App\Support\IntegrationSettings;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Str;
 
 class EmailBodyRenderer
 {
-  public const ACCESS_MARKER_PREFIX = '[[EMAIL_BTN:access|';
+    public const ACCESS_MARKER_PREFIX = '[[EMAIL_BTN:access|';
 
     public const CHECKOUT_MARKER_PREFIX = '[[EMAIL_BTN:checkout|';
 
     public const MARKER_SUFFIX = ']]';
+
+    private bool $useCidForInlineImages = false;
 
     public static function accessMarker(string $url): string
     {
@@ -23,50 +26,70 @@ class EmailBodyRenderer
         return self::CHECKOUT_MARKER_PREFIX.$url.self::MARKER_SUFFIX;
     }
 
-    public function bodyToHtml(string $bodyWithMarkers, array $inlineImages = []): string
+    public static function cidForPath(string $storagePath): string
     {
-        $bodyWithMarkers = $this->resolveInlineImagePlaceholders($bodyWithMarkers, $inlineImages);
+        $normalized = app(EmailAttachmentResolver::class)->normalizeRelativePath($storagePath);
 
-        $pattern = '/\[\[EMAIL_BTN:(access|checkout)\|([^\]]+)\]\]/';
-
-        $segments = preg_split($pattern, $bodyWithMarkers, -1, PREG_SPLIT_DELIM_CAPTURE);
-
-        if ($segments === false) {
-            return $this->renderTextSegment($bodyWithMarkers);
-        }
-
-        $html = '';
-
-        foreach ($segments as $index => $segment) {
-            if ($index % 3 === 0) {
-                $html .= $this->renderTextSegment($segment);
-
-                continue;
-            }
-
-            if ($index % 3 === 2) {
-                continue;
-            }
-
-            $type = $segment;
-            $url = $segments[$index + 1] ?? '';
-
-            if (filled($url)) {
-                $html .= $this->buttonHtml(
-                    $url,
-                    $type === 'checkout'
-                        ? IntegrationSettings::emailCheckoutButtonText()
-                        : IntegrationSettings::emailButtonText(),
-                );
-            }
-        }
-
-        return $html;
+        return 'email-img-'.substr(hash('sha256', $normalized), 0, 20);
     }
 
-    public function renderFromMarkedBody(string $bodyWithMarkers, array $inlineImages = []): string
+    /**
+     * @param  array<string, string>  $inlineImages
+     */
+    public function bodyToHtml(string $bodyWithMarkers, array $inlineImages = [], bool $useCid = false): string
     {
-        return $this->renderEmail($this->bodyToHtml($bodyWithMarkers, $inlineImages));
+        $previous = $this->useCidForInlineImages;
+        $this->useCidForInlineImages = $useCid;
+
+        try {
+            $bodyWithMarkers = $this->resolveInlineImagePlaceholders($bodyWithMarkers, $inlineImages);
+
+            $pattern = '/\[\[EMAIL_BTN:(access|checkout)\|([^\]]+)\]\]/';
+
+            $segments = preg_split($pattern, $bodyWithMarkers, -1, PREG_SPLIT_DELIM_CAPTURE);
+
+            if ($segments === false) {
+                return $this->renderTextSegment($bodyWithMarkers);
+            }
+
+            $html = '';
+
+            foreach ($segments as $index => $segment) {
+                if ($index % 3 === 0) {
+                    $html .= $this->renderTextSegment($segment);
+
+                    continue;
+                }
+
+                if ($index % 3 === 2) {
+                    continue;
+                }
+
+                $type = $segment;
+                $url = $segments[$index + 1] ?? '';
+
+                if (filled($url)) {
+                    $html .= $this->buttonHtml(
+                        $url,
+                        $type === 'checkout'
+                            ? IntegrationSettings::emailCheckoutButtonText()
+                            : IntegrationSettings::emailButtonText(),
+                    );
+                }
+            }
+
+            return $html;
+        } finally {
+            $this->useCidForInlineImages = $previous;
+        }
+    }
+
+    /**
+     * @param  array<string, string>  $inlineImages
+     */
+    public function renderFromMarkedBody(string $bodyWithMarkers, array $inlineImages = [], bool $useCid = false): string
+    {
+        return $this->renderEmail($this->bodyToHtml($bodyWithMarkers, $inlineImages, $useCid));
     }
 
     public function buttonHtml(string $url, string $label): string
@@ -106,22 +129,50 @@ HTML;
         }
 
         return preg_replace_callback(
-            '/\{imagen:([a-z0-9\-_]+)\}/i',
+            '/\{imagen:([^\}\s]+)\}/i',
             function (array $matches) use ($inlineImages): string {
-                $requested = strtolower($matches[1]);
+                $path = $this->findInlineImagePath($matches[1], $inlineImages);
 
-                foreach ($inlineImages as $key => $path) {
-                    $keySlug = strtolower((string) $key);
-
-                    if ($keySlug === $requested && filled($path)) {
-                        return '[[EMAIL_IMG|'.$path.']]';
-                    }
+                if ($path === null) {
+                    return $matches[0];
                 }
 
-                return $matches[0];
+                return '[[EMAIL_IMG|'.$path.']]';
             },
             $body,
         ) ?? $body;
+    }
+
+    /**
+     * @param  array<string, string>  $inlineImages
+     */
+    private function findInlineImagePath(string $requested, array $inlineImages): ?string
+    {
+        $requested = strtolower(trim($requested));
+        $requestedSlug = Str::slug($requested);
+
+        foreach ($inlineImages as $key => $path) {
+            if (! filled($path)) {
+                continue;
+            }
+
+            $keySlug = strtolower((string) $key);
+            $pathSlug = strtolower((string) pathinfo((string) $path, PATHINFO_FILENAME));
+            $pathBaseSlug = Str::slug($pathSlug);
+
+            if (
+                $keySlug === $requested
+                || $pathSlug === $requested
+                || ($requestedSlug !== '' && (
+                    Str::slug($keySlug) === $requestedSlug
+                    || $pathBaseSlug === $requestedSlug
+                ))
+            ) {
+                return (string) $path;
+            }
+        }
+
+        return null;
     }
 
     private function renderTextSegment(string $segment): string
@@ -150,13 +201,18 @@ HTML;
 
     private function inlineImageHtml(string $storagePath): string
     {
-        $url = e(IntegrationSettings::publicStorageUrl($storagePath));
+        if ($this->useCidForInlineImages) {
+            $src = 'cid:'.self::cidForPath($storagePath);
+        } else {
+            $normalized = app(EmailAttachmentResolver::class)->normalizeRelativePath($storagePath);
+            $src = e(IntegrationSettings::publicStorageUrl($normalized));
+        }
 
         return <<<HTML
 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 16px 0;">
 <tr>
 <td align="center">
-<img src="{$url}" alt="" width="560" style="display: block; max-width: 100%; height: auto; border-radius: 8px;">
+<img src="{$src}" alt="" width="560" style="display: block; max-width: 100%; height: auto; border-radius: 8px;">
 </td>
 </tr>
 </table>

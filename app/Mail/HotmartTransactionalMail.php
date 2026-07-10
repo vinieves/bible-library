@@ -10,6 +10,7 @@ use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Symfony\Component\Mime\Email;
 
 class HotmartTransactionalMail extends Mailable
 {
@@ -17,12 +18,26 @@ class HotmartTransactionalMail extends Mailable
 
     /**
      * @param  list<array{full_path: string, name: string, mime: string, disk?: string, path?: string}>  $resolvedAttachments
+     * @param  list<array{cid: string, full_path: string, name?: string, mime?: string}>  $inlineEmbeds
      */
     public function __construct(
         public string $subjectLine,
         public string $bodyHtml,
         public array $resolvedAttachments = [],
-    ) {}
+        public array $inlineEmbeds = [],
+    ) {
+        if ($this->inlineEmbeds !== []) {
+            $this->withSymfonyMessage(function (Email $message): void {
+                foreach ($this->inlineEmbeds as $embed) {
+                    $message->embedFromPath(
+                        $embed['full_path'],
+                        $embed['cid'],
+                        $embed['mime'] ?? null,
+                    );
+                }
+            });
+        }
+    }
 
     public function envelope(): Envelope
     {

@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\Setting;
 use App\Models\User;
+use Illuminate\Support\Str;
 
 class EmailMessageTemplateService
 {
@@ -81,6 +82,7 @@ class EmailMessageTemplateService
         return app(EmailBodyRenderer::class)->renderFromMarkedBody(
             $markedBody,
             $this->inlineImagesMap($template?->inline_images),
+            useCid: true,
         );
     }
 
@@ -102,6 +104,34 @@ class EmailMessageTemplateService
         $template = $this->find($event);
 
         return $this->inlineImagesMap($template?->inline_images);
+    }
+
+    /**
+     * Imagens do corpo embutidas via CID (viajam no e-mail; não dependem de URL pública).
+     *
+     * @return list<array{cid: string, full_path: string, name: string, mime: string}>
+     */
+    public function inlineImageEmbeds(WhatsAppMessageEvent $event): array
+    {
+        $resolver = app(EmailAttachmentResolver::class);
+        $embeds = [];
+
+        foreach ($this->inlineImages($event) as $path) {
+            $resolved = $resolver->resolve($path);
+
+            if (! $resolved) {
+                continue;
+            }
+
+            $embeds[] = [
+                'cid' => EmailBodyRenderer::cidForPath($path),
+                'full_path' => $resolved['full_path'],
+                'name' => $resolved['name'],
+                'mime' => $resolved['mime'],
+            ];
+        }
+
+        return $embeds;
     }
 
     public function preview(string $text): string
@@ -127,18 +157,33 @@ class EmailMessageTemplateService
     public function inlineImagesFromUpload(mixed $uploadedPaths, mixed $existingStored = null): array
     {
         $paths = $this->flattenUploadPaths($uploadedPaths);
-        $existing = collect($this->normalizeInlineImageRecords($existingStored))->keyBy('path');
+        $resolver = app(EmailAttachmentResolver::class);
+
+        $existing = collect($this->normalizeInlineImageRecords($existingStored))
+            ->mapWithKeys(fn (array $record): array => [
+                $resolver->normalizeRelativePath($record['path']) => [
+                    'slug' => $record['slug'],
+                    'path' => $resolver->normalizeRelativePath($record['path']),
+                    'name' => $record['name'],
+                ],
+            ]);
 
         $records = [];
 
         foreach ($paths as $path) {
-            if ($existing->has($path)) {
-                $records[] = $existing->get($path);
+            $normalizedPath = $resolver->normalizeRelativePath($path);
+
+            if (blank($normalizedPath)) {
+                continue;
+            }
+
+            if ($existing->has($normalizedPath)) {
+                $records[] = $existing->get($normalizedPath);
 
                 continue;
             }
 
-            $slug = (string) pathinfo($path, PATHINFO_FILENAME);
+            $slug = $this->slugFromPath($normalizedPath);
 
             if (blank($slug)) {
                 continue;
@@ -146,8 +191,8 @@ class EmailMessageTemplateService
 
             $records[] = [
                 'slug' => $slug,
-                'path' => $path,
-                'name' => basename($path),
+                'path' => $normalizedPath,
+                'name' => basename($normalizedPath),
             ];
         }
 
@@ -257,14 +302,22 @@ class EmailMessageTemplateService
             return [];
         }
 
+        $resolver = app(EmailAttachmentResolver::class);
+
         if (isset($stored[0]) && is_array($stored[0]) && isset($stored[0]['path'])) {
             return collect($stored)
                 ->filter(fn (array $record): bool => filled($record['path'] ?? null))
-                ->map(fn (array $record): array => [
-                    'slug' => (string) ($record['slug'] ?? pathinfo((string) $record['path'], PATHINFO_FILENAME)),
-                    'path' => (string) $record['path'],
-                    'name' => (string) ($record['name'] ?? basename((string) $record['path'])),
-                ])
+                ->map(function (array $record) use ($resolver): array {
+                    $path = $resolver->normalizeRelativePath((string) $record['path']);
+
+                    return [
+                        'slug' => filled($record['slug'] ?? null)
+                            ? (string) $record['slug']
+                            : $this->slugFromPath($path),
+                        'path' => $path,
+                        'name' => (string) ($record['name'] ?? basename($path)),
+                    ];
+                })
                 ->values()
                 ->all();
         }
@@ -276,14 +329,28 @@ class EmailMessageTemplateService
                 continue;
             }
 
+            $path = $resolver->normalizeRelativePath($value);
+
             $records[] = [
-                'slug' => is_string($key) ? $key : (string) pathinfo($value, PATHINFO_FILENAME),
-                'path' => $value,
-                'name' => basename($value),
+                'slug' => is_string($key) ? $key : $this->slugFromPath($path),
+                'path' => $path,
+                'name' => basename($path),
             ];
         }
 
         return $records;
+    }
+
+    private function slugFromPath(string $path): string
+    {
+        $raw = (string) pathinfo($path, PATHINFO_FILENAME);
+        $slug = Str::slug($raw);
+
+        if (filled($slug)) {
+            return $slug;
+        }
+
+        return 'imagem-'.substr(hash('sha256', $path), 0, 8);
     }
 
     /**

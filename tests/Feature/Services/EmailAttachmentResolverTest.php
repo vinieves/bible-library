@@ -4,6 +4,7 @@ namespace Tests\Feature\Services;
 
 use App\Mail\HotmartTransactionalMail;
 use App\Services\EmailAttachmentResolver;
+use App\Services\EmailBodyRenderer;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -86,5 +87,41 @@ class EmailAttachmentResolverTest extends TestCase
             return count($attachments) === 1
                 && $attachments[0]->as === 'Teste.pdf';
         });
+    }
+
+    public function test_body_image_uses_cid_when_rendering_for_send(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('email-rules/inline/guia.png', 'fake-image');
+
+        $path = 'email-rules/inline/guia.png';
+        $cid = EmailBodyRenderer::cidForPath($path);
+
+        // bodyToHtml evita settings/logo — só valida a imagem do corpo
+        $html = app(EmailBodyRenderer::class)->bodyToHtml(
+            'Olá {imagen:guia}',
+            ['guia' => $path],
+            useCid: true,
+        );
+
+        $this->assertStringContainsString('cid:'.$cid, $html);
+        $this->assertStringNotContainsString('{imagen:guia}', $html);
+        $this->assertStringNotContainsString('/storage/email-rules/inline/guia.png', $html);
+    }
+
+    public function test_body_image_preview_still_uses_public_url(): void
+    {
+        config(['app.url' => 'https://mediamrkt.online']);
+
+        $html = app(EmailBodyRenderer::class)->bodyToHtml(
+            'Olá {imagen:guia}',
+            ['guia' => 'email-rules/inline/guia.png'],
+            useCid: false,
+        );
+
+        $this->assertStringContainsString(
+            'https://mediamrkt.online/storage/email-rules/inline/guia.png',
+            $html,
+        );
     }
 }

@@ -18,12 +18,18 @@ class TransactionalMailService
 
     /**
      * @param  list<array{path: string, name?: string}|string>  $attachmentRecords
+     * @param  list<array{cid: string, full_path: string, name?: string, mime?: string}>  $inlineEmbeds
      * @return array{sent: bool, response: array<string, mixed>}
      *
      * @throws TransportExceptionInterface
      */
-    public function send(string $to, string $subject, string $bodyHtml, array $attachmentRecords = []): array
-    {
+    public function send(
+        string $to,
+        string $subject,
+        string $bodyHtml,
+        array $attachmentRecords = [],
+        array $inlineEmbeds = [],
+    ): array {
         $this->applyRuntimeMailConfig();
 
         $resolvedAttachments = app(EmailAttachmentResolver::class)->resolveMany($attachmentRecords);
@@ -36,8 +42,15 @@ class TransactionalMailService
             ]);
         }
 
+        if ($inlineEmbeds === [] && str_contains($bodyHtml, 'cid:email-img-')) {
+            Log::warning('E-mail com imagens CID no HTML, mas nenhum embed foi resolvido.', [
+                'to' => $to,
+                'subject' => $subject,
+            ]);
+        }
+
         Mail::mailer('transactional')->to($to)->send(
-            new HotmartTransactionalMail($subject, $bodyHtml, $resolvedAttachments)
+            new HotmartTransactionalMail($subject, $bodyHtml, $resolvedAttachments, $inlineEmbeds)
         );
 
         return [
@@ -48,6 +61,10 @@ class TransactionalMailService
                 'subject' => $subject,
                 'attachments' => collect($resolvedAttachments)
                     ->pluck('name')
+                    ->values()
+                    ->all(),
+                'inline_images' => collect($inlineEmbeds)
+                    ->pluck('cid')
                     ->values()
                     ->all(),
             ],

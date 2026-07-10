@@ -78,6 +78,7 @@ class SendTransactionalEmailJob implements ShouldBeUnique, ShouldQueue
         $bodyPlain = $templates->renderBody($this->messageEvent, $user, $purchase, $context);
         $bodyHtml = $templates->renderBodyHtml($this->messageEvent, $user, $purchase, $context);
         $attachmentPaths = $templates->attachments($this->messageEvent);
+        $inlineEmbeds = $templates->inlineImageEmbeds($this->messageEvent);
         $purchaseId = $this->purchaseId > 0 ? $this->purchaseId : null;
         $attempt = $this->attempts();
 
@@ -133,7 +134,13 @@ class SendTransactionalEmailJob implements ShouldBeUnique, ShouldQueue
         }
 
         try {
-            $result = $mailer->send($this->recipientEmail, $subject, $bodyHtml, $attachmentPaths);
+            $result = $mailer->send(
+                $this->recipientEmail,
+                $subject,
+                $bodyHtml,
+                $attachmentPaths,
+                $inlineEmbeds,
+            );
 
             $dispatchLog->recordSuccess(
                 trigger: $this->trigger,
@@ -155,6 +162,7 @@ class SendTransactionalEmailJob implements ShouldBeUnique, ShouldQueue
                 'trigger' => $this->trigger->value,
                 'message_event' => $this->messageEvent->value,
                 'attachments' => $result['response']['attachments'] ?? [],
+                'inline_images' => $result['response']['inline_images'] ?? [],
             ]);
         } catch (Throwable $exception) {
             $dispatchLog->recordThrowable(
