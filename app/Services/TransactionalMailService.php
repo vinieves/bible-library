@@ -46,23 +46,13 @@ class TransactionalMailService
         $username = IntegrationSettings::smtpUsername();
         $password = IntegrationSettings::smtpPassword();
 
+        // scheme = smtps (SSL/465) ou smtp (TLS/587). Não usar URL smtps:// — o Laravel
+        // interpreta o scheme da URL como nome de transporte e lança "Unsupported mail transport [smtps]".
         $scheme = $encryption === 'ssl' ? 'smtps' : 'smtp';
-        $url = sprintf(
-            '%s://%s:%s@%s:%d',
-            $scheme,
-            rawurlencode((string) $username),
-            rawurlencode((string) $password),
-            $host,
-            $port,
-        );
-
-        if ($encryption === 'tls') {
-            $url .= '?encryption=tls';
-        }
 
         Config::set('mail.mailers.transactional', [
             'transport' => 'smtp',
-            'url' => $url,
+            'scheme' => $scheme,
             'host' => $host,
             'port' => $port,
             'username' => $username,
@@ -77,5 +67,7 @@ class TransactionalMailService
         ]);
 
         Config::set('mail.default', 'transactional');
+
+        Mail::purge('transactional');
     }
 }
