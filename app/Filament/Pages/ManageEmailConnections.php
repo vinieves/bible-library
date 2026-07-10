@@ -6,6 +6,7 @@ use App\Models\Setting;
 use App\Support\IntegrationSettings;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -48,6 +49,9 @@ class ManageEmailConnections extends Page
             'mail_from_address' => IntegrationSettings::mailFromAddress() ?? '',
             'mail_from_name' => IntegrationSettings::mailFromName(),
             'email_logo_url' => Setting::get('email_logo_url', ''),
+            'email_logo_path' => filled(Setting::get('email_logo_path'))
+                ? [Setting::get('email_logo_path')]
+                : [],
             'email_button_color' => IntegrationSettings::emailButtonColor(),
             'email_button_text' => IntegrationSettings::emailButtonText(),
             'email_checkout_button_text' => IntegrationSettings::emailCheckoutButtonText(),
@@ -138,11 +142,19 @@ class ManageEmailConnections extends Page
             Section::make('Aparência dos e-mails')
                 ->description('Layout padrão aplicado a todos os disparos. O corpo de cada regra é configurado em Disparos.')
                 ->schema([
+                    FileUpload::make('email_logo_path')
+                        ->label('Upload do logo')
+                        ->image()
+                        ->disk('public')
+                        ->directory('email-settings')
+                        ->maxSize(2048)
+                        ->helperText('PNG, JPG ou WebP. O upload tem prioridade sobre a URL abaixo.')
+                        ->columnSpanFull(),
                     TextInput::make('email_logo_url')
-                        ->label('URL do logo')
+                        ->label('URL do logo (alternativa)')
                         ->url()
                         ->placeholder('https://seudominio.com/storage/logo.png')
-                        ->helperText('URL pública HTTPS da imagem. Se vazio, exibe o nome da marca como texto.')
+                        ->helperText('Use se o logo estiver hospedado fora do site. Ignorado quando há upload acima.')
                         ->columnSpanFull(),
                     TextInput::make('email_button_color')
                         ->label('Cor do botão')
@@ -187,6 +199,13 @@ class ManageEmailConnections extends Page
 
         Setting::set('mail_from_address', $fromAddress);
         Setting::set('mail_from_name', $data['mail_from_name'] ?? config('app.name', 'Biblioteca Bíblica Digital'));
+
+        $logoPath = $data['email_logo_path'] ?? [];
+        if (is_array($logoPath)) {
+            $logoPath = array_values($logoPath)[0] ?? '';
+        }
+        Setting::set('email_logo_path', $logoPath ?? '');
+
         Setting::set('email_logo_url', $data['email_logo_url'] ?? '');
         Setting::set('email_button_color', $data['email_button_color'] ?? '#000000');
         Setting::set('email_button_text', $data['email_button_text'] ?? 'Acceder ahora');

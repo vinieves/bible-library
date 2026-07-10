@@ -183,6 +183,12 @@ class IntegrationSettings
 
     public static function emailLogoUrl(): ?string
     {
+        $path = Setting::get('email_logo_path');
+
+        if (filled($path)) {
+            return static::absoluteAssetUrl('/storage/'.ltrim((string) $path, '/'));
+        }
+
         $url = Setting::get('email_logo_url');
 
         if (blank($url)) {
@@ -192,10 +198,15 @@ class IntegrationSettings
         $url = trim((string) $url);
 
         if (str_starts_with($url, '/')) {
-            return rtrim((string) config('app.url'), '/').$url;
+            return static::absoluteAssetUrl($url);
         }
 
         return $url;
+    }
+
+    private static function absoluteAssetUrl(string $path): string
+    {
+        return rtrim((string) config('app.url'), '/').'/'.ltrim($path, '/');
     }
 
     public static function emailButtonColor(): string
