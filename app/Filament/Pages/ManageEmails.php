@@ -10,6 +10,7 @@ use App\Services\EmailMessageTemplateService;
 use App\Support\IntegrationSettings;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -63,6 +64,8 @@ class ManageEmails extends Page
             'rule_event' => null,
             'rule_subject' => '',
             'rule_body' => '',
+            'rule_inline_images' => [],
+            'rule_attachments' => [],
             'rule_enabled' => true,
         ]);
     }
@@ -105,6 +108,7 @@ class ManageEmails extends Page
                             '<p><code>{producto}</code> — Nome do produto Hotmart</p>'.
                             '<p><code>{link_acceso}</code> — Botão de acesso à biblioteca</p>'.
                             '<p><code>{link_checkout}</code> — Botão de checkout (carrinho abandonado)</p>'.
+                            '<p><code>{imagen:nome}</code> — Imagem enviada abaixo (ex.: guia.png → <code>{imagen:guia}</code>)</p>'.
                             '<p><code>{transacao}</code> — Código HP da Hotmart</p>'.
                             '<p><code>{evento}</code> — Evento Hotmart (ex: PURCHASE_APPROVED)</p>'.
                             '<p><code>{moeda}</code> — Moeda da compra</p>'.
@@ -175,8 +179,55 @@ class ManageEmails extends Page
                         ->visible(fn (Get $get): bool => filled($get('rule_event')))
                         ->live(debounce: 500)
                         ->helperText(fn (Get $get): string => filled($get('rule_event'))
-                            ? 'Placeholders: '.implode(', ', WhatsAppMessageEvent::from((string) $get('rule_event'))->placeholders())
+                            ? 'Placeholders: '.implode(', ', WhatsAppMessageEvent::from((string) $get('rule_event'))->placeholders()).', {imagen:nome}'
                             : 'Selecione uma condição para editar o e-mail.')
+                        ->columnSpanFull(),
+                    FileUpload::make('rule_inline_images')
+                        ->label('Imagens no corpo do e-mail')
+                        ->image()
+                        ->multiple()
+                        ->disk('public')
+                        ->directory('email-rules/inline')
+                        ->maxSize(3072)
+                        ->visible(fn (Get $get): bool => filled($get('rule_event')))
+                        ->live()
+                        ->helperText('PNG, JPG ou WebP. Cole no texto acima o código gerado abaixo para cada imagem.')
+                        ->columnSpanFull(),
+                    Placeholder::make('rule_inline_image_codes')
+                        ->label('Códigos das imagens')
+                        ->visible(fn (Get $get): bool => filled($get('rule_event')) && filled($get('rule_inline_images')))
+                        ->content(function (Get $get, EmailMessageTemplateService $templates): HtmlString {
+                            $paths = $get('rule_inline_images') ?? [];
+                            $map = $templates->inlineImagesFromPaths(is_array($paths) ? $paths : []);
+
+                            if ($map === []) {
+                                return new HtmlString('<p class="text-sm text-gray-400">Envie imagens para ver os códigos.</p>');
+                            }
+
+                            $lines = collect($map)
+                                ->keys()
+                                ->map(fn (string $slug): string => '<code>{imagen:'.$slug.'}</code>')
+                                ->implode(' · ');
+
+                            return new HtmlString('<p class="text-sm text-gray-300">'.$lines.'</p>');
+                        })
+                        ->columnSpanFull(),
+                    FileUpload::make('rule_attachments')
+                        ->label('Anexos do e-mail')
+                        ->multiple()
+                        ->disk('public')
+                        ->directory('email-rules/attachments')
+                        ->maxSize(10240)
+                        ->acceptedFileTypes([
+                            'application/pdf',
+                            'image/jpeg',
+                            'image/png',
+                            'image/webp',
+                            'application/msword',
+                            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                        ])
+                        ->visible(fn (Get $get): bool => filled($get('rule_event')))
+                        ->helperText('PDF, imagens ou Word enviados como anexo junto ao e-mail (máx. 10 MB por arquivo).')
                         ->columnSpanFull(),
                     Placeholder::make('rule_preview')
                         ->label('Pré-visualização')
@@ -189,11 +240,15 @@ class ManageEmails extends Page
                                 return new HtmlString('<p class="text-sm text-gray-400">Escreva o corpo para ver a prévia.</p>');
                             }
 
+                            $inlineImages = $templateService->inlineImagesFromPaths(
+                                is_array($get('rule_inline_images')) ? $get('rule_inline_images') : [],
+                            );
+
                             return new HtmlString(
                                 '<div class="space-y-3">'.
                                 '<p class="text-sm font-medium text-gray-200">Assunto: '.e($templateService->preview($subject)).'</p>'.
                                 '<div class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">'.
-                                $templateService->previewHtml($body).
+                                $templateService->previewHtml($body, $inlineImages).
                                 '</div></div>'
                             );
                         })
@@ -262,6 +317,8 @@ class ManageEmails extends Page
         $this->data['rule_event'] = null;
         $this->data['rule_subject'] = '';
         $this->data['rule_body'] = '';
+        $this->data['rule_inline_images'] = [];
+        $this->data['rule_attachments'] = [];
         $this->data['rule_enabled'] = true;
     }
 
@@ -273,11 +330,17 @@ class ManageEmails extends Page
             return;
         }
 
+        $template = EmailMessageTemplate::query()
+            ->where('event', $event->value)
+            ->first();
+
         $this->showRuleForm = true;
         $this->editingEvent = $event->value;
         $this->data['rule_event'] = $event->value;
         $this->data['rule_subject'] = $templates->subject($event);
         $this->data['rule_body'] = $templates->body($event);
+        $this->data['rule_inline_images'] = array_values($template?->inline_images ?? []);
+        $this->data['rule_attachments'] = $template?->attachments ?? [];
         $this->data['rule_enabled'] = $templates->isEnabled($event);
     }
 
@@ -288,6 +351,8 @@ class ManageEmails extends Page
         $this->data['rule_event'] = null;
         $this->data['rule_subject'] = '';
         $this->data['rule_body'] = '';
+        $this->data['rule_inline_images'] = [];
+        $this->data['rule_attachments'] = [];
         $this->data['rule_enabled'] = true;
     }
 
@@ -297,6 +362,8 @@ class ManageEmails extends Page
         $subject = trim((string) ($this->data['rule_subject'] ?? ''));
         $body = trim((string) ($this->data['rule_body'] ?? ''));
         $isEnabled = ! empty($this->data['rule_enabled']);
+        $inlineImages = $templates->inlineImagesFromPaths($this->data['rule_inline_images'] ?? []);
+        $attachments = $templates->normalizeAttachmentPaths($this->data['rule_attachments'] ?? []);
 
         if (blank($eventValue)) {
             Notification::make()
@@ -317,7 +384,7 @@ class ManageEmails extends Page
         }
 
         $event = WhatsAppMessageEvent::from($eventValue);
-        $templates->upsert($event, $subject, $body, $isEnabled);
+        $templates->upsert($event, $subject, $body, $isEnabled, $inlineImages, $attachments);
 
         $this->refreshRules($templates);
         $this->cancelRuleForm();

@@ -11,6 +11,8 @@ class EmailMessageTemplate extends Model
         'event',
         'subject',
         'body',
+        'inline_images',
+        'attachments',
         'is_enabled',
         'sort_order',
     ];
@@ -19,6 +21,8 @@ class EmailMessageTemplate extends Model
     {
         return [
             'event' => WhatsAppMessageEvent::class,
+            'inline_images' => 'array',
+            'attachments' => 'array',
             'is_enabled' => 'boolean',
             'sort_order' => 'integer',
         ];

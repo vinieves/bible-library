@@ -209,6 +209,11 @@ class IntegrationSettings
         return rtrim((string) config('app.url'), '/').'/'.ltrim($path, '/');
     }
 
+    public static function publicStorageUrl(string $storagePath): string
+    {
+        return static::absoluteAssetUrl('/storage/'.ltrim($storagePath, '/'));
+    }
+
     public static function emailButtonColor(): string
     {
         $color = (string) Setting::get('email_button_color', '#000000');

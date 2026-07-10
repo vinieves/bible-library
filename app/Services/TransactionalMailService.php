@@ -16,16 +16,17 @@ class TransactionalMailService
     }
 
     /**
+     * @param  list<string>  $attachmentPaths
      * @return array{sent: bool, response: array<string, mixed>}
      *
      * @throws TransportExceptionInterface
      */
-    public function send(string $to, string $subject, string $bodyHtml): array
+    public function send(string $to, string $subject, string $bodyHtml, array $attachmentPaths = []): array
     {
         $this->applyRuntimeMailConfig();
 
         Mail::mailer('transactional')->to($to)->send(
-            new HotmartTransactionalMail($subject, $bodyHtml)
+            new HotmartTransactionalMail($subject, $bodyHtml, $attachmentPaths)
         );
 
         return [

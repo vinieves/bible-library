@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\Setting;
 use App\Models\User;
+use Illuminate\Support\Str;
 
 class EmailMessageTemplateService
 {
@@ -68,6 +69,7 @@ class EmailMessageTemplateService
         ?Purchase $purchase = null,
         ?NormalizedPurchaseContext $context = null,
     ): string {
+        $template = $this->find($event);
         $markedBody = $this->replacePlaceholders(
             $this->body($event),
             $event,
@@ -77,7 +79,30 @@ class EmailMessageTemplateService
             forEmailHtml: true,
         );
 
-        return app(EmailBodyRenderer::class)->renderFromMarkedBody($markedBody);
+        return app(EmailBodyRenderer::class)->renderFromMarkedBody(
+            $markedBody,
+            $template?->inline_images ?? [],
+        );
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function attachments(WhatsAppMessageEvent $event): array
+    {
+        $template = $this->find($event);
+
+        return array_values(array_filter($template?->attachments ?? []));
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function inlineImages(WhatsAppMessageEvent $event): array
+    {
+        $template = $this->find($event);
+
+        return $template?->inline_images ?? [];
     }
 
     public function preview(string $text): string
@@ -85,11 +110,47 @@ class EmailMessageTemplateService
         return $this->replacePlaceholders($text, preview: true);
     }
 
-    public function previewHtml(string $text): string
+    /**
+     * @param  array<string, string>  $inlineImages
+     */
+    public function previewHtml(string $text, array $inlineImages = []): string
     {
         $markedBody = $this->replacePlaceholders($text, preview: true, forEmailHtml: true);
 
-        return app(EmailBodyRenderer::class)->renderFromMarkedBody($markedBody);
+        return app(EmailBodyRenderer::class)->renderFromMarkedBody($markedBody, $inlineImages);
+    }
+
+    /**
+     * @param  list<string>  $uploadedPaths
+     * @return array<string, string>
+     */
+    public function inlineImagesFromPaths(array $uploadedPaths): array
+    {
+        $map = [];
+
+        foreach (array_values(array_filter($uploadedPaths)) as $path) {
+            $filename = pathinfo((string) $path, PATHINFO_FILENAME);
+            $slug = Str::slug($filename);
+
+            if (filled($slug)) {
+                $map[$slug] = (string) $path;
+            }
+        }
+
+        return $map;
+    }
+
+    /**
+     * @param  list<string>|mixed  $uploadedPaths
+     * @return list<string>
+     */
+    public function normalizeAttachmentPaths(mixed $uploadedPaths): array
+    {
+        if (! is_array($uploadedPaths)) {
+            return [];
+        }
+
+        return array_values(array_filter($uploadedPaths));
     }
 
     public function upsert(
@@ -97,12 +158,16 @@ class EmailMessageTemplateService
         string $subject,
         string $body,
         bool $isEnabled,
+        array $inlineImages = [],
+        array $attachments = [],
     ): EmailMessageTemplate {
         return EmailMessageTemplate::query()->updateOrCreate(
             ['event' => $event->value],
             [
                 'subject' => $subject,
                 'body' => $body,
+                'inline_images' => $inlineImages,
+                'attachments' => $attachments,
                 'is_enabled' => $isEnabled,
                 'sort_order' => $this->sortOrder($event),
             ]
@@ -117,7 +182,14 @@ class EmailMessageTemplateService
             throw new \RuntimeException("Regra não encontrada para {$event->value}.");
         }
 
-        return $this->upsert($event, $template->subject, $template->body, ! $template->is_enabled);
+        return $this->upsert(
+            $event,
+            $template->subject,
+            $template->body,
+            ! $template->is_enabled,
+            $template->inline_images ?? [],
+            $template->attachments ?? [],
+        );
     }
 
     /**
