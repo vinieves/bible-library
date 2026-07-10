@@ -6,6 +6,10 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    private const PURCHASE_EVENT_INDEX = 'email_dl_purchase_evt_status_idx';
+
+    private const TRANSACTION_EVENT_INDEX = 'email_dl_tx_evt_status_idx';
+
     public function up(): void
     {
         Schema::create('email_dispatch_logs', function (Blueprint $table) {
@@ -29,8 +33,8 @@ return new class extends Migration
             $table->index('status');
             $table->index('recipient_email');
             $table->index('created_at');
-            $table->index(['purchase_id', 'message_event', 'status']);
-            $table->index(['hotmart_transaction', 'message_event', 'status']);
+            $table->index(['purchase_id', 'message_event', 'status'], self::PURCHASE_EVENT_INDEX);
+            $table->index(['hotmart_transaction', 'message_event', 'status'], self::TRANSACTION_EVENT_INDEX);
         });
     }
 
