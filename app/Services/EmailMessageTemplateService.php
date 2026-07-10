@@ -8,7 +8,6 @@ use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\Setting;
 use App\Models\User;
-use Illuminate\Support\Str;
 
 class EmailMessageTemplateService
 {
@@ -81,7 +80,7 @@ class EmailMessageTemplateService
 
         return app(EmailBodyRenderer::class)->renderFromMarkedBody(
             $markedBody,
-            $template?->inline_images ?? [],
+            $this->inlineImagesMap($template?->inline_images),
         );
     }
 
@@ -92,7 +91,7 @@ class EmailMessageTemplateService
     {
         $template = $this->find($event);
 
-        return array_values(array_filter($template?->attachments ?? []));
+        return $this->normalizeAttachmentRecords($template?->attachments);
     }
 
     /**
@@ -102,7 +101,7 @@ class EmailMessageTemplateService
     {
         $template = $this->find($event);
 
-        return $template?->inline_images ?? [];
+        return $this->inlineImagesMap($template?->inline_images);
     }
 
     public function preview(string $text): string
@@ -121,36 +120,213 @@ class EmailMessageTemplateService
     }
 
     /**
-     * @param  list<string>  $uploadedPaths
-     * @return array<string, string>
+     * @param  mixed  $uploadedPaths
+     * @param  mixed  $existingStored
+     * @return list<array{slug: string, path: string, name: string}>
      */
-    public function inlineImagesFromPaths(array $uploadedPaths): array
+    public function inlineImagesFromUpload(mixed $uploadedPaths, mixed $existingStored = null): array
     {
-        $map = [];
+        $paths = $this->flattenUploadPaths($uploadedPaths);
+        $existing = collect($this->normalizeInlineImageRecords($existingStored))->keyBy('path');
 
-        foreach (array_values(array_filter($uploadedPaths)) as $path) {
-            $filename = pathinfo((string) $path, PATHINFO_FILENAME);
-            $slug = Str::slug($filename);
+        $records = [];
 
-            if (filled($slug)) {
-                $map[$slug] = (string) $path;
+        foreach ($paths as $path) {
+            if ($existing->has($path)) {
+                $records[] = $existing->get($path);
+
+                continue;
             }
+
+            $slug = (string) pathinfo($path, PATHINFO_FILENAME);
+
+            if (blank($slug)) {
+                continue;
+            }
+
+            $records[] = [
+                'slug' => $slug,
+                'path' => $path,
+                'name' => basename($path),
+            ];
         }
 
-        return $map;
+        return $records;
     }
 
     /**
-     * @param  list<string>|mixed  $uploadedPaths
+     * @param  mixed  $stored
      * @return list<string>
      */
-    public function normalizeAttachmentPaths(mixed $uploadedPaths): array
+    public function inlineImagePathsForForm(mixed $stored): array
     {
-        if (! is_array($uploadedPaths)) {
+        return collect($this->normalizeInlineImageRecords($stored))
+            ->pluck('path')
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  mixed  $stored
+     * @return array<string, string>
+     */
+    public function inlineImagesMap(mixed $stored): array
+    {
+        return collect($this->normalizeInlineImageRecords($stored))
+            ->mapWithKeys(fn (array $record): array => [$record['slug'] => $record['path']])
+            ->all();
+    }
+
+    /**
+     * @param  mixed  $uploadedPaths
+     * @param  mixed  $existingStored
+     * @return list<array{path: string, name: string}>
+     */
+    public function attachmentsFromUpload(mixed $uploadedPaths, mixed $existingStored = null): array
+    {
+        $paths = $this->flattenUploadPaths($uploadedPaths);
+        $existing = collect($this->normalizeAttachmentRecords($existingStored))->keyBy('path');
+
+        $records = [];
+
+        foreach ($paths as $path) {
+            $records[] = $existing->get($path) ?? [
+                'path' => $path,
+                'name' => basename($path),
+            ];
+        }
+
+        return $records;
+    }
+
+    /**
+     * @param  mixed  $stored
+     * @return list<string>
+     */
+    public function attachmentPathsForForm(mixed $stored): array
+    {
+        return $this->attachmentPaths($stored);
+    }
+
+    /**
+     * @param  mixed  $stored
+     * @return list<string>
+     */
+    public function attachmentPaths(mixed $stored): array
+    {
+        return collect($this->normalizeAttachmentRecords($stored))
+            ->pluck('path')
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  mixed  $uploadedPaths
+     * @return array<string, string>
+     */
+    public function inlineImagesMapFromUpload(mixed $uploadedPaths, mixed $existingStored = null): array
+    {
+        return $this->inlineImagesMap(
+            $this->inlineImagesFromUpload($uploadedPaths, $existingStored),
+        );
+    }
+
+    /**
+     * @param  mixed  $stored
+     * @return list<array{slug: string, path: string, name: string}>
+     */
+    public function normalizeInlineImageRecords(mixed $stored): array
+    {
+        if (! is_array($stored) || $stored === []) {
             return [];
         }
 
-        return array_values(array_filter($uploadedPaths));
+        if (isset($stored[0]) && is_array($stored[0]) && isset($stored[0]['path'])) {
+            return collect($stored)
+                ->filter(fn (array $record): bool => filled($record['path'] ?? null))
+                ->map(fn (array $record): array => [
+                    'slug' => (string) ($record['slug'] ?? pathinfo((string) $record['path'], PATHINFO_FILENAME)),
+                    'path' => (string) $record['path'],
+                    'name' => (string) ($record['name'] ?? basename((string) $record['path'])),
+                ])
+                ->values()
+                ->all();
+        }
+
+        $records = [];
+
+        foreach ($stored as $key => $value) {
+            if (! is_string($value) || blank($value)) {
+                continue;
+            }
+
+            $records[] = [
+                'slug' => is_string($key) ? $key : (string) pathinfo($value, PATHINFO_FILENAME),
+                'path' => $value,
+                'name' => basename($value),
+            ];
+        }
+
+        return $records;
+    }
+
+    /**
+     * @param  mixed  $stored
+     * @return list<array{path: string, name: string}>
+     */
+    public function normalizeAttachmentRecords(mixed $stored): array
+    {
+        if (! is_array($stored) || $stored === []) {
+            return [];
+        }
+
+        if (isset($stored[0]) && is_array($stored[0]) && isset($stored[0]['path'])) {
+            return collect($stored)
+                ->filter(fn (array $record): bool => filled($record['path'] ?? null))
+                ->map(fn (array $record): array => [
+                    'path' => (string) $record['path'],
+                    'name' => (string) ($record['name'] ?? basename((string) $record['path'])),
+                ])
+                ->values()
+                ->all();
+        }
+
+        return collect($this->flattenUploadPaths($stored))
+            ->map(fn (string $path): array => [
+                'path' => $path,
+                'name' => basename($path),
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  mixed  $uploadedPaths
+     * @return list<string>
+     */
+    public function flattenUploadPaths(mixed $uploadedPaths): array
+    {
+        if (! is_array($uploadedPaths)) {
+            return filled($uploadedPaths) ? [(string) $uploadedPaths] : [];
+        }
+
+        $paths = [];
+
+        foreach ($uploadedPaths as $value) {
+            if (is_array($value)) {
+                $paths = [...$paths, ...$this->flattenUploadPaths($value)];
+
+                continue;
+            }
+
+            if (filled($value)) {
+                $paths[] = (string) $value;
+            }
+        }
+
+        return array_values(array_unique($paths));
     }
 
     public function upsert(
@@ -187,8 +363,8 @@ class EmailMessageTemplateService
             $template->subject,
             $template->body,
             ! $template->is_enabled,
-            $template->inline_images ?? [],
-            $template->attachments ?? [],
+            $this->normalizeInlineImageRecords($template->inline_images),
+            $this->normalizeAttachmentRecords($template->attachments),
         );
     }
 

@@ -17,7 +17,7 @@ class HotmartTransactionalMail extends Mailable
     use Queueable, SerializesModels;
 
     /**
-     * @param  list<string>  $attachmentPaths
+     * @param  list<array{path: string, name?: string}>|list<string>  $attachmentPaths
      */
     public function __construct(
         public string $subjectLine,
@@ -54,13 +54,16 @@ class HotmartTransactionalMail extends Mailable
     {
         $attachments = [];
 
-        foreach ($this->attachmentPaths as $path) {
+        foreach ($this->attachmentPaths as $attachment) {
+            $path = is_array($attachment) ? ($attachment['path'] ?? null) : $attachment;
+            $name = is_array($attachment) ? ($attachment['name'] ?? basename((string) $path)) : basename((string) $attachment);
+
             if (blank($path) || ! Storage::disk('public')->exists($path)) {
                 continue;
             }
 
             $attachments[] = Attachment::fromStorageDisk('public', $path)
-                ->as(basename((string) $path));
+                ->as($name);
         }
 
         return $attachments;

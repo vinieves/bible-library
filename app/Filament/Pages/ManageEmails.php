@@ -188,28 +188,31 @@ class ManageEmails extends Page
                         ->multiple()
                         ->disk('public')
                         ->directory('email-rules/inline')
+                        ->visibility('public')
                         ->maxSize(3072)
+                        ->previewable()
+                        ->openable()
+                        ->downloadable()
+                        ->reorderable()
                         ->visible(fn (Get $get): bool => filled($get('rule_event')))
                         ->live()
-                        ->helperText('PNG, JPG ou WebP. Cole no texto acima o código gerado abaixo para cada imagem.')
+                        ->helperText('PNG, JPG ou WebP. Após o upload, copie o código gerado abaixo e cole no corpo do e-mail.')
                         ->columnSpanFull(),
                     Placeholder::make('rule_inline_image_codes')
                         ->label('Códigos das imagens')
                         ->visible(fn (Get $get): bool => filled($get('rule_event')) && filled($get('rule_inline_images')))
                         ->content(function (Get $get, EmailMessageTemplateService $templates): HtmlString {
-                            $paths = $get('rule_inline_images') ?? [];
-                            $map = $templates->inlineImagesFromPaths(is_array($paths) ? $paths : []);
+                            $map = $templates->inlineImagesMapFromUpload($get('rule_inline_images') ?? []);
 
                             if ($map === []) {
                                 return new HtmlString('<p class="text-sm text-gray-400">Envie imagens para ver os códigos.</p>');
                             }
 
                             $lines = collect($map)
-                                ->keys()
-                                ->map(fn (string $slug): string => '<code>{imagen:'.$slug.'}</code>')
-                                ->implode(' · ');
+                                ->map(fn (string $path, string $slug): string => '<span class="inline-flex items-center gap-2 rounded-md bg-zinc-800 px-2 py-1"><code>{imagen:'.$slug.'}</code><span class="text-xs text-zinc-400">'.e(basename($path)).'</span></span>')
+                                ->implode(' ');
 
-                            return new HtmlString('<p class="text-sm text-gray-300">'.$lines.'</p>');
+                            return new HtmlString('<div class="flex flex-wrap gap-2 text-sm">'.$lines.'</div>');
                         })
                         ->columnSpanFull(),
                     FileUpload::make('rule_attachments')
@@ -217,7 +220,12 @@ class ManageEmails extends Page
                         ->multiple()
                         ->disk('public')
                         ->directory('email-rules/attachments')
+                        ->visibility('public')
                         ->maxSize(10240)
+                        ->previewable()
+                        ->openable()
+                        ->downloadable()
+                        ->reorderable()
                         ->acceptedFileTypes([
                             'application/pdf',
                             'image/jpeg',
@@ -228,6 +236,32 @@ class ManageEmails extends Page
                         ])
                         ->visible(fn (Get $get): bool => filled($get('rule_event')))
                         ->helperText('PDF, imagens ou Word enviados como anexo junto ao e-mail (máx. 10 MB por arquivo).')
+                        ->columnSpanFull(),
+                    Placeholder::make('rule_files_summary')
+                        ->label('Arquivos desta regra')
+                        ->visible(fn (Get $get): bool => filled($get('rule_event')) && (filled($get('rule_inline_images')) || filled($get('rule_attachments'))))
+                        ->content(function (Get $get, EmailMessageTemplateService $templates): HtmlString {
+                            $inline = $templates->inlineImagesFromUpload($get('rule_inline_images') ?? []);
+                            $attachments = $templates->attachmentsFromUpload($get('rule_attachments') ?? []);
+
+                            if ($inline === [] && $attachments === []) {
+                                return new HtmlString('<p class="text-sm text-gray-400">Nenhum arquivo enviado ainda.</p>');
+                            }
+
+                            $html = '<ul class="space-y-1 text-sm text-gray-300">';
+
+                            foreach ($inline as $record) {
+                                $html .= '<li>🖼️ <strong>Imagem:</strong> '.e($record['name']).' → <code>{imagen:'.e($record['slug']).'}</code></li>';
+                            }
+
+                            foreach ($attachments as $record) {
+                                $html .= '<li>📎 <strong>Anexo:</strong> '.e($record['name']).'</li>';
+                            }
+
+                            $html .= '</ul><p class="mt-2 text-xs text-gray-500">Salve a regra para manter os arquivos. Eles ficam visíveis ao editar novamente.</p>';
+
+                            return new HtmlString($html);
+                        })
                         ->columnSpanFull(),
                     Placeholder::make('rule_preview')
                         ->label('Pré-visualização')
@@ -240,9 +274,7 @@ class ManageEmails extends Page
                                 return new HtmlString('<p class="text-sm text-gray-400">Escreva o corpo para ver a prévia.</p>');
                             }
 
-                            $inlineImages = $templateService->inlineImagesFromPaths(
-                                is_array($get('rule_inline_images')) ? $get('rule_inline_images') : [],
-                            );
+                            $inlineImages = $templateService->inlineImagesMapFromUpload($get('rule_inline_images') ?? []);
 
                             return new HtmlString(
                                 '<div class="space-y-3">'.
@@ -314,12 +346,7 @@ class ManageEmails extends Page
 
         $this->showRuleForm = true;
         $this->editingEvent = null;
-        $this->data['rule_event'] = null;
-        $this->data['rule_subject'] = '';
-        $this->data['rule_body'] = '';
-        $this->data['rule_inline_images'] = [];
-        $this->data['rule_attachments'] = [];
-        $this->data['rule_enabled'] = true;
+        $this->fillRuleFormState();
     }
 
     public function openEditRuleForm(string $eventValue, EmailMessageTemplateService $templates): void
@@ -336,34 +363,24 @@ class ManageEmails extends Page
 
         $this->showRuleForm = true;
         $this->editingEvent = $event->value;
-        $this->data['rule_event'] = $event->value;
-        $this->data['rule_subject'] = $templates->subject($event);
-        $this->data['rule_body'] = $templates->body($event);
-        $this->data['rule_inline_images'] = array_values($template?->inline_images ?? []);
-        $this->data['rule_attachments'] = $template?->attachments ?? [];
-        $this->data['rule_enabled'] = $templates->isEnabled($event);
+        $this->fillRuleFormState($templates, $event, $template);
     }
 
     public function cancelRuleForm(): void
     {
         $this->showRuleForm = false;
         $this->editingEvent = null;
-        $this->data['rule_event'] = null;
-        $this->data['rule_subject'] = '';
-        $this->data['rule_body'] = '';
-        $this->data['rule_inline_images'] = [];
-        $this->data['rule_attachments'] = [];
-        $this->data['rule_enabled'] = true;
+        $this->fillRuleFormState();
     }
 
     public function saveRule(EmailMessageTemplateService $templates): void
     {
-        $eventValue = $this->data['rule_event'] ?? null;
-        $subject = trim((string) ($this->data['rule_subject'] ?? ''));
-        $body = trim((string) ($this->data['rule_body'] ?? ''));
-        $isEnabled = ! empty($this->data['rule_enabled']);
-        $inlineImages = $templates->inlineImagesFromPaths($this->data['rule_inline_images'] ?? []);
-        $attachments = $templates->normalizeAttachmentPaths($this->data['rule_attachments'] ?? []);
+        $data = $this->form->getState();
+
+        $eventValue = $data['rule_event'] ?? null;
+        $subject = trim((string) ($data['rule_subject'] ?? ''));
+        $body = trim((string) ($data['rule_body'] ?? ''));
+        $isEnabled = ! empty($data['rule_enabled']);
 
         if (blank($eventValue)) {
             Notification::make()
@@ -384,17 +401,58 @@ class ManageEmails extends Page
         }
 
         $event = WhatsAppMessageEvent::from($eventValue);
+
+        $existing = EmailMessageTemplate::query()
+            ->where('event', $event->value)
+            ->first();
+
+        $inlineImages = $templates->inlineImagesFromUpload(
+            $data['rule_inline_images'] ?? [],
+            $existing?->inline_images,
+        );
+        $attachments = $templates->attachmentsFromUpload(
+            $data['rule_attachments'] ?? [],
+            $existing?->attachments,
+        );
+
         $templates->upsert($event, $subject, $body, $isEnabled, $inlineImages, $attachments);
 
+        $saved = EmailMessageTemplate::query()
+            ->where('event', $event->value)
+            ->first();
+
         $this->refreshRules($templates);
-        $this->cancelRuleForm();
+        $this->showRuleForm = true;
+        $this->editingEvent = $event->value;
+        $this->fillRuleFormState($templates, $event, $saved);
         $this->data['test_event'] = $this->defaultTestEvent($templates);
 
         Notification::make()
             ->title('Regra salva')
-            ->body($event->conditionLabel())
+            ->body($event->conditionLabel().' — arquivos: '.count($inlineImages).' imagem(ns), '.count($attachments).' anexo(s).')
             ->success()
             ->send();
+    }
+
+    private function fillRuleFormState(
+        ?EmailMessageTemplateService $templates = null,
+        ?WhatsAppMessageEvent $event = null,
+        ?EmailMessageTemplate $template = null,
+    ): void {
+        $templates ??= app(EmailMessageTemplateService::class);
+
+        $state = [
+            'test_email' => $this->data['test_email'] ?? '',
+            'test_event' => $this->data['test_event'] ?? $this->defaultTestEvent($templates),
+            'rule_event' => $event?->value,
+            'rule_subject' => $event ? $templates->subject($event) : '',
+            'rule_body' => $event ? $templates->body($event) : '',
+            'rule_inline_images' => $templates->inlineImagePathsForForm($template?->inline_images),
+            'rule_attachments' => $templates->attachmentPathsForForm($template?->attachments),
+            'rule_enabled' => $event ? $templates->isEnabled($event) : true,
+        ];
+
+        $this->form->fill($state);
     }
 
     public function toggleRule(string $eventValue, EmailMessageTemplateService $templates): void

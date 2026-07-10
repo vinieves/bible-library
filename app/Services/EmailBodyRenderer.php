@@ -108,12 +108,12 @@ HTML;
         return preg_replace_callback(
             '/\{imagen:([a-z0-9\-_]+)\}/i',
             function (array $matches) use ($inlineImages): string {
-                $slug = strtolower(str_replace('_', '-', $matches[1]));
+                $requested = strtolower($matches[1]);
 
                 foreach ($inlineImages as $key => $path) {
-                    $keySlug = is_string($key) ? strtolower(str_replace('_', '-', (string) $key)) : '';
+                    $keySlug = strtolower((string) $key);
 
-                    if ($keySlug === $slug && filled($path)) {
+                    if ($keySlug === $requested && filled($path)) {
                         return '[[EMAIL_IMG|'.$path.']]';
                     }
                 }
