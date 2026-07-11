@@ -1,14 +1,14 @@
-import { initCanvasPdfReader, loadPdfDocument, isSafariBrowser } from './pdf-reader.js';
-import { loadLegacyPdfDocument } from './pdf-reader-legacy.js';
-
-function initPreview(root) {
+async function initPreview(root) {
     if (root.dataset.initialized === 'true') {
         return;
     }
 
     root.dataset.initialized = 'true';
 
+    const { initCanvasPdfReader, loadPdfDocument, isSafariBrowser } = await import('./pdf-reader.js');
+
     if (isSafariBrowser()) {
+        const { loadLegacyPdfDocument } = await import('./pdf-reader-legacy.js');
         initCanvasPdfReader(root, loadLegacyPdfDocument);
         return;
     }
