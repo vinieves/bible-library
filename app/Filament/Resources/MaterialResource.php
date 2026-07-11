@@ -111,6 +111,27 @@ class MaterialResource extends Resource
                             ->default(0),
                     ])
                     ->columns(2),
+                Section::make('Página de venta (Upsell)')
+                    ->visible(fn (Get $get) => (bool) $get('is_upsell'))
+                    ->schema([
+                        TextInput::make('upsell_title')
+                            ->label('Título del popup')
+                            ->maxLength(255)
+                            ->helperText('Si está vacío, usa el título del material.'),
+                        Textarea::make('upsell_subtitle')
+                            ->label('Subtítulo del popup')
+                            ->rows(3)
+                            ->helperText('Si está vacío, usa la descripción corta del material.'),
+                        FileUpload::make('upsell_gallery')
+                            ->label('Imágenes/GIFs/Vídeos (lo que la persona va a recibir)')
+                            ->acceptedFileTypes(['image/*', 'video/*'])
+                            ->multiple()
+                            ->reorderable()
+                            ->disk('public')
+                            ->directory('materials-upsell')
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(2),
                 Section::make('Arquivos')
                     ->schema([
                         FileUpload::make('cover_image')

@@ -28,6 +28,9 @@ class Material extends Model
         'is_upsell',
         'external_checkout_url',
         'hotmart_product_code',
+        'upsell_title',
+        'upsell_subtitle',
+        'upsell_gallery',
     ];
 
     protected function casts(): array
@@ -38,6 +41,7 @@ class Material extends Model
             'sort_order' => 'integer',
             'pdf_page_count' => 'integer',
             'is_upsell' => 'boolean',
+            'upsell_gallery' => 'array',
         ];
     }
 
@@ -102,5 +106,12 @@ class Material extends Model
         }
 
         return null;
+    }
+
+    public function upsellGalleryUrls(): array
+    {
+        return collect($this->upsell_gallery ?? [])
+            ->map(fn (string $path) => Storage::disk('public')->url($path))
+            ->all();
     }
 }
