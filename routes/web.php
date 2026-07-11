@@ -5,6 +5,7 @@ use App\Http\Controllers\Members\AudioController;
 use App\Http\Controllers\Members\DashboardController;
 use App\Http\Controllers\Members\ForumController;
 use App\Http\Controllers\Members\LibraryController;
+use App\Http\Controllers\Members\MaterialCheckoutController;
 use App\Http\Controllers\Members\MaterialController;
 use App\Http\Controllers\Members\MaterialPdfController;
 use App\Http\Controllers\Members\ProgressController;
@@ -51,6 +52,9 @@ Route::middleware('auth')->prefix('mi-biblioteca')->name('members.')->group(func
     Route::get('/materiales/{material}/pdf', [MaterialPdfController::class, 'stream'])->name('materials.pdf.stream');
     Route::get('/materiales/{material}/descargar', [MaterialPdfController::class, 'download'])->name('materials.pdf.download');
     Route::post('/materiales/{material}/estudiado', [MaterialController::class, 'toggleStudied'])->name('materials.toggle-studied');
+    Route::get('/materiales/{material}/comprar', [MaterialCheckoutController::class, 'redirect'])->name('materials.checkout.redirect');
+    Route::get('/materiales/{material}/verificar-acceso', [MaterialCheckoutController::class, 'checkAccess'])->name('materials.checkout.check-access');
+    Route::get('/confirmando-pago', [MaterialCheckoutController::class, 'pending'])->name('materials.checkout.pending');
     Route::get('/comunidad', [ForumController::class, 'index'])->name('forum.index');
     Route::get('/comunidad/{forumPost}/audio', [ForumController::class, 'streamAudio'])->name('forum.audio');
     Route::post('/comunidad/{forumPost}/reaccionar', [ForumController::class, 'react'])->name('forum.react');

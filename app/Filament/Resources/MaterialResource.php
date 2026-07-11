@@ -15,8 +15,10 @@ use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
@@ -74,14 +76,20 @@ class MaterialResource extends Resource
                             ->label('Tipo')
                             ->options(collect(MaterialType::cases())->mapWithKeys(fn ($type) => [$type->value => $type->label()]))
                             ->required(),
+                        Toggle::make('is_upsell')
+                            ->label('Upsell (bloqueado até compra específica)')
+                            ->live()
+                            ->default(false)
+                            ->helperText('Desativado: livre pra qualquer usuário logado. Ativado: só libera pra quem tiver o plano selecionado abaixo (ligado a um produto/checkout específico da Hotmart).'),
                         Select::make('plan_id')
                             ->label('Plano necessário')
-                            ->relationship('plan', 'name', fn ($query) => $query->where('slug', 'completo'))
+                            ->relationship('plan', 'name')
                             ->default(fn () => \App\Models\Plan::query()->where('slug', 'completo')->value('id'))
                             ->searchable()
                             ->preload()
                             ->required()
-                            ->helperText('Todo conteúdo de cliente usa o Plan Completo.'),
+                            ->visible(fn (Get $get) => (bool) $get('is_upsell'))
+                            ->helperText('O plano concedido ao comprar o produto Hotmart ligado a este material.'),
                         Select::make('status')
                             ->label('Status')
                             ->options(collect(MaterialStatus::cases())->mapWithKeys(fn ($status) => [$status->value => $status->label()]))

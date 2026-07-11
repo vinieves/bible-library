@@ -89,7 +89,15 @@ class User extends Authenticatable implements FilamentUser
 
     public function hasAccessToMaterial(Material $material): bool
     {
-        return $this->hasCustomerAccess();
+        if ($this->is_admin) {
+            return true;
+        }
+
+        if (! $material->is_upsell) {
+            return true;
+        }
+
+        return $material->plan ? $this->hasPlan($material->plan) : $this->hasPlan('completo');
     }
 
     public function hasAccessToAudioTrack(AudioTrack $track): bool

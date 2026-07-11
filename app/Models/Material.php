@@ -25,6 +25,7 @@ class Material extends Model
         'content',
         'status',
         'sort_order',
+        'is_upsell',
     ];
 
     protected function casts(): array
@@ -34,6 +35,7 @@ class Material extends Model
             'status' => MaterialStatus::class,
             'sort_order' => 'integer',
             'pdf_page_count' => 'integer',
+            'is_upsell' => 'boolean',
         ];
     }
 

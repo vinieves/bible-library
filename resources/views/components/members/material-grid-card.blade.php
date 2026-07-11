@@ -18,7 +18,7 @@
 <a
     href="{{ $href }}"
     class="group block"
-    @click="if (selectMode) { $event.preventDefault(); @if($canPrint) toggleSelected({{ $material->id }}, @js($printUrl)); @endif }"
+    @click="if (selectMode) { $event.preventDefault(); @if($canPrint) toggleSelected({{ $material->id }}, @js($printUrl)); @endif } @if(! $hasAccess) else { $event.preventDefault(); $dispatch('open-modal', 'upsell-{{ $material->id }}'); } @endif"
 >
     <div class="relative aspect-[3/4] overflow-hidden rounded-2xl border border-line bg-cream shadow-sm transition duration-200 group-hover:-translate-y-0.5 group-hover:shadow-md">
         @if($coverUrl)
@@ -56,3 +56,7 @@
     </div>
     <p class="mt-2 truncate font-ui text-sm font-medium text-ink">{{ $material->title }}</p>
 </a>
+
+@if(! $hasAccess)
+    <x-members.upsell-modal :material="$material" />
+@endif

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Members;
 
 use App\Http\Controllers\Controller;
 use App\Models\Material;
-use App\Models\Setting;
 use App\Models\UserMaterialProgress;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -40,7 +39,6 @@ class MaterialController extends Controller
         if (! $user->hasAccessToMaterial($material)) {
             return view('members.materials.locked', [
                 'material' => $material,
-                'checkoutUrl' => Setting::get('checkout_completo_url'),
             ]);
         }
 
