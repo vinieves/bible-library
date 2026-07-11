@@ -34,7 +34,7 @@
             class="bible-reader space-y-4"
             @click.outside="bookOpen = false"
         >
-            <p class="text-sm text-tan">Elija un libro y un capítulo para leer la explicación.</p>
+            <p class="font-display text-2xl font-bold text-ink">Elija un libro escribiéndolo o haciendo clic en su portada abajo.</p>
 
             <template x-if="loadError">
                 <div class="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-4 text-sm text-ink" x-text="loadError"></div>
@@ -134,6 +134,25 @@
                 </div>
             </section>
 
+            {{-- Atalho: capas de libros --}}
+            <div class="grid grid-cols-4 gap-2">
+                @foreach(config('bible.books') as $abbr => $name)
+                    <button
+                        type="button"
+                        class="group overflow-hidden rounded-xl border border-tan/20 bg-cream/5 text-left"
+                        @click="const b = books.find(x => x.abbr === '{{ $abbr }}'); if (b) { selectBook(b); selectChapter(1); $refs.versesSection.scrollIntoView({ behavior: 'smooth', block: 'start' }); }"
+                    >
+                        <img
+                            src="{{ asset('images/capas-livros/' . strtolower($abbr) . '.jpg') }}"
+                            alt="{{ $name }}"
+                            class="aspect-[3/2] w-full object-cover transition group-hover:scale-105"
+                            loading="lazy"
+                        >
+                        <span class="block truncate px-1.5 py-1 text-center text-xs font-medium text-ink">{{ $name }}</span>
+                    </button>
+                @endforeach
+            </div>
+
             {{-- Resultados de búsqueda / tópico --}}
             <section x-show="searchResults" x-cloak class="bible-reader-card">
                 <div class="bible-reader-card-head bible-reader-card-head-split">
@@ -207,7 +226,7 @@
             </section>
 
             {{-- Paso 2: lista de versículos --}}
-            <section class="bible-reader-card">
+            <section class="bible-reader-card" x-ref="versesSection">
                 <div class="bible-reader-card-head">
                     <span class="bible-reader-step">2</span>
                     <div>

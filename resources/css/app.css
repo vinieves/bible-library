@@ -650,7 +650,7 @@
     }
 
     .bible-reader-verse-label {
-        @apply font-ui text-xs font-medium text-brown;
+        @apply font-ui text-xs font-bold text-brown;
     }
 
     .bible-reader-verse-preview {
