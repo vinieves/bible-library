@@ -96,6 +96,18 @@ class MaterialPdfController extends Controller
         );
     }
 
+    public function previewStream(Material $material): BinaryFileResponse
+    {
+        $this->authorizePreview($material);
+
+        $absolutePath = Storage::disk('private')->path($material->preview_pdf_path);
+
+        return response()->file($absolutePath, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$this->downloadFilename($material).'"',
+        ]);
+    }
+
     private function authorizePdf(Material $material): void
     {
         if (! $material->isPublished() || ! $material->hasPdf()) {
@@ -104,6 +116,13 @@ class MaterialPdfController extends Controller
 
         if (! Auth::user()->hasAccessToMaterial($material)) {
             abort(403);
+        }
+    }
+
+    private function authorizePreview(Material $material): void
+    {
+        if (! $material->isPublished() || ! $material->hasPreviewPdf()) {
+            abort(404);
         }
     }
 

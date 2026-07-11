@@ -4,7 +4,7 @@ import { loadLegacyPdfDocument } from './pdf-reader-legacy.js';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
-function isSafariBrowser() {
+export function isSafariBrowser() {
     const ua = navigator.userAgent || '';
 
     if (/CriOS|FxiOS|EdgiOS|OPiOS|mercury/i.test(ua)) {
@@ -136,7 +136,7 @@ function createSharedReaderState(root) {
     };
 }
 
-async function loadPdfDocument(pdfUrl) {
+export async function loadPdfDocument(pdfUrl) {
     const baseOptions = {
         url: pdfUrl,
         withCredentials: true,
@@ -156,7 +156,7 @@ async function loadPdfDocument(pdfUrl) {
     }
 }
 
-function initCanvasPdfReader(root, loadDocument) {
+export function initCanvasPdfReader(root, loadDocument) {
     const pdfUrl = root.dataset.pdfUrl;
     const canvasWrap = root.querySelector('[data-pdf-canvas-wrap]');
     const embed = root.querySelector('[data-pdf-embed]');
@@ -448,7 +448,8 @@ function initCanvasPdfReader(root, loadDocument) {
     loadDocument(pdfUrl)
         .then(async (doc) => {
             pdfDoc = doc;
-            state.totalPages = doc.numPages;
+            const maxPages = parseInt(root.dataset.maxPages || '0', 10);
+            state.totalPages = maxPages > 0 ? Math.min(doc.numPages, maxPages) : doc.numPages;
 
             if (state.totalPages > 0 && state.currentPage > state.totalPages) {
                 state.currentPage = state.totalPages;

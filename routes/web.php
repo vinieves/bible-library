@@ -51,6 +51,7 @@ Route::middleware('auth')->prefix('mi-biblioteca')->name('members.')->group(func
     Route::post('/materiales/{material}/progreso-lectura', [MaterialPdfController::class, 'saveReadingProgress'])->name('materials.pdf.progress');
     Route::get('/materiales/{material}/pdf', [MaterialPdfController::class, 'stream'])->name('materials.pdf.stream');
     Route::get('/materiales/{material}/descargar', [MaterialPdfController::class, 'download'])->name('materials.pdf.download');
+    Route::get('/materiales/{material}/vista-previa', [MaterialPdfController::class, 'previewStream'])->name('materials.pdf.preview');
     Route::post('/materiales/{material}/estudiado', [MaterialController::class, 'toggleStudied'])->name('materials.toggle-studied');
     Route::get('/materiales/{material}/comprar', [MaterialCheckoutController::class, 'redirect'])->name('materials.checkout.redirect');
     Route::get('/materiales/{material}/verificar-acceso', [MaterialCheckoutController::class, 'checkAccess'])->name('materials.checkout.check-access');

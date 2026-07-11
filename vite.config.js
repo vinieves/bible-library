@@ -9,6 +9,7 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/js/pdf-reader.js',
                 'resources/js/pdf-reader-legacy.js',
+                'resources/js/pdf-preview.js',
                 'resources/js/audio-player.js',
                 'resources/js/video-player.js',
                 'resources/js/forum.js',

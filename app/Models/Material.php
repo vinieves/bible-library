@@ -31,6 +31,7 @@ class Material extends Model
         'upsell_title',
         'upsell_subtitle',
         'upsell_gallery',
+        'preview_pdf_path',
     ];
 
     protected function casts(): array
@@ -83,6 +84,11 @@ class Material extends Model
     public function hasPdf(): bool
     {
         return $this->pdf_path && Storage::disk('private')->exists($this->pdf_path);
+    }
+
+    public function hasPreviewPdf(): bool
+    {
+        return $this->preview_pdf_path && Storage::disk('private')->exists($this->preview_pdf_path);
     }
 
     public function coverUrl(): ?string

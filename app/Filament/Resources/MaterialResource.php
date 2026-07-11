@@ -130,6 +130,13 @@ class MaterialResource extends Resource
                             ->disk('public')
                             ->directory('materials-upsell')
                             ->columnSpanFull(),
+                        FileUpload::make('preview_pdf_path')
+                            ->label('PDF de muestra')
+                            ->disk('private')
+                            ->directory('materials-preview-pdfs')
+                            ->acceptedFileTypes(['application/pdf'])
+                            ->columnSpanFull()
+                            ->helperText('Puede subir el PDF completo — el sistema solo permite leer las primeras 5 páginas dentro de la ventana emergente, sin opción de descargar ni abrir fuera de ella.'),
                     ])
                     ->columns(2),
                 Section::make('Arquivos')
