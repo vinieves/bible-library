@@ -69,18 +69,26 @@ class MaterialResource extends Resource
                         Select::make('category_id')
                             ->label('Categoria')
                             ->relationship('category', 'name')
-                            ->searchable()
-                            ->preload()
-                            ->required(),
+                            ->default(fn () => \App\Models\Category::query()->orderBy('id')->value('id'))
+                            ->required()
+                            ->hidden(),
                         Select::make('type')
                             ->label('Tipo')
                             ->options(collect(MaterialType::cases())->mapWithKeys(fn ($type) => [$type->value => $type->label()]))
-                            ->required(),
+                            ->default(MaterialType::Libro->value)
+                            ->required()
+                            ->hidden(),
                         Toggle::make('is_upsell')
                             ->label('Upsell (bloqueado até compra específica)')
                             ->live()
                             ->default(false)
                             ->helperText('Desativado: livre pra qualquer usuário logado. Ativado: só libera pra quem tiver o plano selecionado abaixo (ligado a um produto/checkout específico da Hotmart).'),
+                        TextInput::make('external_checkout_url')
+                            ->label('Link de checkout do Upsell')
+                            ->url()
+                            ->maxLength(500)
+                            ->visible(fn (Get $get) => (bool) $get('is_upsell'))
+                            ->helperText('Link direto da Hotmart pra este material. Para o acesso liberar sozinho após o pagamento, o produto correspondente também precisa existir em Produtos com o mesmo código.'),
                         Select::make('plan_id')
                             ->label('Plano necessário')
                             ->relationship('plan', 'name')

@@ -26,6 +26,7 @@ class Material extends Model
         'status',
         'sort_order',
         'is_upsell',
+        'external_checkout_url',
     ];
 
     protected function casts(): array

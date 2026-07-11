@@ -87,13 +87,13 @@ class ProductResource extends Resource
                     ->helperText('Novos produtos da Hotmart entram desligados. Ative apenas no Plan Completo principal.'),
                 Select::make('plan_id')
                     ->label('Plano que libera')
-                    ->relationship('plan', 'name', fn ($query) => $query->where('slug', 'completo'))
+                    ->relationship('plan', 'name')
                     ->default(fn () => \App\Models\Plan::query()->where('slug', 'completo')->value('id'))
                     ->searchable()
                     ->preload()
                     ->visible(fn (Get $get): bool => (bool) $get('grants_access'))
                     ->required(fn (Get $get): bool => (bool) $get('grants_access'))
-                    ->helperText('Usado apenas quando o produto libera acesso.'),
+                    ->helperText('Plan Completo, ou um plano específico de upsell criado em Planos.'),
                 Toggle::make('is_active')
                     ->label('Ativo')
                     ->default(true),
