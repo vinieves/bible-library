@@ -17,7 +17,6 @@ class MaterialCheckoutController extends Controller
         session(['pending_upsell_material_id' => $material->id]);
 
         $checkoutUrl = $material->external_checkout_url
-            ?? $material->plan?->products->where('is_active', true)->first()?->checkout_url
             ?? Setting::get('checkout_completo_url');
 
         if (! $checkoutUrl) {

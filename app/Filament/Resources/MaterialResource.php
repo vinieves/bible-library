@@ -78,26 +78,28 @@ class MaterialResource extends Resource
                             ->default(MaterialType::Libro->value)
                             ->required()
                             ->hidden(),
+                        Select::make('plan_id')
+                            ->label('Plano necessário')
+                            ->relationship('plan', 'name')
+                            ->default(fn () => \App\Models\Plan::query()->where('slug', 'completo')->value('id'))
+                            ->required()
+                            ->hidden(),
                         Toggle::make('is_upsell')
                             ->label('Upsell (bloqueado até compra específica)')
                             ->live()
                             ->default(false)
-                            ->helperText('Desativado: livre pra qualquer usuário logado. Ativado: só libera pra quem tiver o plano selecionado abaixo (ligado a um produto/checkout específico da Hotmart).'),
+                            ->helperText('Desativado: livre pra qualquer usuário logado. Ativado: só libera pra quem comprar esse material específico (sem depender de Plano).'),
                         TextInput::make('external_checkout_url')
                             ->label('Link de checkout do Upsell')
                             ->url()
                             ->maxLength(500)
                             ->visible(fn (Get $get) => (bool) $get('is_upsell'))
-                            ->helperText('Link direto da Hotmart pra este material. Para o acesso liberar sozinho após o pagamento, o produto correspondente também precisa existir em Produtos com o mesmo código.'),
-                        Select::make('plan_id')
-                            ->label('Plano necessário')
-                            ->relationship('plan', 'name')
-                            ->default(fn () => \App\Models\Plan::query()->where('slug', 'completo')->value('id'))
-                            ->searchable()
-                            ->preload()
-                            ->required()
+                            ->helperText('Link direto da Hotmart pra este material — é pra onde o botão "Desbloquear" leva.'),
+                        TextInput::make('hotmart_product_code')
+                            ->label('Código do produto na Hotmart')
+                            ->maxLength(255)
                             ->visible(fn (Get $get) => (bool) $get('is_upsell'))
-                            ->helperText('O plano concedido ao comprar o produto Hotmart ligado a este material.'),
+                            ->helperText('O ID/ucode/offer da Hotmart desse produto. É isso que o webhook usa pra saber que este material foi comprado e liberar automaticamente pra quem pagou.'),
                         Select::make('status')
                             ->label('Status')
                             ->options(collect(MaterialStatus::cases())->mapWithKeys(fn ($status) => [$status->value => $status->label()]))

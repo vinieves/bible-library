@@ -27,6 +27,7 @@ class Material extends Model
         'sort_order',
         'is_upsell',
         'external_checkout_url',
+        'hotmart_product_code',
     ];
 
     protected function casts(): array
@@ -53,6 +54,11 @@ class Material extends Model
     public function progress(): HasMany
     {
         return $this->hasMany(UserMaterialProgress::class);
+    }
+
+    public function unlocks(): HasMany
+    {
+        return $this->hasMany(MaterialUnlock::class);
     }
 
     public function scopePublished(Builder $query): Builder

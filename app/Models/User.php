@@ -41,6 +41,11 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(Purchase::class);
     }
 
+    public function materialUnlocks(): HasMany
+    {
+        return $this->hasMany(MaterialUnlock::class);
+    }
+
     public function materialProgress(): HasMany
     {
         return $this->hasMany(UserMaterialProgress::class);
@@ -97,7 +102,7 @@ class User extends Authenticatable implements FilamentUser
             return true;
         }
 
-        return $material->plan ? $this->hasPlan($material->plan) : $this->hasPlan('completo');
+        return $this->materialUnlocks()->where('material_id', $material->id)->exists();
     }
 
     public function hasAccessToAudioTrack(AudioTrack $track): bool

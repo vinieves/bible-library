@@ -7,6 +7,8 @@ use App\Enums\PurchaseStatus;
 use App\Enums\PurchaseWebhookAction;
 use App\Enums\WebhookPlatform;
 use App\Exceptions\WebhookProcessingException;
+use App\Models\Material;
+use App\Models\MaterialUnlock;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\User;
@@ -39,13 +41,18 @@ class PurchaseWebhookService
     {
         $product = $this->findProduct($data);
 
-        if (! $product->grantsAccess()) {
+        $materials = Material::query()
+            ->where('hotmart_product_code', $product->product_code)
+            ->where('is_upsell', true)
+            ->get();
+
+        if (! $product->grantsAccess() && $materials->isEmpty()) {
             return $this->acknowledgeFunnelPurchase($data, $platform);
         }
 
-        if (! $product->plan_id) {
+        if (! $product->plan_id && $materials->isEmpty()) {
             throw new WebhookProcessingException(
-                "Produto {$product->title} não possui plano vinculado."
+                "Produto {$product->title} não possui plano nem material vinculado."
             );
         }
 
@@ -60,7 +67,7 @@ class PurchaseWebhookService
             ];
         }
 
-        $result = DB::transaction(function () use ($data, $platform, $product, $existing) {
+        $result = DB::transaction(function () use ($data, $platform, $product, $existing, $materials) {
             $user = User::query()->firstOrCreate(
                 ['email' => $data->email],
                 [
@@ -73,13 +80,15 @@ class PurchaseWebhookService
                 $user->update(['name' => $data->name]);
             }
 
-            $user->plans()->syncWithoutDetaching([
-                $product->plan_id => [
-                    'granted_at' => now(),
-                    'expires_at' => null,
-                    'granted_by' => 'webhook:'.$platform->value,
-                ],
-            ]);
+            if ($product->plan_id) {
+                $user->plans()->syncWithoutDetaching([
+                    $product->plan_id => [
+                        'granted_at' => now(),
+                        'expires_at' => null,
+                        'granted_by' => 'webhook:'.$platform->value,
+                    ],
+                ]);
+            }
 
             $purchase = Purchase::query()->updateOrCreate(
                 [
@@ -107,6 +116,20 @@ class PurchaseWebhookService
                 ]
             );
 
+            foreach ($materials as $material) {
+                MaterialUnlock::query()->updateOrCreate(
+                    [
+                        'user_id' => $user->id,
+                        'material_id' => $material->id,
+                    ],
+                    [
+                        'purchase_id' => $purchase->id,
+                        'granted_at' => now(),
+                        'granted_by' => 'webhook:'.$platform->value,
+                    ]
+                );
+            }
+
             return [
                 'status' => 'processed',
                 'message' => 'Compra aprovada processada com sucesso.',
@@ -114,6 +137,7 @@ class PurchaseWebhookService
                 'user_id' => $user->id,
                 'product_id' => $product->id,
                 'plan_id' => $product->plan_id,
+                'material_ids' => $materials->pluck('id')->all(),
             ];
         });
 
