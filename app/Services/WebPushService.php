@@ -76,19 +76,23 @@ class WebPushService
 
             $failed++;
 
-            // Endpoint expirado/inexistente: remover para não tentar de novo.
-            if ($report->isSubscriptionExpired()) {
+            $expired = $report->isSubscriptionExpired();
+
+            // Registra toda falha com o motivo detalhado (status + corpo da resposta).
+            Log::warning('WebPush: falha ao enviar', [
+                'endpoint' => $report->getEndpoint(),
+                'expired' => $expired,
+                'reason' => $report->getReason(),
+                'status' => $report->getResponse()?->getStatusCode(),
+                'response' => $report->getResponseContent(),
+            ]);
+
+            // Endpoint expirado/inexistente (404/410): remover para não tentar de novo.
+            if ($expired) {
                 $hash = PushSubscription::hashEndpoint($report->getEndpoint());
                 $subscription = $byEndpointHash[$hash] ?? null;
                 $subscription?->delete();
-
-                continue;
             }
-
-            Log::warning('WebPush: falha ao enviar', [
-                'endpoint' => $report->getEndpoint(),
-                'reason' => $report->getReason(),
-            ]);
         }
 
         return ['sent' => $sent, 'failed' => $failed];
