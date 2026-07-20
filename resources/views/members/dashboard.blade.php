@@ -7,6 +7,8 @@
         <x-members.pwa-install />
     </div>
 
+    <x-members.app-onboarding />
+
     <x-members.dashboard-hero />
 
     <div class="mt-5 space-y-4">
