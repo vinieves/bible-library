@@ -8,7 +8,9 @@ use App\Services\PushNotificationService;
 use App\Services\WebPushService;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -17,6 +19,7 @@ use Filament\Schemas\Components\Form;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
 use Minishlink\WebPush\VAPID;
 use UnitEnum;
@@ -42,6 +45,9 @@ class ManagePushSettings extends Page
     {
         $this->form->fill([
             'vapid_subject' => Setting::get('vapid_subject', 'mailto:'.(Setting::get('support_email') ?: 'admin@example.com')),
+            'test_title' => Setting::get('push_test_title', 'Notificação de teste'),
+            'test_body' => Setting::get('push_test_body', 'Push funcionando! 🎉'),
+            'test_icon' => filled(Setting::get('push_test_icon')) ? [Setting::get('push_test_icon')] : [],
         ]);
     }
 
@@ -78,6 +84,27 @@ class ManagePushSettings extends Page
                             ->placeholder('mailto:contato@seudominio.com')
                             ->required(),
                     ]),
+                Section::make('Conteúdo do teste')
+                    ->description('Personalize o que é enviado nos botões "Enviar teste para mim" e "Testar". Clique em Salvar antes de testar.')
+                    ->schema([
+                        TextInput::make('test_title')
+                            ->label('Título')
+                            ->required()
+                            ->maxLength(80),
+                        Textarea::make('test_body')
+                            ->label('Mensagem')
+                            ->required()
+                            ->rows(2)
+                            ->maxLength(300),
+                        FileUpload::make('test_icon')
+                            ->label('Imagem (opcional)')
+                            ->image()
+                            ->disk('public')
+                            ->directory('push-test')
+                            ->imageEditor()
+                            ->maxSize(1024)
+                            ->helperText('Ideal quadrada (ex.: 192×192). Vazio = ícone padrão do app.'),
+                    ]),
                 Section::make('Dispositivos inscritos')
                     ->description('Quem ativou as notificações no app.')
                     ->schema([
@@ -102,11 +129,47 @@ class ManagePushSettings extends Page
         $data = $this->form->getState();
 
         Setting::set('vapid_subject', $data['vapid_subject'] ?? '');
+        Setting::set('push_test_title', $data['test_title'] ?? '');
+        Setting::set('push_test_body', $data['test_body'] ?? '');
+
+        $icon = $data['test_icon'] ?? [];
+        if (is_array($icon)) {
+            $icon = array_values($icon)[0] ?? '';
+        }
+        Setting::set('push_test_icon', $icon ?? '');
 
         Notification::make()
             ->title('Configuração salva')
             ->success()
             ->send();
+    }
+
+    /**
+     * Payload do teste, montado a partir do conteúdo salvo (título/mensagem/imagem).
+     *
+     * @return array<string, mixed>
+     */
+    private function testPayload(): array
+    {
+        return array_filter([
+            'title' => Setting::get('push_test_title') ?: 'Notificação de teste',
+            'body' => Setting::get('push_test_body') ?: 'Push funcionando! 🎉',
+            'icon' => $this->resolveIconUrl(Setting::get('push_test_icon')),
+            'url' => url('/mi-biblioteca'),
+        ], fn ($value) => $value !== null && $value !== '');
+    }
+
+    private function resolveIconUrl(?string $icon): ?string
+    {
+        if (blank($icon)) {
+            return null;
+        }
+
+        if (str_starts_with($icon, 'http://') || str_starts_with($icon, 'https://')) {
+            return $icon;
+        }
+
+        return url(Storage::disk('public')->url($icon));
     }
 
     /**
@@ -127,11 +190,7 @@ class ManagePushSettings extends Page
             return;
         }
 
-        $result = app(WebPushService::class)->sendMany([$subscription], [
-            'title' => 'Notificação de teste',
-            'body' => 'Push funcionando! 🎉',
-            'url' => url('/mi-biblioteca'),
-        ]);
+        $result = app(WebPushService::class)->sendMany([$subscription], $this->testPayload());
 
         if (($result['sent'] ?? 0) > 0) {
             Notification::make()
@@ -192,11 +251,7 @@ class ManagePushSettings extends Page
                         return;
                     }
 
-                    $result = app(PushNotificationService::class)->sendTestToUser($user, [
-                        'title' => 'Notificação de teste',
-                        'body' => 'Push funcionando! 🎉',
-                        'url' => url('/mi-biblioteca'),
-                    ]);
+                    $result = app(PushNotificationService::class)->sendTestToUser($user, $this->testPayload());
 
                     Notification::make()
                         ->title("Teste enviado ({$result['sent']} ok, {$result['failed']} falhas)")
