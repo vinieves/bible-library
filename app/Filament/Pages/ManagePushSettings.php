@@ -109,6 +109,47 @@ class ManagePushSettings extends Page
             ->send();
     }
 
+    /**
+     * Envia uma notificação de teste para um dispositivo inscrito específico.
+     * Chamado pelos botões da tabela de inscritos (wire:click).
+     */
+    public function sendTestToSubscription(int $subscriptionId): void
+    {
+        $subscription = PushSubscription::find($subscriptionId);
+
+        if (! $subscription) {
+            Notification::make()
+                ->title('Inscrição não encontrada')
+                ->body('Ela pode ter sido removida. Atualize a página.')
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        $result = app(WebPushService::class)->sendMany([$subscription], [
+            'title' => 'Notificação de teste',
+            'body' => 'Push funcionando! 🎉',
+            'url' => url('/mi-biblioteca'),
+        ]);
+
+        if (($result['sent'] ?? 0) > 0) {
+            Notification::make()
+                ->title('Teste enviado')
+                ->body($subscription->user?->name ?? 'Dispositivo anônimo')
+                ->success()
+                ->send();
+
+            return;
+        }
+
+        Notification::make()
+            ->title('Falha ao enviar')
+            ->body('Veja o motivo em storage/logs/laravel.log. Inscrições expiradas são removidas automaticamente.')
+            ->danger()
+            ->send();
+    }
+
     protected function getHeaderActions(): array
     {
         return [
