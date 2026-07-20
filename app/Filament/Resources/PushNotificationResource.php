@@ -12,6 +12,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -77,11 +78,14 @@ class PushNotificationResource extends Resource
                             ->url()
                             ->maxLength(500)
                             ->helperText('Para onde o usuário vai ao tocar na notificação. Vazio = abre o app.'),
-                        TextInput::make('icon')
-                            ->label('Ícone (URL, opcional)')
-                            ->url()
-                            ->maxLength(500)
-                            ->helperText('Vazio = usa o ícone padrão do app.'),
+                        FileUpload::make('icon')
+                            ->label('Ícone (imagem, opcional)')
+                            ->image()
+                            ->disk('public')
+                            ->directory('push-icons')
+                            ->imageEditor()
+                            ->maxSize(1024)
+                            ->helperText('Ideal quadrada (ex.: 192×192). Vazio = usa o ícone padrão do app.'),
                     ])
                     ->columns(1),
                 Section::make('Agendamento')

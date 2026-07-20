@@ -15,6 +15,7 @@ use Filament\Pages\Page;
 use Filament\Schemas\Components\EmbeddedSchema;
 use Filament\Schemas\Components\Form;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Illuminate\Support\HtmlString;
 use Minishlink\WebPush\VAPID;
@@ -76,6 +77,22 @@ class ManagePushSettings extends Page
                             ->label('Subject')
                             ->placeholder('mailto:contato@seudominio.com')
                             ->required(),
+                    ]),
+                Section::make('Dispositivos inscritos')
+                    ->description('Quem ativou as notificações no app.')
+                    ->schema([
+                        View::make('filament.pages.push-subscribers')
+                            ->viewData(fn (): array => [
+                                'subscriptions' => PushSubscription::with('user')
+                                    ->latest()
+                                    ->limit(200)
+                                    ->get(),
+                                'total' => PushSubscription::query()->count(),
+                                'distinctUsers' => PushSubscription::query()
+                                    ->whereNotNull('user_id')
+                                    ->distinct('user_id')
+                                    ->count('user_id'),
+                            ]),
                     ]),
             ]);
     }

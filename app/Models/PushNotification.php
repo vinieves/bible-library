@@ -5,6 +5,7 @@ namespace App\Models;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class PushNotification extends Model
 {
@@ -52,8 +53,27 @@ class PushNotification extends Model
             'title' => $this->title,
             'body' => $this->body,
             'url' => $this->url,
-            'icon' => $this->icon,
+            'icon' => $this->iconUrl(),
         ], fn ($value) => $value !== null && $value !== '');
+    }
+
+    /**
+     * Resolve o ícone para uma URL absoluta. Aceita tanto um caminho de arquivo
+     * enviado (disco public) quanto uma URL http(s) já completa (registros antigos).
+     */
+    public function iconUrl(): ?string
+    {
+        $icon = $this->icon;
+
+        if (blank($icon)) {
+            return null;
+        }
+
+        if (str_starts_with($icon, 'http://') || str_starts_with($icon, 'https://')) {
+            return $icon;
+        }
+
+        return url(Storage::disk('public')->url($icon));
     }
 
     /**
