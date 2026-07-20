@@ -44,6 +44,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->navigationGroups([
                 'Sistema',
+                'Notificações',
                 'Evolution API',
                 'E-mail',
                 'WhatsApp',

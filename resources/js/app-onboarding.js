@@ -34,6 +34,73 @@ function computeNotifDone() {
     return supportsNotifications() && Notification.permission === 'granted';
 }
 
+function getVapidPublicKey() {
+    const meta = document.querySelector('meta[name="vapid-public-key"]');
+    const key = meta ? meta.getAttribute('content') : '';
+
+    return key ? key.trim() : '';
+}
+
+// Converte a chave pública VAPID (base64url) para o Uint8Array que a
+// PushManager.subscribe() exige em applicationServerKey.
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const output = new Uint8Array(rawData.length);
+
+    for (let i = 0; i < rawData.length; i += 1) {
+        output[i] = rawData.charCodeAt(i);
+    }
+
+    return output;
+}
+
+// Garante que este dispositivo esteja inscrito no push e registrado no backend.
+// Idempotente: reaproveita a subscription existente do navegador se houver.
+async function ensurePushSubscription() {
+    if (!supportsNotifications() || Notification.permission !== 'granted') {
+        return;
+    }
+
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        return;
+    }
+
+    const vapidPublicKey = getVapidPublicKey();
+
+    if (!vapidPublicKey) {
+        return; // Chaves VAPID ainda não configuradas no admin.
+    }
+
+    try {
+        const registration = await navigator.serviceWorker.ready;
+        let subscription = await registration.pushManager.getSubscription();
+
+        if (!subscription) {
+            subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+            });
+        }
+
+        const csrf = document.querySelector('meta[name="csrf-token"]');
+
+        await fetch('/mi-biblioteca/push/subscribe', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrf ? csrf.getAttribute('content') : '',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify(subscription.toJSON()),
+        });
+    } catch (error) {
+        console.error('Error al registrar la suscripción push:', error);
+    }
+}
+
 function setupAppOnboarding() {
     const modal = document.querySelector('[data-onboarding-modal]');
 
@@ -188,6 +255,10 @@ function setupAppOnboarding() {
                 console.error('Error al solicitar permiso de notificaciones:', error);
             }
 
+            if (Notification.permission === 'granted') {
+                await ensurePushSubscription();
+            }
+
             renderNotifyState();
             hideIfComplete();
         });
@@ -211,3 +282,9 @@ function setupAppOnboarding() {
 }
 
 document.addEventListener('DOMContentLoaded', setupAppOnboarding);
+
+// Reinscreve quem já concedeu permissão antes desta feature (ou em outra sessão),
+// garantindo que o endpoint esteja registrado no backend.
+document.addEventListener('DOMContentLoaded', () => {
+    ensurePushSubscription();
+});

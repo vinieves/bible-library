@@ -116,6 +116,29 @@ else
     warn "supervisorctl não encontrado — reinicie o worker manualmente se usar filas."
 fi
 
+# --- Scheduler (cron) — necessário para notificações push agendadas/recorrentes ---
+# Instala, uma única vez e de forma idempotente, o cron do www-data que roda
+# `php artisan schedule:run` a cada minuto (dispara push:dispatch-scheduled).
+SCHED_USER="www-data"
+CRON_LINE="* * * * * cd $APP_DIR && php artisan schedule:run >> /dev/null 2>&1"
+if crontab -u "$SCHED_USER" -l 2>/dev/null | grep -Fq "artisan schedule:run"; then
+    log "Cron do scheduler já configurado."
+else
+    log "Instalando cron do scheduler (schedule:run a cada minuto)..."
+    if { crontab -u "$SCHED_USER" -l 2>/dev/null; echo "$CRON_LINE"; } | crontab -u "$SCHED_USER" -; then
+        log "Cron instalado para $SCHED_USER."
+    else
+        warn "Não foi possível instalar o cron automaticamente. Adicione manualmente ao crontab do $SCHED_USER:"
+        warn "  $CRON_LINE"
+    fi
+fi
+
+# Aviso sobre a extensão gmp (obrigatória para gerar/usar chaves VAPID do web push).
+if ! php -m | grep -qi '^gmp$'; then
+    warn "Extensão PHP 'gmp' ausente — o envio de push (VAPID) NÃO funcionará."
+    warn "Instale: apt install -y php8.3-gmp && systemctl restart php8.3-fpm"
+fi
+
 # --- Voltar ao ar ---
 log "Desativando modo manutenção..."
 php artisan up

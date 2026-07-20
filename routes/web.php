@@ -9,6 +9,7 @@ use App\Http\Controllers\Members\MaterialCheckoutController;
 use App\Http\Controllers\Members\MaterialController;
 use App\Http\Controllers\Members\MaterialPdfController;
 use App\Http\Controllers\Members\ProgressController;
+use App\Http\Controllers\Members\PushSubscriptionController;
 use App\Http\Controllers\Members\VideoController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
@@ -59,6 +60,8 @@ Route::middleware('auth')->prefix('mi-biblioteca')->name('members.')->group(func
     Route::get('/comunidad', [ForumController::class, 'index'])->name('forum.index');
     Route::get('/comunidad/{forumPost}/audio', [ForumController::class, 'streamAudio'])->name('forum.audio');
     Route::post('/comunidad/{forumPost}/reaccionar', [ForumController::class, 'react'])->name('forum.react');
+    Route::post('/push/subscribe', [PushSubscriptionController::class, 'store'])->name('push.subscribe');
+    Route::post('/push/unsubscribe', [PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
 });
 
 Route::middleware('auth')->group(function () {

@@ -163,11 +163,16 @@ apt install -y \
   php8.3-zip \
   php8.3-gd \
   php8.3-bcmath \
+  php8.3-gmp \
   php8.3-intl \
   php8.3-readline \
   php8.3-tokenizer \
   php8.3-fileinfo
 ```
+
+> **`php8.3-gmp` é obrigatório** para as notificações push (geração/uso das chaves VAPID).
+> Se o servidor já estava instalado sem ela, rode:
+> `apt install -y php8.3-gmp && systemctl restart php8.3-fpm`
 
 Confirme a versão:
 
@@ -643,6 +648,35 @@ supervisorctl update
 supervisorctl start bible-library-worker:*
 supervisorctl status
 ```
+
+### Scheduler (cron) — notificações push agendadas/recorrentes
+
+O envio **imediato** ("Enviar agora") já funciona só com o worker acima. Mas as
+notificações **agendadas** (data/hora) e **recorrentes** (diárias/semanais)
+dependem do agendador do Laravel rodando a cada minuto.
+
+O `deploy.sh` instala esse cron automaticamente (idempotente). Para configurar
+manualmente, adicione ao crontab do `www-data`:
+
+```bash
+crontab -u www-data -e
+```
+
+Cole a linha:
+
+```
+* * * * * cd /var/www/bible-library && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Confirme:
+
+```bash
+crontab -u www-data -l
+php artisan schedule:list
+```
+
+> Depois de configurar VAPID e cron, gere as chaves em
+> **Admin → Notificações → Configuração de Push → “Gerar chaves VAPID”**.
 
 ---
 
