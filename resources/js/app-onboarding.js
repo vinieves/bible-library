@@ -80,7 +80,11 @@ function setupAppOnboarding() {
                 notifyButton.classList.add('opacity-60');
             }
             if (notifySub) {
-                notifySub.textContent = 'No disponible en este navegador';
+                // En iOS la API de notificaciones solo existe cuando la app está
+                // instalada en la pantalla de inicio y abierta como app (standalone).
+                notifySub.textContent = (isIos() && !isStandalone())
+                    ? 'Primero agrega a inicio y abre la app'
+                    : 'No disponible en este navegador';
             }
             return;
         }
