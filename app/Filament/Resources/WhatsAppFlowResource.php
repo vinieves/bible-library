@@ -9,8 +9,8 @@ use App\Filament\Resources\WhatsAppFlowResource\Pages;
 use App\Filament\Support\FlowStepPreview;
 use App\Models\WhatsAppFlow;
 use App\Models\WhatsAppMessageTrigger;
-use App\Support\DateTimeFormat;
 use App\Services\WhatsAppFlowService;
+use App\Support\DateTimeFormat;
 use App\Support\EvolutionInstanceOptions;
 use App\Support\IntegrationSettings;
 use App\Support\WhatsAppFlowStepMedia;
@@ -18,6 +18,7 @@ use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Field;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
@@ -46,9 +47,9 @@ class WhatsAppFlowResource extends Resource
 {
     protected static ?string $model = WhatsAppFlow::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-arrows-right-left';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-arrows-right-left';
 
-    protected static string | UnitEnum | null $navigationGroup = 'WhatsApp';
+    protected static string|UnitEnum|null $navigationGroup = 'WhatsApp';
 
     protected static ?string $navigationLabel = 'Fluxos';
 
@@ -193,7 +194,7 @@ class WhatsAppFlowResource extends Resource
     }
 
     /**
-     * @return array<int, \Filament\Forms\Components\Field>
+     * @return array<int, Field>
      */
     public static function stepSchema(): array
     {

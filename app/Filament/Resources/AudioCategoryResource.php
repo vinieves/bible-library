@@ -23,9 +23,9 @@ class AudioCategoryResource extends Resource
 {
     protected static ?string $model = AudioCategory::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-tag';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-tag';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Áudio';
+    protected static string|UnitEnum|null $navigationGroup = 'Áudio';
 
     protected static ?string $navigationLabel = 'Categorias de áudio';
 

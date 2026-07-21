@@ -24,9 +24,9 @@ class EvolutionWebhookLogResource extends Resource
 {
     protected static ?string $model = EvolutionWebhookLog::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-inbox-arrow-down';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-inbox-arrow-down';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Evolution API';
+    protected static string|UnitEnum|null $navigationGroup = 'Evolution API';
 
     protected static ?string $navigationLabel = 'Webhooks Evolution';
 

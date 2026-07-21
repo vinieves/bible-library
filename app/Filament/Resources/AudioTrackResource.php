@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Enums\AudioTrackStatus;
 use App\Filament\Resources\AudioTrackResource\Pages;
 use App\Models\AudioTrack;
+use App\Models\Plan;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -30,9 +31,9 @@ class AudioTrackResource extends Resource
 {
     protected static ?string $model = AudioTrack::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-speaker-wave';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-speaker-wave';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Áudio';
+    protected static string|UnitEnum|null $navigationGroup = 'Áudio';
 
     protected static ?string $navigationLabel = 'Áudios';
 
@@ -93,7 +94,7 @@ class AudioTrackResource extends Resource
                     Select::make('required_plan_id')
                         ->label('Plano necessário')
                         ->relationship('requiredPlan', 'name', fn ($query) => $query->where('slug', 'completo'))
-                        ->default(fn () => \App\Models\Plan::query()->where('slug', 'completo')->value('id'))
+                        ->default(fn () => Plan::query()->where('slug', 'completo')->value('id'))
                         ->searchable()
                         ->preload()
                         ->helperText('Áudios pagos exigem o Plan Completo.'),

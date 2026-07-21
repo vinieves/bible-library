@@ -18,7 +18,7 @@ class ViewEvolutionRegistryContact extends ViewRecord
 {
     protected static string $resource = EvolutionRegistryContactResource::class;
 
-    protected function resolveRecord(int | string $key): Model
+    protected function resolveRecord(int|string $key): Model
     {
         return parent::resolveRecord($key)->loadMissing(['events.webhookLog']);
     }

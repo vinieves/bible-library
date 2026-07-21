@@ -21,9 +21,9 @@ class ForumPersonaResource extends Resource
 {
     protected static ?string $model = ForumPersona::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-user-circle';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-user-circle';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Comunidade';
+    protected static string|UnitEnum|null $navigationGroup = 'Comunidade';
 
     protected static ?string $navigationLabel = 'Personas';
 

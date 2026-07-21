@@ -25,9 +25,9 @@ class EvolutionRegistryContactResource extends Resource
 {
     protected static ?string $model = EvolutionRegistryContact::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-clipboard-document-list';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-list';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Sistema';
+    protected static string|UnitEnum|null $navigationGroup = 'Sistema';
 
     protected static ?string $navigationLabel = 'Registro Geral';
 

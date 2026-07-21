@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\WhatsAppFlowExecutionResource\Pages;
 
+use App\Enums\WhatsAppFlowExecutionLogStatus;
+use App\Enums\WhatsAppFlowStepType;
 use App\Filament\Resources\WhatsAppFlowExecutionResource;
 use App\Models\WhatsAppFlowExecution;
 use Filament\Resources\Pages\ViewRecord;
@@ -11,7 +13,7 @@ class ViewWhatsAppFlowExecution extends ViewRecord
 {
     protected static string $resource = WhatsAppFlowExecutionResource::class;
 
-    protected function resolveRecord(int | string $key): Model
+    protected function resolveRecord(int|string $key): Model
     {
         return parent::resolveRecord($key)->loadMissing(['flow', 'logs', 'user']);
     }
@@ -33,8 +35,8 @@ class ViewWhatsAppFlowExecution extends ViewRecord
         $lines = $record->logs
             ->sortBy('step_order')
             ->map(function ($log): string {
-                $type = \App\Enums\WhatsAppFlowStepType::tryFrom($log->step_type)?->label() ?? $log->step_type;
-                $status = $log->status instanceof \App\Enums\WhatsAppFlowExecutionLogStatus
+                $type = WhatsAppFlowStepType::tryFrom($log->step_type)?->label() ?? $log->step_type;
+                $status = $log->status instanceof WhatsAppFlowExecutionLogStatus
                     ? $log->status->label()
                     : (string) $log->status;
                 $http = $log->http_status ? "HTTP {$log->http_status}" : '—';

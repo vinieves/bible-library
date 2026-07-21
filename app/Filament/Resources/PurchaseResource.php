@@ -20,9 +20,9 @@ class PurchaseResource extends Resource
 {
     protected static ?string $model = Purchase::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-credit-card';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-credit-card';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Loja';
+    protected static string|UnitEnum|null $navigationGroup = 'Loja';
 
     protected static ?string $navigationLabel = 'Compras';
 

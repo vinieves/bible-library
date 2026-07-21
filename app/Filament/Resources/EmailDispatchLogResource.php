@@ -24,9 +24,9 @@ class EmailDispatchLogResource extends Resource
 {
     protected static ?string $model = EmailDispatchLog::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-inbox-arrow-down';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-inbox-arrow-down';
 
-    protected static string | UnitEnum | null $navigationGroup = 'E-mail';
+    protected static string|UnitEnum|null $navigationGroup = 'E-mail';
 
     protected static ?string $navigationLabel = 'Histórico';
 

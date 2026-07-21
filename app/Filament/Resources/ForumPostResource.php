@@ -29,9 +29,9 @@ class ForumPostResource extends Resource
 {
     protected static ?string $model = ForumPost::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-chat-bubble-left-right';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-chat-bubble-left-right';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Comunidade';
+    protected static string|UnitEnum|null $navigationGroup = 'Comunidade';
 
     protected static ?string $navigationLabel = 'Publicações';
 

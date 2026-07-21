@@ -10,7 +10,7 @@ class ViewWhatsAppDispatchLog extends ViewRecord
 {
     protected static string $resource = WhatsAppDispatchLogResource::class;
 
-    protected function resolveRecord(int | string $key): Model
+    protected function resolveRecord(int|string $key): Model
     {
         return parent::resolveRecord($key)->loadMissing('user');
     }

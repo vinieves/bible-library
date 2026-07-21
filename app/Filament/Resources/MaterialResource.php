@@ -5,7 +5,9 @@ namespace App\Filament\Resources;
 use App\Enums\MaterialStatus;
 use App\Enums\MaterialType;
 use App\Filament\Resources\MaterialResource\Pages;
+use App\Models\Category;
 use App\Models\Material;
+use App\Models\Plan;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -33,9 +35,9 @@ class MaterialResource extends Resource
 {
     protected static ?string $model = Material::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-book-open';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-book-open';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Conteúdo';
+    protected static string|UnitEnum|null $navigationGroup = 'Conteúdo';
 
     protected static ?string $navigationLabel = 'Materiais';
 
@@ -69,7 +71,7 @@ class MaterialResource extends Resource
                         Select::make('category_id')
                             ->label('Categoria')
                             ->relationship('category', 'name')
-                            ->default(fn () => \App\Models\Category::query()->orderBy('id')->value('id'))
+                            ->default(fn () => Category::query()->orderBy('id')->value('id'))
                             ->required()
                             ->hidden(),
                         Select::make('type')
@@ -81,7 +83,7 @@ class MaterialResource extends Resource
                         Select::make('plan_id')
                             ->label('Plano necessário')
                             ->relationship('plan', 'name')
-                            ->default(fn () => \App\Models\Plan::query()->where('slug', 'completo')->value('id'))
+                            ->default(fn () => Plan::query()->where('slug', 'completo')->value('id'))
                             ->required()
                             ->hidden(),
                         Toggle::make('is_upsell')

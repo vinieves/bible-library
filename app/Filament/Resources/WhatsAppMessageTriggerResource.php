@@ -24,9 +24,9 @@ class WhatsAppMessageTriggerResource extends Resource
 {
     protected static ?string $model = WhatsAppMessageTrigger::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-bolt';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-bolt';
 
-    protected static string | UnitEnum | null $navigationGroup = 'WhatsApp';
+    protected static string|UnitEnum|null $navigationGroup = 'WhatsApp';
 
     protected static ?string $navigationLabel = 'Gatilhos';
 

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductResource\Pages;
+use App\Models\Plan;
 use App\Models\Product;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -28,9 +29,9 @@ class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-shopping-bag';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-shopping-bag';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Loja';
+    protected static string|UnitEnum|null $navigationGroup = 'Loja';
 
     protected static ?string $navigationLabel = 'Produtos internos';
 
@@ -88,7 +89,7 @@ class ProductResource extends Resource
                 Select::make('plan_id')
                     ->label('Plano que libera')
                     ->relationship('plan', 'name')
-                    ->default(fn () => \App\Models\Plan::query()->where('slug', 'completo')->value('id'))
+                    ->default(fn () => Plan::query()->where('slug', 'completo')->value('id'))
                     ->searchable()
                     ->preload()
                     ->visible(fn (Get $get): bool => (bool) $get('grants_access'))

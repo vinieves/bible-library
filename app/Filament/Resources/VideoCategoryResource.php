@@ -23,9 +23,9 @@ class VideoCategoryResource extends Resource
 {
     protected static ?string $model = VideoCategory::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-tag';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-tag';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Vídeo';
+    protected static string|UnitEnum|null $navigationGroup = 'Vídeo';
 
     protected static ?string $navigationLabel = 'Categorias de vídeo';
 

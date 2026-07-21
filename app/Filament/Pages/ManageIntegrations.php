@@ -23,9 +23,9 @@ use UnitEnum;
 
 class ManageIntegrations extends Page
 {
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-link';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-link';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Sistema';
+    protected static string|UnitEnum|null $navigationGroup = 'Sistema';
 
     protected static ?string $navigationLabel = 'Integrações API';
 

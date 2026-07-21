@@ -24,9 +24,9 @@ class PlanResource extends Resource
 {
     protected static ?string $model = Plan::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-shield-check';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-shield-check';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Usuários e acesso';
+    protected static string|UnitEnum|null $navigationGroup = 'Usuários e acesso';
 
     protected static ?string $navigationLabel = 'Planos';
 

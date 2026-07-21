@@ -24,9 +24,9 @@ class MaterialUnlockResource extends Resource
 {
     protected static ?string $model = MaterialUnlock::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-lock-open';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-lock-open';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Conteúdo';
+    protected static string|UnitEnum|null $navigationGroup = 'Conteúdo';
 
     protected static ?string $navigationLabel = 'Upsell';
 

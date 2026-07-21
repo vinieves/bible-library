@@ -31,9 +31,9 @@ class PushNotificationResource extends Resource
 {
     protected static ?string $model = PushNotification::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-bell-alert';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-bell-alert';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Notificações';
+    protected static string|UnitEnum|null $navigationGroup = 'Notificações';
 
     protected static ?string $navigationLabel = 'Notificações';
 

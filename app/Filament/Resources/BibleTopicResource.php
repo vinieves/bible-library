@@ -23,9 +23,9 @@ class BibleTopicResource extends Resource
 {
     protected static ?string $model = BibleTopic::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-tag';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-tag';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Conteúdo';
+    protected static string|UnitEnum|null $navigationGroup = 'Conteúdo';
 
     protected static ?string $navigationLabel = 'Tópicos bíblicos';
 

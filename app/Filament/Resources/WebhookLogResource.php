@@ -24,9 +24,9 @@ class WebhookLogResource extends Resource
 {
     protected static ?string $model = WebhookLog::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-signal';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-signal';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Sistema';
+    protected static string|UnitEnum|null $navigationGroup = 'Sistema';
 
     protected static ?string $navigationLabel = 'Logs de webhook';
 

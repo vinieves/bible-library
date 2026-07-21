@@ -33,9 +33,9 @@ use UnitEnum;
 
 class ManageEmails extends Page
 {
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-paper-airplane';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-paper-airplane';
 
-    protected static string | UnitEnum | null $navigationGroup = 'E-mail';
+    protected static string|UnitEnum|null $navigationGroup = 'E-mail';
 
     protected static ?string $navigationLabel = 'Disparos';
 

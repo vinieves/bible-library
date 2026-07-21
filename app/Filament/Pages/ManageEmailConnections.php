@@ -22,9 +22,9 @@ use UnitEnum;
 
 class ManageEmailConnections extends Page
 {
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-envelope';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-envelope';
 
-    protected static string | UnitEnum | null $navigationGroup = 'E-mail';
+    protected static string|UnitEnum|null $navigationGroup = 'E-mail';
 
     protected static ?string $navigationLabel = 'Conexões';
 

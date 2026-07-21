@@ -15,9 +15,9 @@ class UserAudioProgressResource extends Resource
 {
     protected static ?string $model = UserAudioProgress::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-chart-bar';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-chart-bar';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Áudio';
+    protected static string|UnitEnum|null $navigationGroup = 'Áudio';
 
     protected static ?string $navigationLabel = 'Progresso de áudio';
 

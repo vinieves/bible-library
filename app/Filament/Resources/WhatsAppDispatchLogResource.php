@@ -24,9 +24,9 @@ class WhatsAppDispatchLogResource extends Resource
 {
     protected static ?string $model = WhatsAppDispatchLog::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-chat-bubble-left-right';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-chat-bubble-left-right';
 
-    protected static string | UnitEnum | null $navigationGroup = 'WhatsApp';
+    protected static string|UnitEnum|null $navigationGroup = 'WhatsApp';
 
     protected static ?string $navigationLabel = 'Disparos WhatsApp';
 

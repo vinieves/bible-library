@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enums\VideoStatus;
 use App\Filament\Resources\VideoResource\Pages;
+use App\Models\Plan;
 use App\Models\Video;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -30,9 +31,9 @@ class VideoResource extends Resource
 {
     protected static ?string $model = Video::class;
 
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-video-camera';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-video-camera';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Vídeo';
+    protected static string|UnitEnum|null $navigationGroup = 'Vídeo';
 
     protected static ?string $navigationLabel = 'Vídeos';
 
@@ -92,7 +93,7 @@ class VideoResource extends Resource
                     Select::make('required_plan_id')
                         ->label('Plano necessário')
                         ->relationship('requiredPlan', 'name', fn ($query) => $query->where('slug', 'completo'))
-                        ->default(fn () => \App\Models\Plan::query()->where('slug', 'completo')->value('id'))
+                        ->default(fn () => Plan::query()->where('slug', 'completo')->value('id'))
                         ->searchable()
                         ->preload()
                         ->helperText('Vídeos premium exigem o Plan Completo.'),

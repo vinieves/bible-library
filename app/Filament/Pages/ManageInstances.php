@@ -20,9 +20,9 @@ use UnitEnum;
 
 class ManageInstances extends Page
 {
-    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-device-phone-mobile';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-device-phone-mobile';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Evolution API';
+    protected static string|UnitEnum|null $navigationGroup = 'Evolution API';
 
     protected static ?string $navigationLabel = 'Instâncias';
 

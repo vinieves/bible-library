@@ -18,7 +18,7 @@ class EditWhatsAppFlow extends EditRecord
 
     private static bool $flowAccordionHookRegistered = false;
 
-    public function mount(int | string $record): void
+    public function mount(int|string $record): void
     {
         parent::mount($record);
 
