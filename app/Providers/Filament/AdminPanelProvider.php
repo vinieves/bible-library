@@ -44,6 +44,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->navigationGroups([
                 'Sistema',
+                'Usuários e acesso',
                 'Notificações',
                 'Evolution API',
                 'E-mail',
@@ -53,7 +54,6 @@ class AdminPanelProvider extends PanelProvider
                 'Conteúdo',
                 'Comunidade',
                 'Loja',
-                'Usuários e acesso',
             ])
             ->middleware([
                 EncryptCookies::class,

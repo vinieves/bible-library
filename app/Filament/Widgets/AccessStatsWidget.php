@@ -2,6 +2,8 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Resources\LoginLogResource;
+use App\Filament\Resources\UserResource;
 use App\Models\LoginLog;
 use App\Models\Session;
 use App\Models\User;
@@ -10,7 +12,7 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class AccessStatsWidget extends StatsOverviewWidget
 {
-    protected ?string $pollingInterval = '60s';
+    protected static bool $isLazy = false;
 
     public static function isDiscovered(): bool
     {
@@ -39,21 +41,30 @@ class AccessStatsWidget extends StatsOverviewWidget
 
         return [
             Stat::make('Online agora', $onlineNow)
-                ->description('Usuários ativos nos últimos 5 minutos')
+                ->description('Usuários ativos nos últimos 5 minutos (lista abaixo)')
                 ->descriptionIcon('heroicon-m-signal')
                 ->color('success'),
             Stat::make('Logins hoje', $loginsToday)
-                ->description('Total de acessos de hoje')
+                ->description('Ver quem logou hoje')
                 ->descriptionIcon('heroicon-m-arrow-right-on-rectangle')
-                ->color('info'),
+                ->color('info')
+                ->url(LoginLogResource::getUrl('index', [
+                    'tableFilters' => ['period' => ['value' => 'today']],
+                ])),
             Stat::make('Novos cadastros (7 dias)', $newUsers7d)
-                ->description('Usuários registrados na última semana')
+                ->description('Ver cadastros recentes')
                 ->descriptionIcon('heroicon-m-user-plus')
-                ->color('primary'),
+                ->color('primary')
+                ->url(UserResource::getUrl('index', [
+                    'tableFilters' => ['login_status' => ['value' => 'new7']],
+                ])),
             Stat::make('Usuários sumidos (30 dias+)', $dormant30d)
-                ->description('Sem login há mais de 30 dias')
+                ->description('Ver sumidos e quem nunca logou')
                 ->descriptionIcon('heroicon-m-moon')
-                ->color('warning'),
+                ->color('warning')
+                ->url(UserResource::getUrl('index', [
+                    'tableFilters' => ['login_status' => ['value' => 'dormant']],
+                ])),
         ];
     }
 }

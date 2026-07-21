@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
+use App\Support\DateTimeFormat;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -16,6 +17,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use UnitEnum;
@@ -95,6 +97,14 @@ class UserResource extends Resource
                     ->label('Planos')
                     ->badge()
                     ->limitList(3),
+                TextColumn::make('last_login_at')
+                    ->label('Último acesso')
+                    ->formatStateUsing(fn ($state) => $state
+                        ? DateTimeFormat::display($state instanceof \DateTimeInterface ? $state : null, 'd/m/Y H:i')
+                        : 'Nunca')
+                    ->badge(fn ($state) => blank($state))
+                    ->color(fn ($state) => blank($state) ? 'warning' : null)
+                    ->sortable(),
                 TextColumn::make('created_at')
                     ->label('Cadastro')
                     ->dateTime('d/m/Y')
@@ -104,6 +114,26 @@ class UserResource extends Resource
             ->filters([
                 TernaryFilter::make('is_admin')
                     ->label('Administrador'),
+                SelectFilter::make('login_status')
+                    ->label('Situação de login')
+                    ->options([
+                        'dormant' => 'Sumidos (30 dias+ ou nunca)',
+                        'never' => 'Nunca logaram',
+                        'active7' => 'Ativos (últimos 7 dias)',
+                        'new7' => 'Cadastrados nos últimos 7 dias',
+                    ])
+                    ->query(function ($query, array $data) {
+                        return match ($data['value'] ?? null) {
+                            'dormant' => $query->where('is_admin', false)
+                                ->where(fn ($q) => $q->whereNull('last_login_at')
+                                    ->orWhere('last_login_at', '<', now()->subDays(30))),
+                            'never' => $query->where('is_admin', false)
+                                ->whereNull('last_login_at'),
+                            'active7' => $query->where('last_login_at', '>=', now()->subDays(7)),
+                            'new7' => $query->where('created_at', '>=', now()->subDays(7)),
+                            default => $query,
+                        };
+                    }),
             ])
             ->recordActions([
                 EditAction::make(),

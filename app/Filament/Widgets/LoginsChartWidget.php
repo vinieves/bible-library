@@ -11,6 +11,8 @@ class LoginsChartWidget extends ChartWidget
 
     protected int|string|array $columnSpan = 'full';
 
+    protected static bool $isLazy = false;
+
     public static function isDiscovered(): bool
     {
         return false;

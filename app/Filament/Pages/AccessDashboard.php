@@ -34,9 +34,9 @@ class AccessDashboard extends Page
     {
         return [
             AccessStatsWidget::class,
-            LoginsChartWidget::class,
-            TopLoggersWidget::class,
             OnlineUsersWidget::class,
+            TopLoggersWidget::class,
+            LoginsChartWidget::class,
         ];
     }
 
@@ -44,7 +44,7 @@ class AccessDashboard extends Page
     {
         return $schema
             ->components([
-                Grid::make(2)
+                Grid::make(1)
                     ->schema(fn (): array => $this->getWidgetsSchemaComponents($this->getWidgets())),
             ]);
     }

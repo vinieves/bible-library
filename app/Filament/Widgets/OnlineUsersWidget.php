@@ -12,7 +12,9 @@ use Illuminate\Support\Str;
 
 class OnlineUsersWidget extends TableWidget
 {
-    protected int|string|array $columnSpan = 1;
+    protected int|string|array $columnSpan = 'full';
+
+    protected static bool $isLazy = false;
 
     public static function isDiscovered(): bool
     {
@@ -33,9 +35,14 @@ class OnlineUsersWidget extends TableWidget
                 TextColumn::make('user.name')
                     ->label('Usuário')
                     ->placeholder('—'),
+                TextColumn::make('user.email')
+                    ->label('E-mail')
+                    ->copyable()
+                    ->placeholder('—'),
                 TextColumn::make('ip_address')
                     ->label('IP')
-                    ->placeholder('—'),
+                    ->placeholder('—')
+                    ->toggleable(),
                 TextColumn::make('user_agent')
                     ->label('Dispositivo')
                     ->formatStateUsing(fn (?string $state) => static::deviceLabel($state))
@@ -47,7 +54,7 @@ class OnlineUsersWidget extends TableWidget
                         'd/m/Y H:i',
                     )),
             ])
-            ->poll('60s')
+            ->poll('30s')
             ->paginated([10, 25]);
     }
 

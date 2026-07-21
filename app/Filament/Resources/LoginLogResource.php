@@ -121,13 +121,24 @@ class LoginLogResource extends Resource
                 SelectFilter::make('period')
                     ->label('Período')
                     ->options([
+                        'today' => 'Hoje',
                         '7' => 'Últimos 7 dias',
                         '30' => 'Últimos 30 dias',
                         '90' => 'Últimos 90 dias',
                     ])
-                    ->query(fn ($query, array $data) => filled($data['value'] ?? null)
-                        ? $query->where('created_at', '>=', now()->subDays((int) $data['value']))
-                        : $query),
+                    ->query(function ($query, array $data) {
+                        $value = $data['value'] ?? null;
+
+                        if (blank($value)) {
+                            return $query;
+                        }
+
+                        if ($value === 'today') {
+                            return $query->whereDate('created_at', today());
+                        }
+
+                        return $query->where('created_at', '>=', now()->subDays((int) $value));
+                    }),
                 Filter::make('has_user')
                     ->label('Somente com usuário identificado')
                     ->query(fn ($query) => $query->whereNotNull('user_id')),
