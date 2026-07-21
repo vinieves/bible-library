@@ -2,7 +2,7 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\LoginLog;
+use App\Models\User;
 use App\Support\DateTimeFormat;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -25,19 +25,23 @@ class TopLoggersWidget extends TableWidget
         return $table
             ->heading('Quem mais loga (30 dias)')
             ->query(
-                LoginLog::query()
-                    ->selectRaw('MIN(id) as id, user_id, COUNT(*) as total, MAX(created_at) as last_login')
-                    ->where('created_at', '>=', now()->subDays(30))
-                    ->whereNotNull('user_id')
-                    ->groupBy('user_id')
-                    ->with('user'),
+                // Base na tabela users e agrega por users.id (chave primária):
+                // válido no MySQL only_full_group_by e o desempate do Filament
+                // (order by users.id) fica dentro do GROUP BY.
+                User::query()
+                    ->join('login_logs', 'login_logs.user_id', '=', 'users.id')
+                    ->where('login_logs.created_at', '>=', now()->subDays(30))
+                    ->groupBy('users.id')
+                    ->select('users.*')
+                    ->selectRaw('COUNT(login_logs.id) as total')
+                    ->selectRaw('MAX(login_logs.created_at) as last_login'),
             )
             ->defaultSort('total', 'desc')
             ->columns([
-                TextColumn::make('user.name')
+                TextColumn::make('name')
                     ->label('Usuário')
                     ->placeholder('—'),
-                TextColumn::make('user.email')
+                TextColumn::make('email')
                     ->label('E-mail')
                     ->placeholder('—'),
                 TextColumn::make('total')
