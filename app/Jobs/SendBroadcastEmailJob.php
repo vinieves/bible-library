@@ -44,7 +44,7 @@ class SendBroadcastEmailJob implements ShouldQueue
         }
 
         $subject = $this->renderPlaceholders($broadcast->subject);
-        $bodyHtml = $this->renderPlaceholders($broadcast->body);
+        $bodyHtml = $this->absolutizeStorageUrls($this->renderPlaceholders($broadcast->body));
         $attempt = $this->attempts();
 
         if (blank($this->recipientEmail) || ! filter_var($this->recipientEmail, FILTER_VALIDATE_EMAIL)) {
@@ -108,6 +108,21 @@ class SendBroadcastEmailJob implements ShouldQueue
             [$this->recipientName ?: 'Cliente', $this->recipientEmail, route('login')],
             $text,
         );
+    }
+
+    /**
+     * Garante que imagens/links inseridos no corpo (ex.: src="/storage/...") usem
+     * URL absoluta, para renderizarem nos clientes de e-mail.
+     */
+    private function absolutizeStorageUrls(string $html): string
+    {
+        $base = rtrim((string) config('app.url'), '/');
+
+        return preg_replace(
+            '#(src|href)=(["\'])/storage/#i',
+            '$1=$2'.$base.'/storage/',
+            $html,
+        ) ?? $html;
     }
 
     private function recordFailure(
