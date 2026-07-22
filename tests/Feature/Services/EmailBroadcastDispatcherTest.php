@@ -138,6 +138,61 @@ class EmailBroadcastDispatcherTest extends TestCase
         $this->assertLessThanOrEqual(14, $gap);
     }
 
+    public function test_duplicating_a_sent_campaign_produces_a_fresh_draft_with_same_content(): void
+    {
+        $user = User::factory()->create();
+
+        $original = EmailBroadcast::create([
+            'subject' => 'Novidades da semana',
+            'body' => '<p>Hola {nome}</p>',
+            'attachments' => ['email-broadcasts/attachments/guia.pdf'],
+            'audience_type' => 'email_list',
+            'email_list' => ['cliente@example.com'],
+            'exclude_admins' => true,
+            'status' => EmailBroadcastStatus::Sent,
+            'total_recipients' => 120,
+            'sent_count' => 118,
+            'failed_count' => 2,
+            'batch_id' => 'batch-antigo',
+            'sent_at' => now()->subDay(),
+        ]);
+
+        // Mesma lógica de clonagem da ação "Duplicar para reenviar".
+        $copy = $original->replicate();
+        $copy->status = EmailBroadcastStatus::Draft;
+        $copy->total_recipients = 0;
+        $copy->sent_count = 0;
+        $copy->failed_count = 0;
+        $copy->batch_id = null;
+        $copy->sent_at = null;
+        $copy->created_by = $user->id;
+        $copy->save();
+
+        $this->assertNotSame($original->id, $copy->id);
+
+        // Conteúdo preservado.
+        $this->assertSame($original->subject, $copy->subject);
+        $this->assertSame($original->body, $copy->body);
+        $this->assertSame($original->attachments, $copy->attachments);
+        $this->assertSame($original->audience_type, $copy->audience_type);
+        $this->assertSame($original->email_list, $copy->email_list);
+        $this->assertSame($original->exclude_admins, $copy->exclude_admins);
+
+        // Execução zerada e editável de novo.
+        $this->assertSame(EmailBroadcastStatus::Draft, $copy->status);
+        $this->assertTrue($copy->isDraft());
+        $this->assertSame(0, $copy->total_recipients);
+        $this->assertSame(0, $copy->sent_count);
+        $this->assertSame(0, $copy->failed_count);
+        $this->assertNull($copy->batch_id);
+        $this->assertNull($copy->sent_at);
+
+        // Original intacto.
+        $original->refresh();
+        $this->assertSame(EmailBroadcastStatus::Sent, $original->status);
+        $this->assertSame(118, $original->sent_count);
+    }
+
     public function test_dispatch_ignores_broadcast_that_is_not_draft(): void
     {
         Bus::fake();

@@ -208,9 +208,37 @@ class EmailBroadcastResource extends Resource
             ->recordActions([
                 self::testAction(),
                 self::dispatchAction(),
+                self::duplicateAction(),
                 \Filament\Actions\EditAction::make()
                     ->visible(fn (EmailBroadcast $record): bool => $record->isDraft()),
             ]);
+    }
+
+    public static function duplicateAction(): Action
+    {
+        return Action::make('duplicate')
+            ->label('Duplicar para reenviar')
+            ->icon('heroicon-o-document-duplicate')
+            ->color('gray')
+            ->action(function (EmailBroadcast $record, \Livewire\Component $livewire) {
+                $new = $record->replicate();
+                $new->status = EmailBroadcastStatus::Draft;
+                $new->total_recipients = 0;
+                $new->sent_count = 0;
+                $new->failed_count = 0;
+                $new->batch_id = null;
+                $new->sent_at = null;
+                $new->created_by = Auth::id();
+                $new->save();
+
+                Notification::make()
+                    ->title('Campanha duplicada')
+                    ->body('Ajuste o público e dispare quando quiser.')
+                    ->success()
+                    ->send();
+
+                $livewire->redirect(self::getUrl('edit', ['record' => $new]));
+            });
     }
 
     public static function testAction(): Action
