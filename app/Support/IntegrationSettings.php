@@ -173,6 +173,18 @@ class IntegrationSettings
         return (string) Setting::get('mail_from_name', config('app.name', 'Biblioteca Bíblica Digital'));
     }
 
+    /**
+     * Ritmo de envio de campanhas em massa (e-mails por minuto).
+     * Restrito a presets seguros para não sobrecarregar o SMTP.
+     */
+    public static function broadcastRatePerMinute(): int
+    {
+        $safe = [6, 12, 20];
+        $value = (int) Setting::get('broadcast_rate_per_minute', 12);
+
+        return in_array($value, $safe, true) ? $value : 12;
+    }
+
     public static function emailSmtpConfigured(): bool
     {
         return filled(static::smtpHost())

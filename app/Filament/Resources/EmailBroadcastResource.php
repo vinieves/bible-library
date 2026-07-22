@@ -246,9 +246,13 @@ class EmailBroadcastResource extends Resource
             ->visible(fn (EmailBroadcast $record): bool => $record->isDraft())
             ->requiresConfirmation()
             ->modalHeading('Disparar campanha')
-            ->modalDescription(fn (EmailBroadcast $record): string => 'Serão enviados e-mails para ≈ '
-                .app(EmailBroadcastAudienceService::class)->count($record)
-                .' destinatário(s). Esta ação não pode ser desfeita.')
+            ->modalDescription(function (EmailBroadcast $record): string {
+                $count = app(EmailBroadcastAudienceService::class)->count($record);
+                $minutes = (int) ceil(($count * app(EmailBroadcastDispatcher::class)->intervalSeconds()) / 60);
+
+                return 'Serão enviados e-mails para ≈ '.$count.' destinatário(s), espaçados no ritmo seguro configurado '
+                    .'(~'.max(1, $minutes).' min no total). Esta ação não pode ser desfeita.';
+            })
             ->modalSubmitActionLabel('Disparar agora')
             ->action(function (EmailBroadcast $record, EmailBroadcastDispatcher $dispatcher): void {
                 $total = $dispatcher->dispatch($record);

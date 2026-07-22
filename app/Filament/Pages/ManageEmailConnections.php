@@ -48,6 +48,7 @@ class ManageEmailConnections extends Page
             'smtp_password' => '',
             'mail_from_address' => IntegrationSettings::mailFromAddress() ?? '',
             'mail_from_name' => IntegrationSettings::mailFromName(),
+            'broadcast_rate_per_minute' => (string) IntegrationSettings::broadcastRatePerMinute(),
             'email_logo_url' => Setting::get('email_logo_url', ''),
             'email_logo_path' => filled(Setting::get('email_logo_path'))
                 ? [Setting::get('email_logo_path')]
@@ -139,6 +140,22 @@ class ManageEmailConnections extends Page
                         ->columnSpanFull(),
                 ])
                 ->columns(2),
+            Section::make('Disparos em massa')
+                ->description('Ritmo de envio das campanhas. Quanto mais lento, menor o risco de o SMTP bloquear ou atrasar os envios.')
+                ->schema([
+                    Select::make('broadcast_rate_per_minute')
+                        ->label('Velocidade de envio')
+                        ->options([
+                            '6' => 'Muy seguro — ~6/min (1 correo cada 10s)',
+                            '12' => 'Seguro (recomendado) — ~12/min (1 cada 5s)',
+                            '20' => 'Moderado — ~20/min (1 cada 3s)',
+                        ])
+                        ->default('12')
+                        ->required()
+                        ->native(false)
+                        ->helperText('Os e-mails de cada campanha saem espaçados nesse ritmo, um a um.')
+                        ->columnSpanFull(),
+                ]),
             Section::make('Aparência dos e-mails')
                 ->description('Layout padrão aplicado a todos os disparos. O corpo de cada regra é configurado em Disparos.')
                 ->schema([
@@ -199,6 +216,7 @@ class ManageEmailConnections extends Page
 
         Setting::set('mail_from_address', $fromAddress);
         Setting::set('mail_from_name', $data['mail_from_name'] ?? config('app.name', 'Biblioteca Bíblica Digital'));
+        Setting::set('broadcast_rate_per_minute', $data['broadcast_rate_per_minute'] ?? '12');
 
         $logoPath = $data['email_logo_path'] ?? [];
         if (is_array($logoPath)) {

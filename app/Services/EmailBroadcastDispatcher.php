@@ -6,20 +6,24 @@ use App\Enums\EmailBroadcastStatus;
 use App\Jobs\SendBroadcastEmailJob;
 use App\Models\EmailBroadcast;
 use App\Models\User;
+use App\Support\IntegrationSettings;
 use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Bus;
 use Throwable;
 
 class EmailBroadcastDispatcher
 {
-    /**
-     * Quantos e-mails despachar por minuto (escalonamento p/ respeitar o limite do SMTP).
-     */
-    private const PER_MINUTE = 60;
-
     public function __construct(
         private readonly EmailBroadcastAudienceService $audience,
     ) {}
+
+    /**
+     * Segundos entre cada e-mail, conforme o ritmo seguro configurado no admin.
+     */
+    public function intervalSeconds(): float
+    {
+        return 60 / max(1, IntegrationSettings::broadcastRatePerMinute());
+    }
 
     /**
      * Enfileira o disparo de uma campanha em rascunho. Retorna o total de destinatários.
@@ -32,12 +36,15 @@ class EmailBroadcastDispatcher
 
         $jobs = [];
         $index = 0;
+        $interval = $this->intervalSeconds();
+        $jitterMax = (int) ceil($interval * 0.4);
 
         $this->audience->query($broadcast)
             ->select(['id', 'name', 'email'])
-            ->chunkById(500, function ($users) use (&$jobs, &$index, $broadcast) {
+            ->chunkById(500, function ($users) use (&$jobs, &$index, $broadcast, $interval, $jitterMax) {
                 foreach ($users as $user) {
-                    $delaySeconds = intdiv($index, self::PER_MINUTE) * 60;
+                    // Cada e-mail sai espaçado do anterior (um a um), com jitter para não parecer robótico.
+                    $delaySeconds = (int) round($index * $interval) + random_int(0, $jitterMax);
 
                     $jobs[] = (new SendBroadcastEmailJob(
                         broadcastId: $broadcast->id,
