@@ -11,6 +11,7 @@ class EmailBroadcast extends Model
     protected $fillable = [
         'subject',
         'body',
+        'attachments',
         'audience_type',
         'audience_segment',
         'email_list',
@@ -28,6 +29,7 @@ class EmailBroadcast extends Model
     {
         return [
             'status' => EmailBroadcastStatus::class,
+            'attachments' => 'array',
             'email_list' => 'array',
             'exclude_admins' => 'boolean',
             'total_recipients' => 'integer',

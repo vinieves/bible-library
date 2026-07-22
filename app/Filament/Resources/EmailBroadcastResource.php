@@ -9,6 +9,7 @@ use App\Services\EmailBroadcastAudienceService;
 use App\Services\EmailBroadcastDispatcher;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -106,6 +107,20 @@ class EmailBroadcastResource extends Resource
                             ->required()
                             ->fileAttachmentsDisk('public')
                             ->fileAttachmentsDirectory('email-broadcasts')
+                            ->columnSpanFull(),
+                        FileUpload::make('attachments')
+                            ->label('Anexos')
+                            ->multiple()
+                            ->disk('public')
+                            ->directory('email-broadcasts/attachments')
+                            ->visibility('public')
+                            ->maxSize(10240)
+                            ->maxFiles(10)
+                            ->previewable()
+                            ->openable()
+                            ->downloadable()
+                            ->reorderable()
+                            ->helperText('PDF, imagens, Word ou outros arquivos (máx. 10 MB cada). Enviados como anexo em cada e-mail.')
                             ->columnSpanFull(),
                     ]),
                 Section::make('Público')

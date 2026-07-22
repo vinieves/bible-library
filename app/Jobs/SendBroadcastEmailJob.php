@@ -62,7 +62,12 @@ class SendBroadcastEmailJob implements ShouldQueue
         }
 
         try {
-            $result = $mailer->send($this->recipientEmail, $subject, $bodyHtml);
+            $result = $mailer->send(
+                $this->recipientEmail,
+                $subject,
+                $bodyHtml,
+                array_values($broadcast->attachments ?? []),
+            );
 
             $dispatchLog->recordSuccess(
                 trigger: EmailDispatchTrigger::Broadcast,
