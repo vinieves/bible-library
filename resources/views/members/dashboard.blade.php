@@ -9,7 +9,7 @@
 
     <x-members.app-onboarding />
 
-    <x-members.dashboard-hero />
+    <x-members.login-streak :streak="$loginStreak" />
 
     <div class="mt-5 space-y-4">
         <header class="dashboard-welcome">
