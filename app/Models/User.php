@@ -138,4 +138,23 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->materialProgress()->where('is_studied', true)->count();
     }
+
+    /**
+     * Filtra usuários por situação de login. Segmentos:
+     * dormant (sumidos 30d+ ou nunca), never (nunca logaram),
+     * active7 (ativos nos últimos 7 dias), new7 (cadastrados nos últimos 7 dias).
+     */
+    public function scopeLoginSegment(\Illuminate\Database\Eloquent\Builder $query, ?string $segment): \Illuminate\Database\Eloquent\Builder
+    {
+        return match ($segment) {
+            'dormant' => $query->where('is_admin', false)
+                ->where(fn ($q) => $q->whereNull('last_login_at')
+                    ->orWhere('last_login_at', '<', now()->subDays(30))),
+            'never' => $query->where('is_admin', false)
+                ->whereNull('last_login_at'),
+            'active7' => $query->where('last_login_at', '>=', now()->subDays(7)),
+            'new7' => $query->where('created_at', '>=', now()->subDays(7)),
+            default => $query,
+        };
+    }
 }

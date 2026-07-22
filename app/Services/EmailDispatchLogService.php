@@ -13,7 +13,7 @@ class EmailDispatchLogService
 {
     public function recordSuccess(
         EmailDispatchTrigger $trigger,
-        WhatsAppMessageEvent $messageEvent,
+        ?WhatsAppMessageEvent $messageEvent,
         string $recipientEmail,
         ?int $userId,
         ?int $purchaseId,
@@ -26,7 +26,7 @@ class EmailDispatchLogService
     ): EmailDispatchLog {
         return $this->create([
             'trigger' => $trigger,
-            'message_event' => $messageEvent->value,
+            'message_event' => $messageEvent?->value,
             'status' => EmailDispatchStatus::Sent,
             'from_address' => $fromAddress ?: IntegrationSettings::mailFromAddress(),
             'recipient_email' => $recipientEmail,
@@ -42,7 +42,7 @@ class EmailDispatchLogService
 
     public function recordFailure(
         EmailDispatchTrigger $trigger,
-        WhatsAppMessageEvent $messageEvent,
+        ?WhatsAppMessageEvent $messageEvent,
         string $recipientEmail,
         ?int $userId,
         ?int $purchaseId,
@@ -56,7 +56,7 @@ class EmailDispatchLogService
     ): EmailDispatchLog {
         return $this->create([
             'trigger' => $trigger,
-            'message_event' => $messageEvent->value,
+            'message_event' => $messageEvent?->value,
             'status' => EmailDispatchStatus::Failed,
             'from_address' => $fromAddress ?: IntegrationSettings::mailFromAddress(),
             'recipient_email' => $recipientEmail,
@@ -73,7 +73,7 @@ class EmailDispatchLogService
 
     public function recordThrowable(
         EmailDispatchTrigger $trigger,
-        WhatsAppMessageEvent $messageEvent,
+        ?WhatsAppMessageEvent $messageEvent,
         string $recipientEmail,
         ?int $userId,
         ?int $purchaseId,

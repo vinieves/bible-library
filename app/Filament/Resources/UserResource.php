@@ -122,18 +122,7 @@ class UserResource extends Resource
                         'active7' => 'Ativos (últimos 7 dias)',
                         'new7' => 'Cadastrados nos últimos 7 dias',
                     ])
-                    ->query(function ($query, array $data) {
-                        return match ($data['value'] ?? null) {
-                            'dormant' => $query->where('is_admin', false)
-                                ->where(fn ($q) => $q->whereNull('last_login_at')
-                                    ->orWhere('last_login_at', '<', now()->subDays(30))),
-                            'never' => $query->where('is_admin', false)
-                                ->whereNull('last_login_at'),
-                            'active7' => $query->where('last_login_at', '>=', now()->subDays(7)),
-                            'new7' => $query->where('created_at', '>=', now()->subDays(7)),
-                            default => $query,
-                        };
-                    }),
+                    ->query(fn ($query, array $data) => $query->loginSegment($data['value'] ?? null)),
             ])
             ->recordActions([
                 EditAction::make(),
