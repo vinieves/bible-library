@@ -42,6 +42,17 @@ class AuthenticationTest extends TestCase
         $this->assertAuthenticated();
     }
 
+    public function test_unknown_email_can_not_authenticate_and_is_not_created(): void
+    {
+        $response = $this->post('/login', [
+            'email' => 'desconhecido@example.com',
+        ]);
+
+        $this->assertGuest();
+        $response->assertSessionHasErrors('email');
+        $this->assertDatabaseMissing('users', ['email' => 'desconhecido@example.com']);
+    }
+
     public function test_users_can_logout(): void
     {
         $user = User::factory()->create();
