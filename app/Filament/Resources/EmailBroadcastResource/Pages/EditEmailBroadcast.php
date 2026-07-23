@@ -14,6 +14,7 @@ class EditEmailBroadcast extends EditRecord
         return [
             EmailBroadcastResource::testAction(),
             EmailBroadcastResource::dispatchAction(),
+            EmailBroadcastResource::cancelAction(),
             EmailBroadcastResource::duplicateAction(),
         ];
     }

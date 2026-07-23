@@ -10,6 +10,7 @@ enum EmailBroadcastStatus: string
     case Sent = 'sent';
     case Partial = 'partial';
     case Failed = 'failed';
+    case Cancelled = 'cancelled';
 
     public function label(): string
     {
@@ -20,6 +21,7 @@ enum EmailBroadcastStatus: string
             self::Sent => 'Enviado',
             self::Partial => 'Enviado com falhas',
             self::Failed => 'Falhou',
+            self::Cancelled => 'Cancelado',
         };
     }
 
@@ -32,6 +34,7 @@ enum EmailBroadcastStatus: string
             self::Sent => 'success',
             self::Partial => 'warning',
             self::Failed => 'danger',
+            self::Cancelled => 'gray',
         };
     }
 }

@@ -88,6 +88,11 @@ class EmailBroadcastDispatcher
                     return;
                 }
 
+                // Se o admin cancelou o disparo, preserva o status Cancelado.
+                if ($broadcast->status === EmailBroadcastStatus::Cancelled) {
+                    return;
+                }
+
                 $broadcast->update([
                     'status' => $broadcast->failed_count > 0
                         ? ($broadcast->sent_count > 0 ? EmailBroadcastStatus::Partial : EmailBroadcastStatus::Failed)

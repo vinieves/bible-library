@@ -25,6 +25,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\HtmlString;
 use UnitEnum;
 
@@ -208,6 +209,7 @@ class EmailBroadcastResource extends Resource
             ->recordActions([
                 self::testAction(),
                 self::dispatchAction(),
+                self::cancelAction(),
                 self::duplicateAction(),
                 \Filament\Actions\EditAction::make()
                     ->visible(fn (EmailBroadcast $record): bool => $record->isDraft()),
@@ -288,6 +290,36 @@ class EmailBroadcastResource extends Resource
                 Notification::make()
                     ->title('Campanha enfileirada')
                     ->body($total.' e-mail(s) na fila de envio.')
+                    ->success()
+                    ->send();
+            });
+    }
+
+    public static function cancelAction(): Action
+    {
+        return Action::make('cancel')
+            ->label('Parar disparo')
+            ->icon('heroicon-o-stop')
+            ->color('danger')
+            ->visible(fn (EmailBroadcast $record): bool => $record->status === EmailBroadcastStatus::Queued
+                && filled($record->batch_id))
+            ->requiresConfirmation()
+            ->modalHeading('Parar disparo')
+            ->modalDescription('Os e-mails ainda não enviados serão interrompidos. Os já enviados permanecem. Esta ação não pode ser desfeita.')
+            ->modalSubmitActionLabel('Parar agora')
+            ->action(function (EmailBroadcast $record): void {
+                if (filled($record->batch_id)) {
+                    Bus::findBatch($record->batch_id)?->cancel();
+                }
+
+                $record->update([
+                    'status' => EmailBroadcastStatus::Cancelled,
+                    'sent_at' => now(),
+                ]);
+
+                Notification::make()
+                    ->title('Disparo interrompido')
+                    ->body($record->sent_count.' e-mail(s) já haviam sido enviados. O restante foi cancelado.')
                     ->success()
                     ->send();
             });
