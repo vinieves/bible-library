@@ -28,7 +28,7 @@
     </header>
 
     {{-- Área principal: PDF ocupa todo o espaço disponível --}}
-    <main class="flex min-h-0 flex-1 flex-col pb-20 md:pb-4">
+    <main class="flex min-h-0 flex-1 flex-col pb-20">
         @yield('content')
     </main>
 

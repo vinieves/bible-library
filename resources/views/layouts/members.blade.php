@@ -19,7 +19,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('scripts')
 </head>
-<body class="members-shell min-h-screen bg-paper pb-24 font-sans text-muted antialiased md:pb-8">
+<body class="members-shell min-h-screen bg-paper pb-24 font-sans text-muted antialiased">
     @php
         $headerStyle = $headerStyle ?? (($showBack ?? false) ? 'back' : 'home');
     @endphp
